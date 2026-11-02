@@ -80,3 +80,4 @@ life-invest-live /index.html?seed=life-invest-live&theme=light&speed=4
 life-relocating /index.html?seed=life-relocating&theme=light
 life-relocating-house /index.html?seed=life-relocating-house
 life-autopilot-done /index.html?seed=life-autopilot-done&theme=light
+voxel-vendor /index.html?dev=voxel-vendor&theme=light

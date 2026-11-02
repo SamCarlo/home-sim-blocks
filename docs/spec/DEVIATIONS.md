@@ -367,3 +367,12 @@ and where in the code. Keep entries short. The teacher's intent in `99-original-
   now skip closed loans (a foreclosed or sold loan used to count).
 - **Save state**: STATE_VERSION 2 (`relocation`, stage 'autopilot'); `paperwork.activeStep` and `home.pickDraft` are
   optional fields so a reload reopens the same paperwork step and design selection; the header has a Save button.
+
+- **2026-11-02, homeblocks 02: block engine is `vyse12138/minecraft-threejs` (MIT), not `dgreenheck/minecraft-threejs-clone`.**
+  The first choice (HEAD `52aabd3306ae`) has no LICENSE file anywhere in its history and the GitHub API reports
+  `license: null`, so it is "all rights reserved" and 13 §2 forbids copying it. The first fallback's LICENSE is MIT
+  (Copyright (c) 2022 Vyse12138); vendored at `ead87efb` in `app/vendor/voxel/`. Note it is a surface-heightmap engine
+  with one InstancedMesh per block type, not a chunked dense-volume mesher; later tasks build our dense volume
+  (13 §3) and meshing in `app/src/world/` + `app/src/three/voxel/` and use the engine for player, controls, physics and
+  block editing where they fit. Where: app/vendor/voxel/README.md, app/vendor/VERSIONS.md.
+

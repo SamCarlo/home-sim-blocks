@@ -96,11 +96,11 @@ app/src/ui/                    dom.js (h, clear, qs) · screens.js (registerScre
                                agreementDoc.js registerAgreementDoc/agreementSchema)
 app/src/forms/                 engine.js (renderForm) · fields.js (field kinds) · validate.js (pure rules + helpers)
 app/src/dev/                   flags.js (devAllowed, getFlag) · galleries.js (?dev=<name> registry) · vendorCheck.js
-                               seeds.js (fixtures) · designSeeds.js (design-* seeds, addDesignSeeds) · sampleLetters.js · devPanel.js (?dev=1) · gallery2d.js (?dev=gallery2d) · formsGallery.js (?dev=forms) · lettersGallery.js (?dev=letters) · sceneGallery.js (?dev=scene) · propsGallery.js (?dev=props) · stylesGallery.js (?dev=styles) · buildingsGallery.js (?dev=buildings) · housesGallery.js (?dev=houses) · blueprint3dGallery.js (?dev=blueprint3d) · lifeSeeds.js (life-* seeds, addLifeSeeds)
+                               seeds.js (fixtures) · designSeeds.js (design-* seeds, addDesignSeeds) · sampleLetters.js · devPanel.js (?dev=1) · gallery2d.js (?dev=gallery2d) · formsGallery.js (?dev=forms) · lettersGallery.js (?dev=letters) · sceneGallery.js (?dev=scene) · propsGallery.js (?dev=props) · stylesGallery.js (?dev=styles) · buildingsGallery.js (?dev=buildings) · housesGallery.js (?dev=houses) · blueprint3dGallery.js (?dev=blueprint3d) · voxelVendorGallery.js (?dev=voxel-vendor) · lifeSeeds.js (life-* seeds, addLifeSeeds)
 app/src/three/                 scene.js sky.js terrain.js landmarks.js materials.js · props.js propKit.js animals.js yard.js
                                character.js · styles.js styleParts.js styleSwatch.js · buildingGen.js buildingParts.js · houseGen.js houseYard.js · blueprintTo3d.js · homeRender.js
                                (browser only, import() lazily; see 3D scene)
-app/vendor/                    three/ (+addons/) nspell/ dictionary-en/ vader/ · VERSIONS.md (pinned, licensed)
+app/vendor/                    three/ (+addons/) nspell/ dictionary-en/ vader/ · voxel/ (block engine, task 02) · VERSIONS.md (pinned, licensed)
 app/src/phases/<phase>/        one screen per phase (placeholders until their tasks); design/blueprint/ = the build editor
                                paperwork/: paperworkScreen.js · flow.js (pure) · steps/ (index.js registry, one module per step)
 app/src/accounts/              provider.js (AccountError, validation, chooseMode, selectProvider) · local.js (PBKDF2, homeblocks:v1:accounts/session)
@@ -146,6 +146,25 @@ docs/                          TASK_PROTOCOL, PROGRESS, OPEN_ITEMS, spec/
   - Update `VERSIONS.md`, run `npm test` and the `?dev=vendor` shot.
 - Dev galleries: add `name: () => import('./x.js')` to `dev/galleries.js`; the module exports `mount(root)` (sets ready,
   may return a cleanup) and gets a `tools/smoke.txt` line `<name> /index.html?dev=<name>`.
+
+## Block engine (13 §2, task 02; `app/vendor/voxel/`, browser only)
+- **Engine:** `vyse12138/minecraft-threejs` @ `ead87efb`, MIT (`app/vendor/voxel/LICENSE`). The spec's first choice
+  (dgreenheck) has no license, see DEVIATIONS. Full file list, hand changes and API: `app/vendor/voxel/README.md`.
+- Upstream TS transpiled per file to ESM; `three` is the import-map bare specifier on the main thread. The generator runs
+  in a **module worker** (`terrain/worker/generate.js`), which can't see the import map, so it (and the local
+  `terrain/noise/ImprovedNoise.js`) import three as `../../../three/three.module.min.js`. Hand changes are marked `// BLOCKS:`.
+- API: `new Terrain(scene, camera)` (+ `BlockType` enum grass 0 … bedrock 11): set `distance`/`chunkSize` and recompute
+  `maxCount = (distance·chunkSize·2 + chunkSize)² + 500`, set all five `noise.*Seed`, then `initBlocks()` and
+  `generate()`; the meshes fill when the worker replies (`terrain.generateWorker.addEventListener('message', …)`).
+  `blocks[]` = one InstancedMesh per type, `customBlocks[]` = `Block(x, y, z, type, placed)` edits, `buildBlock(v, type)`.
+  `new Control(scene, camera, player, terrain, audio?)` = pointer lock + WASD/space/shift + collisions + left-click
+  remove / right-click place, `update()` per frame. `new Player()` (body 1.8 × 0.5, `setMode(Mode.flying…)`).
+- Gotchas: surface-heightmap only (one block per column + trees; no dense volume, no face culling, every slot of every
+  InstancedMesh is drawn); seeds default to `Math.random()` and the worker never receives `leafSeed`; `Control` has no
+  dispose. Our dense world (13 §3) and its meshing are ours to build; reuse the engine for player/controls/editing.
+- Gallery `?dev=voxel-vendor` (`dev/voxelVendorGallery.js`): one 32 × 32 chunk with fixed seeds, placeholder colors, orbit
+  camera; `window.__voxel = {calls, triangles, chunks, blocks}`. `lazy-plan.json` also forbids `/vendor/voxel/` and
+  `/src/three/voxel/` before Phase 4.
 
 ## Finance helpers (`app/src/finance/`, pure, integer cents, rates are annual decimals)
 - `money.js`: `dollarsToCents(input)` (numbers, "3,200", "$3,200.50", "-$45"; null when unparseable) · `assertCents` ·

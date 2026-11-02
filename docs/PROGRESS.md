@@ -2141,3 +2141,27 @@ each logs here under `## Blocks NN: <title>`.
 - Notes for later tasks: `window.__homesim` and the uid hash salt `homesim:${username}` in accounts/local.js are left
   as-is on purpose (tests use the first; the second isn't a storage key, and changing it would change uids). The env flag
   `HOMESIM_FIREBASE=1` for check.sh is unchanged. A non-word grep for 1270 hits numbers like 12700 in data; ignore those.
+
+## Blocks 02: Vendor the open-source block engine
+- attempt started 2026-11-02T00:23:37-10:00
+- done 2026-11-02T00:30:49-10:00
+- Engine: **vyse12138/minecraft-threejs @ ead87efb (MIT)**. The first choice, dgreenheck/minecraft-threejs-clone
+  (HEAD 52aabd3), has no LICENSE file and GitHub reports `license: null`, so it was not used (DEVIATIONS).
+- Files added: app/vendor/voxel/ (LICENSE, README.md, terrain/{index,worker/generate,mesh/block,mesh/materials,
+  noise/index,noise/ImprovedNoise,highlight/index}.js, control/index.js, player/index.js, utils/index.js),
+  app/vendor/three/addons/controls/PointerLockControls.js (three r186), app/src/dev/voxelVendorGallery.js.
+  Changed: app/src/dev/galleries.js ('voxel-vendor'), tools/smoke.txt (+1 line), tests/e2e/lazy-plan.json (also forbids
+  /vendor/voxel/ and /src/three/voxel/), tests/unit/production.test.js (hosted-folder allowlist accepts
+  app/vendor/*/README.md, which this task requires), app/vendor/VERSIONS.md (row + upgrade recipe), CLAUDE.md
+  ("Block engine" section, folder map), docs/spec/DEVIATIONS.md.
+- Verified: `bash tools/check.sh` OK (syntax 235 files, tests, data, contrast, copy, smoke 81/81, lazy-plan).
+  - b02/vendor.png (`?dev=voxel-vendor&theme=light`): one 32 × 32 chunk of block terrain on a sky background: grass
+    tops with dirt sides, terraced hill, a sand patch, two stone patches, two trees with leaf canopies; label strip at
+    the bottom. No console errors. `window.__voxel` = {calls: 22, triangles: 53035, chunks: 1, blocks: 1556}
+    (blocks varies by a few dozen run to run: leaf shapes, see below).
+- Deviations: engine fallback (above).
+- Notes for later tasks: the engine is a **surface heightmap** with one InstancedMesh per block type and no face
+  culling, not a chunked dense-volume mesher; build our volume (13 §3) and meshing ourselves and reuse its Control/Player
+  (pointer lock, collisions, place/remove) where it fits. Its generator worker can't see the import map (imports three by
+  relative path). The worker's `Noise` never gets `leafSeed`, so leaves are not deterministic. `Control` has no
+  dispose and listens on document.body. materials.js holds placeholder colors (`COLORS`) for task 03 to replace.

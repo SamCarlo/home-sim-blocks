@@ -52,7 +52,7 @@ test('firebase.json: hosts app/ with the 11 §8 cache headers', () => {
 });
 
 test('the hosted folder holds only app files (no logs, tests, secrets, source maps or tooling)', () => {
-  const allowed = /\.(html|js|css|json|svg|aff|dic)$|\/(LICENSE|NOTICE|VERSIONS\.md)$/;
+  const allowed = /\.(html|js|css|json|svg|aff|dic)$|\/(LICENSE|NOTICE|VERSIONS\.md)$|^app\/vendor\/[^/]+\/README\.md$/; // vendor READMEs: blocks task 02
   const bad = walk(path.join(HS, 'app')).map((f) => path.relative(HS, f).split(path.sep).join('/'))
     .filter((f) => !allowed.test(f) || /\.(test|spec)\.js$|\.map$|(^|\/)\.|node_modules|firebaserc|-debug\.log/.test(f));
   assert.deepEqual(bad, []);
