@@ -2112,3 +2112,8 @@ life-month1-house · seed 7 · income $4,300/mo
 - Notes: four older e2e scripts (design-apartment/house/shared, renter-apartment) were already stale before this task
   (placeholders from early tasks); not changed. Reflections (year review and autopilot) are saved but not shown in the
   admin console.
+
+# Block Edition (fork, 2026-11-01)
+Forked from `interfaces/home-sim` at dfece19 plus the uncommitted task-58 tree (commit a282a32). The new edition swaps
+Phase 4's procedural 3D for a block world (`docs/spec/13-blocks.md`). Tasks are `homeblocks_01` … `homeblocks_24`;
+each logs here under `## Blocks NN: <title>`.

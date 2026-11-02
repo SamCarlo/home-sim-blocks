@@ -1,9 +1,10 @@
-# Task protocol: every `homesim_NN` task follows this
+# Task protocol: every `homeblocks_NN` task follows this
 
 **Paths**
-- `HS` = `/home/sam/Documents/work/teaching/interfaces/home-sim`
+- `HS` = `/home/sam/Documents/work/teaching/interfaces/home-sim-blocks` (the Block Edition fork; never edit
+  `interfaces/home-sim`, the classic game)
 - `TASKS` = `/home/sam/Documents/work/teaching/tasks`
-- Your task file: `TASKS/homesim_NN_<slug>_task.md`
+- Your task file: `TASKS/homeblocks_NN_<slug>_task.md`
 
 You're a cold, headless run with no memory of earlier runs, a dollar budget cap, and a 30-minute wall clock (systemd
 kills the run at 30 minutes). Aim to finish in about 20 minutes: read only what you need, build, verify, wrap up.
@@ -12,12 +13,12 @@ files in a sensible state as you go.
 
 ## 1. Start
 - `cd` into `HS`. Task 01 creates everything except `docs/`, which already exists.
-- Append to `docs/PROGRESS.md`: a heading `## Task NN — <title>` (skip it if the heading already exists), then a line
+- Append to `docs/PROGRESS.md`: a heading `## Blocks NN: <title>` (skip it if the heading already exists), then a line
   `- attempt started <ISO time>`.
 
 ## 2. Read (in this order, and only what you need)
 1. `HS/CLAUDE.md` (from task 01 on).
-2. The spec sections your task lists (`docs/spec/…`). For long files, read the named sections rather than the whole file.
+2. `docs/spec/13-blocks.md` (the Block Edition spec), then the other spec sections your task lists (`docs/spec/…`). For long files, read the named sections rather than the whole file.
 3. The last ~80 lines of `docs/PROGRESS.md`, and all of `docs/OPEN_ITEMS.md` and `docs/spec/DEVIATIONS.md`.
 4. The existing source files your task builds on (named in the task). Use grep/glob to find anything else instead of
    reading whole directories.
@@ -39,6 +40,8 @@ files in a sensible state as you go.
 - **Never** deploy, create cloud projects or resources, sign in to anything, add a git remote, or push.
 - Network use is limited to:
   - downloading libraries and tools (npm registry, jsDelivr, gstatic);
+  - the Block Edition sources named in 13 §2: github.com / codeload.github.com / raw.githubusercontent.com for the
+    pinned engine repo, and kenney.nl (or its opengameart.org mirror) for the CC0 Voxel Pack;
   - optional fact-checking web searches in the data tasks.
 - Follow the spec. If you must depart from it, do the simplest thing that keeps the teacher's intent
   (`docs/spec/99-original-request.md`), and record it in `docs/spec/DEVIATIONS.md` (date, task, what, why, where).
@@ -71,7 +74,7 @@ files in a sensible state as you go.
    - any deviations;
    - notes for later tasks: gotchas, helpers worth reusing, loose ends.
 2. **Docs**: update `HS/CLAUDE.md` if you added a module, command, convention, seed or gotcha.
-3. **Commit**: `cd "$HS" && git add -A && git commit -m "homesim NN: <title>"`. This is a local repo only. Never push.
+3. **Commit**: `cd "$HS" && git add -A && git commit -m "homeblocks NN: <title>"`. This is a local repo only. Never push.
 4. **Rename** your task file with **one `mv` command, exactly this form** (the dashboard links runs to tasks by it):
-   `mv "/home/sam/Documents/work/teaching/tasks/homesim_NN_<slug>_task.md" "/home/sam/Documents/work/teaching/tasks/homesim_NN_<slug>_task.md.done"`
+   `mv "/home/sam/Documents/work/teaching/tasks/homeblocks_NN_<slug>_task.md" "/home/sam/Documents/work/teaching/tasks/homeblocks_NN_<slug>_task.md.done"`
 5. **Summary**: finish with a short summary of what you built, how you verified it, and anything left open.

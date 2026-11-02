@@ -109,6 +109,7 @@ and five domains of wellbeing change. Once they have savings, they can invest.
 | `10-investments.md` | unlock, portfolios, simulation, invest/sell rules, display |
 | `11-accounts-firebase.md` | local vs Firebase mode, accounts, admin console, Firestore model, rules, emulators, deploy |
 | `12-ux-content.md` | visual direction, themes, accessibility, reading level, Hawaiian orthography, glossary |
+| `13-blocks.md` | **Block Edition**: voxel Phase 4, borrowed engine and textures, world generators, saves, upgrades |
 | `99-original-request.md` | the teacher's words, verbatim, plus the requirement → task checklist |
 | `DEVIATIONS.md` | any place the build knowingly departs from this spec, and why |
 
