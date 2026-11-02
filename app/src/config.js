@@ -609,6 +609,13 @@ export const WORLD = {
   treesPer1000: 6,              // 13 §5 tree attempts per 1000 open columns at density 1 (biome table scales it)
 };
 
+/** Far scenery (13 §3, homeblocks 08; world/genLandmarks.js). Sizes are in far blocks (× WORLD.farScale m). */
+export const FAR = {
+  size: { x: 96, y: 56, z: 24 }, // 384 m wide, 224 m tall, 96 m deep at farScale 4
+  gap: 0,                       // far blocks between the dense world's −z edge and the far volume's near face
+  plumeOpacity: 0.7,            // the far blend pass (plume, far water) is drawn at this opacity
+};
+
 /** Neighborhood by settlement (13 §5, homeblocks 07; world/genNeighborhood.js). Counts are inclusive [min, max]. */
 export const NEIGHBORHOOD = {
   setback: 3,                   // blocks between the sidewalk and a neighbor's front wall

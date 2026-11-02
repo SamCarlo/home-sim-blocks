@@ -131,6 +131,12 @@ add('lehua-leaves', 'ʻŌhiʻa leaves', f('leaves_orange_transparent.png'), { ti
 add('asphalt', 'Asphalt', f('greystone.png'), { tint: '#4a4c52', group: 'structure' });
 add('road-paint', 'Road paint', f(PLASTER_TEX), { tint: '#f2d25a', group: 'structure', placeable: false });
 add('mailbox', 'Mailbox', f(PLASTER_TEX, 'greysand.png', PLASTER_TEX), { tint: '#5a6a7e', group: 'decor' });
+// Appended (homeblocks 08): far-scenery colors for world/genLandmarks.js (one far block = 4 m, so flat tints read best).
+add('plume', 'Steam plume', f(PLASTER_TEX), { tint: '#dcdad6', solid: false, transparent: true, placeable: false, group: 'nature' });
+add('far-forest', 'Distant forest', f(PLASTER_TEX), { tint: '#3f6a3c', placeable: false, group: 'nature' });
+add('far-haze', 'Distant ridge', f(PLASTER_TEX), { tint: '#8fa2b2', placeable: false, group: 'nature' });
+add('far-ochre', 'Distant red rock', f(PLASTER_TEX), { tint: '#b07a52', placeable: false, group: 'nature' });
+add('gold', 'Gold leaf', f(PLASTER_TEX), { tint: '#d4a93a', placeable: false, group: 'structure' });
 
 for (const b of BLOCKS) Object.freeze(b);
 Object.freeze(BLOCKS);

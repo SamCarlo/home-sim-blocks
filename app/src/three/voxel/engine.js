@@ -11,6 +11,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { textureFiles } from '../../world/blocks.js';
 import { get as getCell, set as setCell, inBounds } from '../../world/volume.js';
 import { PASSES, blockTables, meshChunk, raycast } from '../../world/mesher.js';
+import { FAR } from '../../config.js';
 
 const TEX_URL = new URL('../../../vendor/kenney-voxel/', import.meta.url);
 const TILE = 128;  // Kenney tile size in px
@@ -68,8 +69,8 @@ function geometryOf(part) {
 const daylightAt = (h) => THREE.MathUtils.clamp(0.5 - 0.5 * Math.cos(((h % 24) / 24) * Math.PI * 2) * 1.6, 0, 1);
 
 /**
- * Render volume `opts.volume` in container. Options: `far` {volume, scale, origin {x, y, z}} (one merged mesh scaled at
- * origin), `timeOfDay` hours (12). Resolves to {scene, camera, renderer, controls, setBlock, getBlock, pick, setOrbit,
+ * Render volume `opts.volume` in container. Options: `far` {volume, scale, origin {x, y, z}} or a list of them (meshed per
+ * pass, scaled at origin; the blend pass at FAR.plumeOpacity), `timeOfDay` hours (12). Resolves to {scene, camera, renderer, controls, setBlock, getBlock, pick, setOrbit,
  * setTimeOfDay, info {calls, triangles, chunks}, requestRender, firstFrame, dispose}, or null without WebGL.
  */
 export async function createVoxelWorld(container, { volume, far = null, timeOfDay = 12 } = {}) {
@@ -118,17 +119,24 @@ export async function createVoxelWorld(container, { volume, far = null, timeOfDa
   }
   const rebuildDirty = () => chunks.forEach((ch, i) => { if (ch.dirty) buildChunk(i); });
 
-  let farMesh = null;
-  if (far?.volume) {
-    const part = meshChunk(far.volume, tables, { singlePass: true })[0];
-    if (part.faces) {
-      farMesh = new THREE.Mesh(geometryOf(part), mats[0]);
-      farMesh.name = 'far';
-      farMesh.scale.setScalar(far.scale ?? 4);
-      farMesh.position.set(far.origin?.x ?? 0, far.origin?.y ?? 0, far.origin?.z ?? 0);
-      scene.add(farMesh);
-    }
+  // Far scenery (13 §3): one entry or a list (the landmarks gallery shows 20), meshed per pass so plumes stay translucent.
+  const farGroup = new THREE.Group();
+  farGroup.name = 'far';
+  const farBlend = mats[2].clone();
+  farBlend.opacity = FAR.plumeOpacity;
+  for (const f of [far].flat()) {
+    if (!f?.volume) continue;
+    meshChunk(f.volume, tables).forEach((part, p) => {
+      if (!part.faces) return;
+      const m = new THREE.Mesh(geometryOf(part), p === 2 ? farBlend : mats[p]);
+      m.name = `far-${PASSES[p]}`;
+      m.scale.setScalar(f.scale ?? 4);
+      m.position.set(f.origin?.x ?? 0, f.origin?.y ?? 0, f.origin?.z ?? 0);
+      if (p === 2) m.renderOrder = 1;
+      farGroup.add(m);
+    });
   }
+  scene.add(farGroup);
 
   const controls = new OrbitControls(camera, canvas);
   Object.assign(controls, { enableDamping: true, dampingFactor: 0.1, maxPolarAngle: Math.PI * 0.49, minDistance: 4,
@@ -179,6 +187,8 @@ export async function createVoxelWorld(container, { volume, far = null, timeOfDa
       controls.dispose();
       scene.traverse((o) => o.geometry?.dispose());
       mats.forEach((m) => m.dispose());
+      farBlend.dispose();
+      farGroup.traverse((o) => o.geometry?.dispose());
       atlas.dispose();
       renderer.dispose();
       renderer.forceContextLoss();

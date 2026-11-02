@@ -96,12 +96,12 @@ app/src/ui/                    dom.js (h, clear, qs) · screens.js (registerScre
                                agreementDoc.js registerAgreementDoc/agreementSchema)
 app/src/forms/                 engine.js (renderForm) · fields.js (field kinds) · validate.js (pure rules + helpers)
 app/src/dev/                   flags.js (devAllowed, getFlag) · galleries.js (?dev=<name> registry) · vendorCheck.js
-                               seeds.js (fixtures) · designSeeds.js (design-* seeds, addDesignSeeds) · sampleLetters.js · devPanel.js (?dev=1) · gallery2d.js (?dev=gallery2d) · formsGallery.js (?dev=forms) · lettersGallery.js (?dev=letters) · sceneGallery.js (?dev=scene) · propsGallery.js (?dev=props) · stylesGallery.js (?dev=styles) · buildingsGallery.js (?dev=buildings) · housesGallery.js (?dev=houses) · blueprint3dGallery.js (?dev=blueprint3d) · voxelVendorGallery.js (?dev=voxel-vendor) · blocksGallery.js (?dev=blocks[&night=1]) · lifeSeeds.js (life-* seeds, addLifeSeeds)
+                               seeds.js (fixtures) · designSeeds.js (design-* seeds, addDesignSeeds) · sampleLetters.js · devPanel.js (?dev=1) · gallery2d.js (?dev=gallery2d) · formsGallery.js (?dev=forms) · lettersGallery.js (?dev=letters) · sceneGallery.js (?dev=scene) · propsGallery.js (?dev=props) · stylesGallery.js (?dev=styles) · buildingsGallery.js (?dev=buildings) · housesGallery.js (?dev=houses) · blueprint3dGallery.js (?dev=blueprint3d) · voxelVendorGallery.js (?dev=voxel-vendor) · blocksGallery.js (?dev=blocks[&night=1]) · landmarksGallery.js (?dev=landmarks) · lifeSeeds.js (life-* seeds, addLifeSeeds)
 app/src/three/                 scene.js sky.js terrain.js landmarks.js materials.js · props.js propKit.js animals.js yard.js · voxel/engine.js (block world adapter, blocks task 05)
                                character.js · styles.js styleParts.js styleSwatch.js · buildingGen.js buildingParts.js · houseGen.js houseYard.js · blueprintTo3d.js · homeRender.js
                                (browser only, import() lazily; see 3D scene)
 app/vendor/                    three/ (+addons/) nspell/ dictionary-en/ vader/ · voxel/ (block engine, task 02) · kenney-voxel/ (CC0 tiles, blocks task 03) · VERSIONS.md (pinned, licensed)
-app/src/world/                 blocks.js (block registry) · volume.js (dense volume) · edits.js (save diffs) · mesher.js (face mesher + raycast) · genTerrain.js trees.js (blocks task 06) · genNeighborhood.js shells.js (blocks task 07) (pure; more generators, voxHome in later tasks)
+app/src/world/                 blocks.js (block registry) · volume.js (dense volume) · edits.js (save diffs) · mesher.js (face mesher + raycast) · genTerrain.js trees.js (blocks task 06) · genNeighborhood.js shells.js (blocks task 07) · genLandmarks.js (blocks task 08) (pure; more generators, voxHome in later tasks)
 app/src/phases/<phase>/        one screen per phase (placeholders until their tasks); design/blueprint/ = the build editor
                                paperwork/: paperworkScreen.js · flow.js (pure) · steps/ (index.js registry, one module per step)
 app/src/accounts/              provider.js (AccountError, validation, chooseMode, selectProvider) · local.js (PBKDF2, homeblocks:v1:accounts/session)
@@ -232,6 +232,18 @@ docs/                          TASK_PROTOCOL, PROGRESS, OPEN_ITEMS, spec/
   `towerShell` solid cores with glass in the face, `addRoof` gable|hip|flat, `fenceRing`). Blocks 100–102: asphalt, road-paint, mailbox.
   Gallery `?dev=voxel&gen=neighborhood&loc=<id>&kind=<homeKind>&seed=` (`window.__voxel.neighborhood`); tests
   `tests/unit/genNeighborhood.test.js`. Brooklyn ≈ 258k triangles (towers ~35k each).
+
+## Far landmarks (13 §3, §5, blocks task 08; `app/src/world/genLandmarks.js`, pure)
+- `genFar({location, seed, monthIndex?, worldSize?})` → `{key, size, data, origin, scale}`; pass `{volume: {size, data}, scale,
+  origin}` as `createVoxelWorld`'s `far`. Size `config.FAR.size` (96 × 56 × 24 far blocks × `WORLD.farScale` 4 m); `farOrigin()`
+  puts it past the −z edge (where three/terrain.js puts every landmark), centered in x, ground plate (y 0) top = groundY.
+  `LANDMARK_SHAPES[key] = [shape, params]` for all 20 `LANDMARKS`; shapes volcanoPlume shield ridges needleMountain skyline
+  stripMountains mesa lighthouse waterTower dome windmill dock spit crossroads. Maunakea's cap is lower in Dec–Feb.
+  Blocks 103–107 (appended): `plume` (blend pass, translucent), `far-forest`, `far-haze`, `far-ochre`, `gold`. Snow caps are
+  `plaster`, because the snow block's sides are dirt-snow and read brown.
+- Engine: `far` may be one entry or a list; it is meshed per pass and its blend pass uses `FAR.plumeOpacity`.
+- Gallery `?dev=landmarks[&seed=&month=]` (`dev/landmarksGallery.js`, 5 × 4 grid at scale 1, `window.__landmarks` = filled
+  cells per key); `?dev=voxel&gen=terrain&loc=<id>&far=1` shows a place's world with its landmark. Tests `tests/unit/genLandmarks.test.js`.
 
 ## Finance helpers (`app/src/finance/`, pure, integer cents, rates are annual decimals)
 - `money.js`: `dollarsToCents(input)` (numbers, "3,200", "$3,200.50", "-$45"; null when unparseable) · `assertCents` ·

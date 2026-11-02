@@ -1,7 +1,7 @@
 // `?dev=voxel` (13 §2, §11, blocks task 05): the voxel adapter (three/voxel/engine.js) showing a pure test volume.
 // Default: 64 × 32 × 64 with ground, a hollow plank house (door, glass and lit windows, roof), a tree and a pond.
 // `&full=1`: a flat 128 × 96 × 128 world (the 13 §11 budget check). `&t=<hours>` time of day (12). `&far=1` adds a
-// far-scenery stepped hill (16 × 10 × 8 at scale 4) behind the world. `&gen=terrain&loc=<id>&month=<n>&seed=<n>` shows
+// far-scenery stepped hill (16 × 10 × 8 at scale 4) behind the world (with `&gen=`: the place's landmark, genFar). `&gen=terrain&loc=<id>&month=<n>&seed=<n>` shows
 // world/genTerrain.js for a location (homeblocks 06; default pahoa, month 0). `&gen=neighborhood&loc=<id>&kind=<homeKind>`
 // adds world/genNeighborhood.js on top (homeblocks 07; big-city volumes are WORLD.tallY high).
 // Click breaks the block under the pointer, shift-click places light planks on the face (proves edits through pick).
@@ -13,6 +13,7 @@ import { createVolume, fillBox, hollowBox, column } from '../world/volume.js';
 import { genTerrain } from '../world/genTerrain.js';
 import { genNeighborhood, worldSizeFor } from '../world/genNeighborhood.js';
 import { byId } from '../data/locations/index.js';
+import { genFar } from '../world/genLandmarks.js';
 
 const id = (key) => BLOCK[key].id;
 
@@ -82,7 +83,11 @@ export async function mount(root) {
     if (gen === 'neighborhood') hood = genNeighborhood(volume, { location: place, seed, homeKind });
     terrain.ms = Math.round(performance.now() - t0);
   } else volume = full ? flatVolume() : testVolume();
-  const far = getFlag('far') === '1' ? { volume: farHill(), scale: 4, origin: { x: volume.size.x / 2 - 32, y: 0, z: -40 } } : null;
+  let far = null;
+  if (getFlag('far') === '1' && place) { // the place's landmark (homeblocks 08)
+    const f = genFar({ location: place, seed: Number(getFlag('seed') ?? 1), monthIndex: Number(getFlag('month') ?? 0), worldSize: volume.size });
+    far = { volume: { size: f.size, data: f.data }, scale: f.scale, origin: f.origin };
+  } else if (getFlag('far') === '1') far = { volume: farHill(), scale: 4, origin: { x: volume.size.x / 2 - 32, y: 0, z: -40 } };
   const world = await createVoxelWorld(view, { volume, far, timeOfDay: Number(getFlag('t') ?? 12) });
   if (!world) {
     label.textContent = 'WebGL is not available, so the block world cannot be shown.';

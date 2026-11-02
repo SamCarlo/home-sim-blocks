@@ -4,11 +4,11 @@
 // keeps per-face texture tiles simple (13 §11 budget: a flat 128 × 96 × 128 world is ≈ 58 k triangles).
 //
 // Faces go into passes (the adapter gives each pass its own material): 0 opaque, 1 cutout (glass, leaves, crops: alpha
-// test), 2 blend (water, ice: real alpha, drawn after), 3 glow (emissive blocks, lit at night).
+// test), 2 blend (water, ice, plume: real alpha, drawn after), 3 glow (emissive blocks, lit at night).
 import { BLOCKS } from './blocks.js';
 
 export const PASSES = ['opaque', 'cutout', 'blend', 'glow'];
-const BLEND_KEYS = new Set(['water', 'ice']);
+const BLEND_KEYS = new Set(['water', 'ice', 'plume']);
 
 // Each face: normal, then 4 corners (bottom-left, bottom-right, top-right, top-left seen from outside, CCW), and which
 // texture slot it uses (0 top, 1 side, 2 bottom).

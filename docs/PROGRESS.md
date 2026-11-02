@@ -2287,3 +2287,30 @@ each logs here under `## Blocks NN: <title>`.
   foundation. The lot stays empty above groundY for voxHouse/voxBuilding; terrain tree canopies (and pine snow caps) can
   still overhang the street band. Buildings are solid cores (houses are hollow); lit-glass reads tan by day. Towers are the
   triangle budget driver (~35k each).
+
+## Blocks 08: Distant landmarks for all 20 places
+- attempt started 2026-11-02T04:59:37-10:00
+- done 2026-11-02T05:08:51-10:00
+- Files added: app/src/world/genLandmarks.js (`genFar`, `farOrigin`, `LANDMARK_SHAPES`; 14 shape builders), app/src/dev/landmarksGallery.js
+  (`?dev=landmarks`), tests/unit/genLandmarks.test.js (4 tests). Changed: app/src/world/blocks.js (appended ids 103 plume, 104 far-forest,
+  105 far-haze, 106 far-ochre, 107 gold), world/mesher.js (plume in the blend pass), three/voxel/engine.js (`far` = one entry or a list,
+  meshed per pass, blend pass at `FAR.plumeOpacity`), config.js (`FAR`), dev/voxelGallery.js (`&gen=…&far=1` uses genFar for the place),
+  dev/galleries.js, tools/smoke.txt (+landmarks), CLAUDE.md.
+- Verified: `npm test` 448/448; `bash tools/check.sh` OK (syntax 248 · tests · data · contrast · copy · smoke 86/86 · lazy-plan). All 20 keys
+  generate in 1–12 ms. Shots → tools/shots/b08/:
+  - landmarks.png (`?dev=landmarks&theme=light`, 1600x1200): 5 × 4 grid, all labeled. Kīlauea = low dark shield + grey plume leaning
+    east; Maunakea = broad grey-green shield, white cap, domes; Hualālai = black lava shield with cinder cones over sea; Kohala = green
+    rolling hills + mist strips; Lēʻahi = ochre crater ridge with Waikīkī towers left; Seattle = Space Needle + city + white-capped
+    Rainier; Brooklyn = dense towers with a stepped spire; Miami = slim white towers on the water; Katy = water tower over flat tree
+    line; Las Vegas = gold/white strip before red mountains; Chattanooga = flat-topped cliff mesa; Halifax = red-white lighthouse on a
+    headland, harbour town; Yellow Pine = hazy snow peaks behind pine ridges; Marquette = long brick ore dock on legs in the lake;
+    Montpelier = gold dome capitol before green hills; Elkins = three long layered ridges; Clarksdale = fields, poles, crossroads sign;
+    Bisbee = jagged red ridges; Valentine = grassy sandhills + windmill; Homer = snowy range across the bay, sand spit.
+    First pass had brown snow caps (the snow block's sides are dirt-snow); fixed by capping with plaster. 47 calls / 338k triangles.
+  - voxel-far.png: the old `&far=1` stepped hill still renders. pahoa-far.png (`?dev=voxel&gen=terrain&loc=pahoa&far=1`): Kīlauea
+    sits behind the −z edge at ground level, plume above.
+- Deviations: none from 13 §3/§5. Choices where the spec is silent: far size 96 × 56 × 24 (`FAR`), all landmarks behind −z (as
+  three/terrain.js), five appended far-color blocks, snow caps in plaster, Maunakea's cap lower in Dec–Feb (`monthIndex` optional).
+- Notes for later tasks: voxHome (task 12-ish) should call `genFar({location, seed: seedFor(meta.seed,'world',homeKey), monthIndex,
+  worldSize})` and pass `{volume: {size, data}, scale, origin}` as `far`. The far volume is large (384 m) next to the 128 m world; it
+  reads right from the ground but looks oversized in the high orbit view. Kohala's mist strips read as faint bars; fine at distance.
