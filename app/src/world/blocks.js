@@ -125,6 +125,9 @@ for (const key of STYLE_FAMILIES) {
   }
 }
 
+// Appended after the style blocks (homeblocks 06): ʻōhiʻa canopy with red lehua blossoms.
+add('lehua-leaves', 'ʻŌhiʻa leaves', f('leaves_orange_transparent.png'), { tint: '#e0484a', transparent: true, group: 'nature' });
+
 for (const b of BLOCKS) Object.freeze(b);
 Object.freeze(BLOCKS);
 Object.freeze(BLOCK);

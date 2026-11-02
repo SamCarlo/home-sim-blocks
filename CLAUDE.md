@@ -101,7 +101,7 @@ app/src/three/                 scene.js sky.js terrain.js landmarks.js materials
                                character.js · styles.js styleParts.js styleSwatch.js · buildingGen.js buildingParts.js · houseGen.js houseYard.js · blueprintTo3d.js · homeRender.js
                                (browser only, import() lazily; see 3D scene)
 app/vendor/                    three/ (+addons/) nspell/ dictionary-en/ vader/ · voxel/ (block engine, task 02) · kenney-voxel/ (CC0 tiles, blocks task 03) · VERSIONS.md (pinned, licensed)
-app/src/world/                 blocks.js (block registry) · volume.js (dense volume) · edits.js (save diffs) · mesher.js (face mesher + raycast) (pure; generators, voxHome in later tasks)
+app/src/world/                 blocks.js (block registry) · volume.js (dense volume) · edits.js (save diffs) · mesher.js (face mesher + raycast) · genTerrain.js trees.js (blocks task 06) (pure; more generators, voxHome in later tasks)
 app/src/phases/<phase>/        one screen per phase (placeholders until their tasks); design/blueprint/ = the build editor
                                paperwork/: paperworkScreen.js · flow.js (pure) · steps/ (index.js registry, one module per step)
 app/src/accounts/              provider.js (AccountError, validation, chooseMode, selectProvider) · local.js (PBKDF2, homeblocks:v1:accounts/session)
@@ -210,6 +210,17 @@ docs/                          TASK_PROTOCOL, PROGRESS, OPEN_ITEMS, spec/
 - Numbers: 64 × 32 × 64 test world 10 calls / 14 k triangles; flat 128 × 96 × 128 16 calls / 58 k triangles.
 - Gallery `?dev=voxel` (`&full=1` flat full-size world, `&far=1` far hill, `&t=<hours>`): click breaks, shift-click places planks;
   `window.__voxel = {world, calls, triangles, chunks, edits}`. Edit script `tests/e2e/voxel-edit.json`.
+
+## Terrain (13 §5, 08 §3, blocks task 06; `app/src/world/`, pure)
+- `genTerrain(volume, {location, monthIndex, seed})` (empty volume in) → `{heightAt(x,z), water, waterKind 'sea'|'lake'|null,
+  snow, treeCount, top, lot, street}`. Lot = ±`WORLD.lotHalf` (16) around the center, street band `WORLD.streetDepth` (10) along +z
+  across the whole x range; both flat at groundY with nothing above. Rise = seeded value noise × `BIOME_LOOK[biome].rise`, faded in
+  over `WORLD.flatFade`. Water x < `WORLD.waterX` for `COASTAL_IDS` + maritime/subarctic (sea) and continental-lake (lake, ices in
+  snow). `BIOME_LOOK` = top/lotTop/sub/rise/trees/density/patches/fields/peakStone per biome; any `lava` hazard adds lava-rock blobs.
+  Snow (`isSnowMonth`, month = monthIndex mod 12 in `seasons.snowMonths`): white ground, bare oaks, snow-capped pines. ~10–45 ms.
+- `trees.js`: `treeShape(kind, rng, {wilted, bare, snowCap})` → `[[dx,dy,dz,key]]`, `placeTree(v, kind, x, y, z, rng, opts)` (air
+  only), kinds oak pine palm ohia cactus banana fruit. Gallery `?dev=voxel&gen=terrain&loc=<id>&month=<n>&seed=<n>`
+  (`window.__voxel.terrain`); tests `tests/unit/genTerrain.test.js`.
 
 ## Finance helpers (`app/src/finance/`, pure, integer cents, rates are annual decimals)
 - `money.js`: `dollarsToCents(input)` (numbers, "3,200", "$3,200.50", "-$45"; null when unparseable) · `assertCents` ·

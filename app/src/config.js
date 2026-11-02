@@ -601,4 +601,10 @@ export const WORLD = {
   buildHeight: 24,              // 13 §9 owners build up to this many blocks above groundY (spec gives no number)
   digDepth: 4,                  // 13 §9 nothing below groundY − digDepth can be broken
   ftPerBlock: 3.28,             // 13 §3 ftToBlocks divisor
+  lotHalf: 16,                  // 13 §5 genTerrain keeps ±lotHalf blocks around the lot center flat at groundY (spec gives no number)
+  streetDepth: 10,              // 13 §5 street + sidewalk band along +z of the lot (z = center + lotHalf + 1 …), kept flat, no trees
+  flatFade: 18,                 // 13 §5 blocks over which the terrain rises from flat to full height away from the lot
+  waterX: 22,                   // 13 §5 / 08 §3 coast and lake water fill x < waterX (the −X side, as three/terrain.js)
+  shoreWidth: 4,                // 13 §5 flat sand/gravel shore between the water and the land
+  treesPer1000: 6,              // 13 §5 tree attempts per 1000 open columns at density 1 (biome table scales it)
 };

@@ -1,13 +1,16 @@
 // `?dev=voxel` (13 §2, §11, blocks task 05): the voxel adapter (three/voxel/engine.js) showing a pure test volume.
 // Default: 64 × 32 × 64 with ground, a hollow plank house (door, glass and lit windows, roof), a tree and a pond.
 // `&full=1`: a flat 128 × 96 × 128 world (the 13 §11 budget check). `&t=<hours>` time of day (12). `&far=1` adds a
-// far-scenery stepped hill (16 × 10 × 8 at scale 4) behind the world.
+// far-scenery stepped hill (16 × 10 × 8 at scale 4) behind the world. `&gen=terrain&loc=<id>&month=<n>&seed=<n>` shows
+// world/genTerrain.js for a location (homeblocks 06; default pahoa, month 0).
 // Click breaks the block under the pointer, shift-click places light planks on the face (proves edits through pick).
 // `window.__voxel = {world, calls, triangles, chunks, edits}` once the first frame is drawn.
 import { h, clear } from '../ui/dom.js';
 import { getFlag } from './flags.js';
 import { BLOCK } from '../world/blocks.js';
 import { createVolume, fillBox, hollowBox, column } from '../world/volume.js';
+import { genTerrain } from '../world/genTerrain.js';
+import { byId } from '../data/locations/index.js';
 
 const id = (key) => BLOCK[key].id;
 
@@ -61,12 +64,20 @@ export async function mount(root) {
   delete document.body.dataset.ready;
   clear(root);
   const full = getFlag('full') === '1';
+  const gen = getFlag('gen');
   const view = h('div', { class: 'dev-scene-view' });
   const label = h('div', { class: 'dev-scene-label' }, 'Loading block world…');
   root.append(h('section', { class: 'dev-scene' }, view, label));
 
   const { createVoxelWorld } = await import('../three/voxel/engine.js');
-  const volume = full ? flatVolume() : testVolume();
+  let volume, terrain = null, place = null;
+  if (gen === 'terrain') {
+    place = byId[getFlag('loc') ?? 'pahoa'] ?? byId.pahoa;
+    volume = createVolume();
+    const t0 = performance.now();
+    terrain = genTerrain(volume, { location: place, monthIndex: Number(getFlag('month') ?? 0), seed: Number(getFlag('seed') ?? 1) });
+    terrain.ms = Math.round(performance.now() - t0);
+  } else volume = full ? flatVolume() : testVolume();
   const far = getFlag('far') === '1' ? { volume: farHill(), scale: 4, origin: { x: volume.size.x / 2 - 32, y: 0, z: -40 } } : null;
   const world = await createVoxelWorld(view, { volume, far, timeOfDay: Number(getFlag('t') ?? 12) });
   if (!world) {
@@ -74,13 +85,15 @@ export async function mount(root) {
     document.body.dataset.ready = '1';
     return () => { delete document.body.dataset.ready; };
   }
-  if (full) world.setOrbit({ target: { x: 64, y: 24, z: 64 }, distance: 190 });
+  if (terrain) world.setOrbit({ target: { x: 64, y: 26, z: 64 }, distance: 150 });
+  else if (full) world.setOrbit({ target: { x: 64, y: 24, z: 64 }, distance: 190 });
   else world.setOrbit({ target: { x: 30, y: 9, z: 30 }, distance: 34 });
 
   let edits = 0;
   const show = () => {
     const { calls, triangles, chunks } = world.info;
-    label.textContent = `Block world ${volume.size.x} × ${volume.size.y} × ${volume.size.z} · ${chunks} chunks · ${calls} draw calls · ${triangles} triangles · ${edits} edits · click breaks, shift-click places`;
+    const what = terrain ? `${place.name} terrain (${place.biome}${terrain.snow ? ', snow' : ''}, ${terrain.treeCount} trees, ${terrain.ms} ms) · ` : '';
+    label.textContent = `${what}Block world ${volume.size.x} × ${volume.size.y} × ${volume.size.z} · ${chunks} chunks · ${calls} draw calls · ${triangles} triangles · ${edits} edits · click breaks, shift-click places`;
   };
   const wrapSet = world.setBlock;
   world.setBlock = (x, y, z, b) => {
@@ -108,6 +121,7 @@ export async function mount(root) {
   show();
   window.__voxel = {
     world,
+    terrain,
     get calls() { return world.info.calls; },
     get triangles() { return world.info.triangles; },
     get chunks() { return world.info.chunks; },

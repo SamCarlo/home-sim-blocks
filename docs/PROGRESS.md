@@ -2231,3 +2231,29 @@ each logs here under `## Blocks NN: <title>`.
   `timeOfDay` is hours (`setTimeOfDay(h)`; glow = 1 − daylight). No shadows yet (keeps calls ≈ chunks). Atlas mipmaps give a faint
   grid line at block edges far off (tile bleed) which reads as block seams; drop to NearestFilter if it bothers. Explore (pointer
   lock, walking) should reuse vendor Control/Player against `raycast`/`isSolid`, not the vendor Terrain.
+
+## Blocks 06: Terrain and nature by biome
+- attempt started 2026-11-02T03:27:35-10:00
+- done 2026-11-02T03:34:22-10:00
+- Files added: app/src/world/genTerrain.js (`genTerrain`, `BIOME_LOOK`, `isSnowMonth`, `lotBounds`, `waterKind`, `COASTAL_IDS`),
+  app/src/world/trees.js (`treeShape`, `placeTree`, `treeRadius`, `TREE_KINDS`), tests/unit/genTerrain.test.js (6 tests).
+  Changed: app/src/world/blocks.js (appended id 99 `lehua-leaves`, ʻōhiʻa red blossoms), app/src/config.js (WORLD.lotHalf 16,
+  streetDepth 10, flatFade 18, waterX 22, shoreWidth 4, treesPer1000 6), app/src/dev/voxelGallery.js (`&gen=terrain&loc=&month=&seed=`),
+  tools/smoke.txt (+voxel-terrain), CLAUDE.md.
+- Verified: `node --test tests/unit/genTerrain.test.js` 6/6 (prints "genTerrain full 128×96×128 (Pāhoa): 36.4 ms"; all 20
+  places 7–45 ms); `bash tools/check.sh` OK (syntax 244 · tests · data · contrast · copy · smoke 84/84 · lazy-plan).
+  Shots `node tools/shoot.mjs --path '/index.html?dev=voxel&gen=terrain&loc=<id>&month=0&theme=light' --wait-ready`:
+  - b06/pahoa.png: reads as Pāhoa. Green rolling grass, ʻōhiʻa with red lehua, palms, a few bananas, black lava-rock patches; flat lot.
+  - b06/honolulu.png: reads as a city by the sea. Concrete ground, grass park patches with palms, a sand shore and water on −X, green lot.
+  - b06/katy.png: reads as suburban Texas. Flat green grass, round oaks and a few palms, gentle low rises.
+  - b06/bisbee.png: reads as a desert mountain town. Red-sand terraced hills, grey stone peaks and outcrops, scattered cacti.
+  - b06/montpelier.png (January): reads as Vermont winter. Snow ground, bare branching oaks, snow-capped pines, rolling steps.
+  - b06/homer.png (January): reads as coastal Alaska. Snow, snow-capped pines, a gravel shore and grey sea along −X.
+- Deviations: none from 13 §5. Choices where the spec is silent: lot ±16 blocks, street band 10 deep (WORLD config);
+  the lot keeps its yard top (grass) in urban/dry biomes; Hilo and Kona get lava rock too (all three have the `lava` hazard);
+  continental-lake water freezes to ice in snow months; the ocean does not.
+- Notes for later tasks: genTerrain expects an all-air volume and returns `{heightAt, water, waterKind, snow, treeCount, top,
+  lot, street}`; lot and street are inclusive rects in cells (street spans the full x range, z = center + 17 … + 26).
+  Nothing above groundY on the lot or street, so genNeighborhood/voxHouse can write there freely. `placeTree` only fills air
+  (use it for yard fruit trees: kinds `fruit`, `banana`; `{wilted: true}` for a neglected yard). Seed in the gallery =
+  `&seed=` (default 1); real worlds should pass `seedFor(meta.seed, 'world', homeKey)`. Bare oaks read a bit like posts.
