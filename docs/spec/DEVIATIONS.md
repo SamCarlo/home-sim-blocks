@@ -376,3 +376,11 @@ and where in the code. Keep entries short. The teacher's intent in `99-original-
   (13 §3) and meshing in `app/src/world/` + `app/src/three/voxel/` and use the engine for player, controls, physics and
   block editing where they fit. Where: app/vendor/voxel/README.md, app/vendor/VERSIONS.md.
 
+
+- **2026-11-02, homeblocks 05: the voxel adapter meshes the world itself; the vendored engine's terrain is not used.**
+  13 §2/§11 expect the volume to be fed into "the engine's chunks". vyse12138's `Terrain` has no chunked dense volume: a worker
+  draws one heightmap block per column into one InstancedMesh per block type and draws every slot. Overriding that would mean
+  rewriting the worker. Instead `app/src/world/mesher.js` (pure) emits only exposed faces per 32 × 32-column chunk and
+  `app/src/three/voxel/engine.js` turns them into one mesh per chunk per pass (opaque, cutout, blend, glow) on one Kenney texture
+  atlas. The engine's terrain generation and persistence are simply never instantiated. Its `Control`/`Player` stay available
+  for Explore. Where: app/src/world/mesher.js, app/src/three/voxel/engine.js.

@@ -16,6 +16,7 @@ export const galleries = {
   blueprint3d: () => import('./blueprint3dGallery.js'),
   'voxel-vendor': () => import('./voxelVendorGallery.js'),
   blocks: () => import('./blocksGallery.js'),
+  voxel: () => import('./voxelGallery.js'),
 };
 
 /** Mount gallery `name` into root. Returns false when no such gallery exists. */

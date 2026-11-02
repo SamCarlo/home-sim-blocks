@@ -1,0 +1,10 @@
+[
+  {"eval": "({calls: __voxel.calls, triangles: __voxel.triangles, chunks: __voxel.chunks, wall: __voxel.world.getBlock(23, 9, 30)})"},
+  {"shot": "tools/shots/b05/voxel.png"},
+  {"eval": "[[23,8,30],[23,9,30],[23,10,30],[24,8,30],[24,9,30],[24,10,30]].map(([x,y,z]) => __voxel.world.setBlock(x, y, z, 0))"},
+  {"wait": 400},
+  {"assert": "__voxel.world.getBlock(23, 9, 30) === 0 && __voxel.edits === 6"},
+  {"eval": "({calls: __voxel.calls, triangles: __voxel.triangles, edits: __voxel.edits})"},
+  {"eval": "(() => { const p = __voxel.world.pick(0, 0); return p && {x: p.x, y: p.y, z: p.z, id: p.id, n: p.normal}; })()"},
+  {"shot": "tools/shots/b05/voxel-edited.png"}
+]

@@ -2206,3 +2206,28 @@ each logs here under `## Blocks NN: <title>`.
   leave them open. `apply`/`rebase` take a Map or a packed string; `rebase` returns the same type it was given and
   also drops kept edits that now equal the new base. `countEdits` reads only the header, cheap enough for every save.
   The purity test in volume.test.js scans every `world/*.js` for three/DOM/Buffer imports and the 400-line limit.
+
+## Blocks 05: Engine adapter: show a pure volume with the borrowed engine
+- attempt started 2026-11-02T02:41:38-10:00
+- done 2026-11-02T02:49:00-10:00
+- Files added: app/src/world/mesher.js (pure: `blockTables`, `meshChunk`, `raycast`, `PASSES`), app/src/three/voxel/engine.js
+  (`createVoxelWorld`), app/src/dev/voxelGallery.js (`?dev=voxel`, `&full=1`, `&far=1`, `&t=`), tests/unit/mesher.test.js (6 tests),
+  tests/e2e/voxel-edit.json. Changed: app/src/dev/galleries.js, tools/smoke.txt (+voxel), CLAUDE.md, docs/spec/DEVIATIONS.md.
+- Verified: `node --test tests/unit/mesher.test.js` 6/6; `bash tools/check.sh` OK (syntax 242 · tests · data · contrast · copy ·
+  smoke 83/83 · lazy-plan). Shots via `node tools/shoot.mjs --path '/index.html?dev=voxel&theme=light' --wait-ready --steps tests/e2e/voxel-edit.json`:
+  - b05/voxel.png: sky, green grass plain with a plank house (grey roof slab with overhang, glass windows front and east,
+    tan lit-glass window, door slit, gravel path), a leaf-cube tree with trunk, a sand-rimmed water pond you can see into.
+  - b05/voxel-edited.png: after `world.setBlock` cleared 6 cells (x 23–24, y 8–10, z 30) the front wall left of the door has
+    a 2 × 3 opening showing the slab floor inside; assert getBlock(23,9,30) === 0 passed; pick(0,0) hit lit-glass (30,9,30) normal +z.
+  - b05/voxel-full.png (`&full=1`): flat 128 × 96 × 128 diorama, grass top, dirt band, stone sides; mipmapped, no moiré.
+  - b05/voxel-far-night.png (`&far=1&t=21`): navy sky, dim world, the lit window glows; far stone/snow hill behind at scale 4.
+- **Budget (SwiftShader, 1366 × 768):** test world 64 × 32 × 64 = 4 chunks, **10 draw calls, 14,250 triangles** (14,238 after the
+  edit); full flat 128 × 96 × 128 = 16 chunks, **16 draw calls, 58,368 triangles**; far hill adds 1 call. 13 §11 is ≤150 / ≤400 k.
+- Deviations: the vendored engine is not used for rendering at all (its Terrain is a surface heightmap with every slot
+  instanced); our adapter meshes the dense volume itself (see DEVIATIONS). Face culling is built in, so no extra pass was needed.
+- Notes for later tasks: `createVoxelWorld` is **async** (atlas load) → resolves to the handle or null. Chunks are 32 × 32 columns ×
+  full height, one mesh per non-empty pass; `setBlock` marks the chunk (+ neighbor on an edge) dirty and the next render remeshes.
+  Edits through `setBlock` change `volume` in place: the store/edits diff (world/edits.js `diff`) is the caller's job.
+  `timeOfDay` is hours (`setTimeOfDay(h)`; glow = 1 − daylight). No shadows yet (keeps calls ≈ chunks). Atlas mipmaps give a faint
+  grid line at block edges far off (tile bleed) which reads as block seams; drop to NearestFilter if it bothers. Explore (pointer
+  lock, walking) should reuse vendor Control/Player against `raycast`/`isSolid`, not the vendor Terrain.

@@ -81,4 +81,5 @@ life-relocating /index.html?seed=life-relocating&theme=light
 life-relocating-house /index.html?seed=life-relocating-house
 life-autopilot-done /index.html?seed=life-autopilot-done&theme=light
 voxel-vendor /index.html?dev=voxel-vendor&theme=light
+voxel /index.html?dev=voxel&theme=light
 blocks /index.html?dev=blocks&theme=light

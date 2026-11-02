@@ -97,11 +97,11 @@ app/src/ui/                    dom.js (h, clear, qs) · screens.js (registerScre
 app/src/forms/                 engine.js (renderForm) · fields.js (field kinds) · validate.js (pure rules + helpers)
 app/src/dev/                   flags.js (devAllowed, getFlag) · galleries.js (?dev=<name> registry) · vendorCheck.js
                                seeds.js (fixtures) · designSeeds.js (design-* seeds, addDesignSeeds) · sampleLetters.js · devPanel.js (?dev=1) · gallery2d.js (?dev=gallery2d) · formsGallery.js (?dev=forms) · lettersGallery.js (?dev=letters) · sceneGallery.js (?dev=scene) · propsGallery.js (?dev=props) · stylesGallery.js (?dev=styles) · buildingsGallery.js (?dev=buildings) · housesGallery.js (?dev=houses) · blueprint3dGallery.js (?dev=blueprint3d) · voxelVendorGallery.js (?dev=voxel-vendor) · blocksGallery.js (?dev=blocks[&night=1]) · lifeSeeds.js (life-* seeds, addLifeSeeds)
-app/src/three/                 scene.js sky.js terrain.js landmarks.js materials.js · props.js propKit.js animals.js yard.js
+app/src/three/                 scene.js sky.js terrain.js landmarks.js materials.js · props.js propKit.js animals.js yard.js · voxel/engine.js (block world adapter, blocks task 05)
                                character.js · styles.js styleParts.js styleSwatch.js · buildingGen.js buildingParts.js · houseGen.js houseYard.js · blueprintTo3d.js · homeRender.js
                                (browser only, import() lazily; see 3D scene)
 app/vendor/                    three/ (+addons/) nspell/ dictionary-en/ vader/ · voxel/ (block engine, task 02) · kenney-voxel/ (CC0 tiles, blocks task 03) · VERSIONS.md (pinned, licensed)
-app/src/world/                 blocks.js (block registry) · volume.js (dense volume) · edits.js (save diffs) (pure; generators, voxHome in later tasks)
+app/src/world/                 blocks.js (block registry) · volume.js (dense volume) · edits.js (save diffs) · mesher.js (face mesher + raycast) (pure; generators, voxHome in later tasks)
 app/src/phases/<phase>/        one screen per phase (placeholders until their tasks); design/blueprint/ = the build editor
                                paperwork/: paperworkScreen.js · flow.js (pure) · steps/ (index.js registry, one module per step)
 app/src/accounts/              provider.js (AccountError, validation, chooseMode, selectProvider) · local.js (PBKDF2, homeblocks:v1:accounts/session)
@@ -195,6 +195,21 @@ docs/                          TASK_PROTOCOL, PROGRESS, OPEN_ITEMS, spec/
   (string in → string out, Map in → Map out). `apply`/`rebase` accept a Map or a packed string. Packed size at random
   spread: 1k ≈ 3.8 KB, 10k ≈ 32 KB, 20k ≈ 57 KB; pack 20k ≈ 9 ms. Tests `tests/unit/volume.test.js` (also guard purity
   and the 400-line limit for every `world/*.js`).
+
+## Voxel adapter (13 §2, §11, blocks task 05; `app/src/three/voxel/engine.js` browser only, `world/mesher.js` pure)
+- `await createVoxelWorld(container, {volume, far?: {volume, scale, origin {x,y,z}}, timeOfDay? (hours, 12)})` → `{scene, camera,
+  renderer, controls, volume, setBlock(x,y,z,id) → bool, getBlock, pick(ndcX, ndcY) → {x,y,z, normal [nx,ny,nz], id} | null,
+  setOrbit({target, distance}), setTimeOfDay(h), info {calls, triangles, chunks}, requestRender, firstFrame(), dispose()}` or
+  **null** without WebGL. It is async (atlas load). Nothing else imports `vendor/voxel/`; its Terrain is never used (DEVIATIONS).
+- Meshing: `world/mesher.js` `blockTables(textureFiles())`, `meshChunk(v, tables, {x0,z0,x1,z1, singlePass})` → per pass
+  `{positions, normals, colors, uvs, indices, faces}`; `PASSES` = opaque · cutout (alphaTest, DoubleSide) · blend (water, ice) ·
+  glow (emissive, intensity = 1 − daylight). Only exposed faces (neighbor air/out of bounds/other transparent block; no
+  underside at y = 0). Chunks 32 × 32 columns × full height; `setBlock` dirties the chunk (+ edge neighbor), remesh on next render.
+  `raycast(v, origin, dir, maxDist)` (Amanatides–Woo) → first non-air cell + entry normal. One canvas atlas (6 × 6 tiles of 128 px),
+  tints as linear vertex colors, nearest mag + mipmapped min. Far volume = one merged mesh (pass 0 material), scaled.
+- Numbers: 64 × 32 × 64 test world 10 calls / 14 k triangles; flat 128 × 96 × 128 16 calls / 58 k triangles.
+- Gallery `?dev=voxel` (`&full=1` flat full-size world, `&far=1` far hill, `&t=<hours>`): click breaks, shift-click places planks;
+  `window.__voxel = {world, calls, triangles, chunks, edits}`. Edit script `tests/e2e/voxel-edit.json`.
 
 ## Finance helpers (`app/src/finance/`, pure, integer cents, rates are annual decimals)
 - `money.js`: `dollarsToCents(input)` (numbers, "3,200", "$3,200.50", "-$45"; null when unparseable) · `assertCents` ·
