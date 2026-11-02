@@ -2374,3 +2374,30 @@ each logs here under `## Blocks NN: <title>`.
   span all floors); `unitRooms` boxes are feet..feet+2. Only the student's floor corridor and the core up to that floor are hollow; the
   core's stairs climb row A/C like voxHouse. Interiors (task 12) should keep furniture off the cell just inside the unit door and the
   balcony opening.
+
+## Blocks 11: Student-built homes (blueprints) in blocks
+- attempt started 2026-11-02T07:17:57-10:00
+- done 2026-11-02T07:55:00-10:00
+- Files added: app/src/world/voxBlueprint.js (`voxBlueprint`, `blueprintGrid`, `nearestTint`), tests/unit/voxBlueprint.test.js (4 tests).
+  Changed: app/src/world/voxHouse.js (`nearest`, `stepRoof` now exported, no logic change), app/src/config.js (`VOX_BLUEPRINT`),
+  app/src/dev/voxelGallery.js (`&gen=blueprint&loc=&template=tiny|cozy|family&yard=0|1&roof=`), tools/smoke.txt (+voxel-blueprint),
+  CLAUDE.md, docs/spec/DEVIATIONS.md.
+- Verified: `node --test tests/unit/voxBlueprint.test.js` 4/4 (tiny/cozy/family on Pāhoa and Katy with every yard item, solar and
+  catchment: room count and types kept in order, every bp door placed, wall doors are door-lower + door-upper on both rooms' wall lines,
+  the street and every room reachable from the front door by BFS, rooms ≥ 3 × 3 inside, every window glass; yard/tank/solar/fence blocks
+  drawn; deterministic; no tank without catchment). A scratch run over pahoa/katy/homer × 3 templates: 1–17 ms each.
+  `bash tools/check.sh` OK (syntax 254 · tests · data · contrast · copy · smoke 89/89 · lazy-plan). Shots → tools/shots/b11/:
+  - pahoa-cozy.png (`?dev=voxel&gen=blueprint&loc=pahoa&template=cozy&theme=light`): beige plaster house, deck lānai front-left with
+    trim posts and a flat roof, grey stepped gable over the rooms, door on the right (kitchen) wall, windows, concrete driveway pad,
+    gravel path, lot fence with a front gate, a green catchment tank peeking out on the left. Rural neighbors and fields around.
+  - pahoa-family.png (same, `template=family`): the same look, wider and deeper; 9 rooms incl. the hallway, 11 doors, 8 windows.
+  - blueprint3d-cozy.png (`?dev=blueprint3d&template=cozy&theme=light`, the reference): same plan, lānai front-left with posts, door on
+    the right wall, grey metal roof, tank on the left, driveway and fence. The block build matches it room for room; the block roof reads
+    as one big gable because each room's stepped roof skips cells another room's roof already filled.
+- Deviations: room edges go through a per-axis grid that stretches rooms to ≥ 3 × 3 inside and door-sharing walls to ≥ 1 clear cell,
+  so small rooms (6 ft baths, 4 ft hallways) come out a bit bigger than drawn; an open lānai edge "door" has no block (no wall there);
+  roof/wall/trim colors use the nearest tinted block by a hue-weighted distance (DEVIATIONS).
+- Notes for later tasks: voxHome (task 12) should call `voxBlueprint(v, {bp: home.blueprint, styleKey, variant, palette, seed})` after
+  genTerrain + genNeighborhood with `worldSizeFor(location, 'house')`. `rooms` carry the blueprint room `id` too; `info.doors` lists every
+  placed door `{id, kind 'door'|'opening', x, y, z}`; `info.footprint` is the house's block rect. Furniture (task 12) must keep off door
+  cells' inside neighbors and the lānai. Solar is ground-mounted behind the house (`VOX_BLUEPRINT.solarPerKw` panels per kW).

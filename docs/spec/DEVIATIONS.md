@@ -397,3 +397,9 @@ and where in the code. Keep entries short. The teacher's intent in `99-original-
   least 3 × 3, so narrow units are one or two rooms (studio-like) rather than living + bedroom + bathroom + kitchen; exterior stairs,
   fire escapes and deco tops from the plan's features are not drawn. Why: the lot is the only flat, neighbor-free ground (genTerrain,
   genNeighborhood) and 13 §6 needs a real walk from the street to the unit. Where: app/src/world/voxBuilding.js, voxBuildingParts.js.
+- **2026-11-02, homeblocks 11 — blueprint builds keep the layout, not the exact feet.** What: room edges are mapped per axis through a
+  grid that rounds feet to blocks but stretches any room to at least 4 blocks wall to wall (3 × 3 inside, 13 §3) and any shared wall with a
+  door to a span with at least one cell clear of the corners; so a 6 ft bathroom or a 4 ft hallway comes out about 10–13 ft. A door drawn on
+  an open lānai edge places no block (there is no wall), but it still counts as the way in. Student colors map to the nearest tinted block by
+  RGB distance plus double weight on the blue-minus-red tilt (plain RGB sent the grey metal roof to a brown). Solar is ground-mounted behind
+  the house like the 3D view. Why: 13 §3 room minimum and 13 §6 needs every room reachable. Where: app/src/world/voxBlueprint.js.

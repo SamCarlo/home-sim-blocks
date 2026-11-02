@@ -281,6 +281,18 @@ docs/                          TASK_PROTOCOL, PROGRESS, OPEN_ITEMS, spec/
 - Gallery `?dev=voxel&gen=building&loc=&kind=apartment|condo&seed=&floor=<n|top>&unit=&inside=1` (`window.__voxel.building`); tests
   `tests/unit/voxBuilding.test.js`.
 
+## Student-built homes in blocks (13 §5, blocks task 11; `app/src/world/voxBlueprint.js`, pure)
+- `voxBlueprint(v, {bp, styleKey, variant?, palette?, origin?, seed})` after genTerrain/genNeighborhood (volume from `worldSizeFor(loc,
+  'house')`) → voxHouse's shape `{door, exit, path, rooms [{type, id, box}], windows, plantSpots, animalSpots, lotBox, parts, info {stories 1,
+  rooms, wanted, floorBlocks, sqft, roof, palette, ids, doors [{id, kind 'door'|'opening', x, y, z}], footprint}}`. Rooms keep bp order/types.
+- `blueprintGrid(bp, o)` → `{X(xFt), Z(yFt)}`: per-axis edge grid (rooms ≥ `VOX_BLUEPRINT.minSpan` 4 wall to wall, door walls ≥ `doorSpan`),
+  the editing window's center on o.x and its front edge on the lot front (+z). Each room = slab + 3-high walls + ceiling (shared lines are
+  the same cells); lānai = deck, trim posts, flat roof slab, no walls; garages open the front wall. Openings take the wall cell nearest
+  the drawn center whose sides are the right rooms/outside; doors are door-lower/upper, windows glass at feet + 1. Roof per closed room
+  (`stepRoof`, `VOX_BLUEPRINT.roofShape`), biggest first. Colors: `nearestTint(role, hex)` (hue-weighted; brick/log sidings use brick/trunk).
+  Yard items use the same grid, shifted into the lot; fence gates at the path and driveways; tank left of the house, solar behind it.
+- Gallery `?dev=voxel&gen=blueprint&loc=&template=tiny|cozy|family&yard=0|1&roof=` (`window.__voxel.blueprint`); tests `tests/unit/voxBlueprint.test.js`.
+
 ## Finance helpers (`app/src/finance/`, pure, integer cents, rates are annual decimals)
 - `money.js`: `dollarsToCents(input)` (numbers, "3,200", "$3,200.50", "-$45"; null when unparseable) · `assertCents` ·
   `mulRate(cents, rate)` (the one rounding rule: half away from zero) · `sumCents(arr | ...n)` · `pctOf(part, whole)` →

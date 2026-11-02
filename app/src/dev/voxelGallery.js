@@ -5,6 +5,7 @@
 // world/genTerrain.js for a location (homeblocks 06; default pahoa, month 0). `&gen=neighborhood&loc=<id>&kind=<homeKind>`
 // adds world/genNeighborhood.js on top (homeblocks 07; big-city volumes are WORLD.tallY high).
 // `&gen=house&loc=<id>&seed=<n>&variant=house|shared&extras=0|1&palette=<n>` adds world/voxHouse.js on the lot (homeblocks 09).
+// `&gen=blueprint&loc=<id>&template=tiny|cozy|family&yard=0|1&roof=<style>` adds world/voxBlueprint.js (homeblocks 11).
 // `&gen=building&loc=<id>&kind=apartment|condo&seed=<n>&floor=<n|top>&unit=<n>&inside=1` adds world/voxBuilding.js (homeblocks 10;
 // `inside=1` takes the roof off down to the unit's floor so the hollow unit shows).
 // Click breaks the block under the pointer, shift-click places light planks on the face (proves edits through pick).
@@ -21,6 +22,10 @@ import { voxHouse } from '../world/voxHouse.js';
 import { planHouse } from '../phases/design/housePlan.js';
 import { SHARED_BEDROOMS } from '../phases/design/sharedModel.js';
 import { voxBuilding, buildingWorldSize } from '../world/voxBuilding.js';
+import { voxBlueprint } from '../world/voxBlueprint.js';
+import { lotOf } from '../phases/design/blueprint/model.js';
+import { templateBlueprint, TEMPLATE_IDS } from '../phases/design/blueprint/templates.js';
+import { addYardItem, setFence } from '../phases/design/blueprint/yard.js';
 import { WORLD } from '../config.js';
 import { planBuilding, homeFloors } from '../phases/design/buildingPlan.js';
 
@@ -82,8 +87,8 @@ export async function mount(root) {
   root.append(h('section', { class: 'dev-scene' }, view, label));
 
   const { createVoxelWorld } = await import('../three/voxel/engine.js');
-  let volume, terrain = null, place = null, hood = null, house = null, bld = null;
-  if (gen === 'terrain' || gen === 'neighborhood' || gen === 'house' || gen === 'building') {
+  let volume, terrain = null, place = null, hood = null, house = null, bld = null, bpb = null;
+  if (gen === 'terrain' || gen === 'neighborhood' || gen === 'house' || gen === 'building' || gen === 'blueprint') {
     place = byId[getFlag('loc') ?? 'pahoa'] ?? byId.pahoa;
     const homeKind = getFlag('kind') ?? (gen === 'building' ? 'apartment' : 'house'), seed = Number(getFlag('seed') ?? 1);
     const bplan = gen === 'building' ? planBuilding({ style: place.styleFamily, variant: place.styleVariant, seed, kind: homeKind, settlement: place.settlement }) : null;
@@ -98,6 +103,16 @@ export async function mount(root) {
         palette: pal == null ? null : Number(pal), bedrooms: variant === 'shared' ? SHARED_BEDROOMS : null });
       const extras = getFlag('extras') === '0' ? {} : { gardenBeds: 3, fruitTrees: 2, coop: true };
       house = { variant, plan, ...voxHouse(volume, { plan, extras, seed }) };
+    }
+    if (gen === 'blueprint') { // a blueprint template with every yard item, like ?dev=blueprint3d (homeblocks 11)
+      const tid = TEMPLATE_IDS.includes(getFlag('template')) ? getFlag('template') : 'cozy';
+      let bp = templateBlueprint(tid, lotOf(place));
+      if (bp && getFlag('yard') !== '0') {
+        for (const k of ['garden-bed', 'garden-bed', 'fruit-tree', 'coop', 'driveway', 'patio', 'rain-garden']) bp = addYardItem(bp, k);
+        bp = { ...setFence(bp, true), solarKw: 4, catchmentGallons: place.water === 'catchment' ? 10000 : 0 };
+      }
+      if (bp && getFlag('roof')) bp = { ...bp, roof: { ...bp.roof, style: getFlag('roof') } };
+      if (bp) bpb = { template: tid, bp, ...voxBlueprint(volume, { bp, styleKey: place.styleFamily, variant: place.styleVariant, seed }) };
     }
     if (bplan) {
       const fl = homeFloors(bplan), want = getFlag('floor');
@@ -126,6 +141,9 @@ export async function mount(root) {
     const ty = inside ? u.y0 : Math.round((WORLD.groundY + bld.info.top) / 2);
     world.setOrbit({ target: { x: (u.x0 + u.x1) / 2, y: ty, z: (u.z0 + u.z1) / 2 + 4 },
       distance: inside ? 26 : Math.min(240, 50 + (bld.info.top - 24) * 1.1) });
+  } else if (bpb) {
+    const f = bpb.info.footprint;
+    world.setOrbit({ target: { x: (f.x0 + f.x1) / 2, y: 27, z: (f.z0 + f.z1) / 2 }, distance: 44 });
   } else if (house) world.setOrbit({ target: { x: house.door.x, y: 28, z: house.door.z - 4 }, distance: 46 });
   else if (hood) world.setOrbit({ target: { x: 64, y: hood.settlement === 'big-city' ? 60 : 28, z: 70 }, distance: hood.settlement === 'big-city' ? 250 : 150 });
   else if (terrain) world.setOrbit({ target: { x: 64, y: 26, z: 64 }, distance: 150 });
@@ -136,10 +154,11 @@ export async function mount(root) {
   const show = () => {
     const { calls, triangles, chunks } = world.info;
     const bs = bld ? `${bld.plan.kind} ${bld.info.form} (${bld.plan.style}, ${bld.info.floors} floors, ${bld.info.cols} × ${bld.info.rows} units, core ${bld.info.core ?? 'none'}; unit floor ${bld.info.floor} #${bld.info.unit}, ${bld.unitRooms.map((r) => r.type).join('/')}, ${bld.windows.length} windows, path ${bld.path.length}) · ` : '';
+    const bs2 = bpb ? `Blueprint ${bpb.template} (${bpb.rooms.map((r) => r.type).join('/')}, ${bpb.info.doors.length} doors, ${bpb.windows.length} windows, ${bpb.info.roof} roof, path ${bpb.path.length}) · ` : '';
     const hs = house ? `${house.variant === 'shared' ? 'Shared house' : 'House'} (${house.plan.style}, ${house.info.stories} stories, ${house.info.roof} roof, ${house.rooms.length} rooms, ${house.windows.length} windows, ~${house.info.sqft} sq ft) · ` : '';
     const nb = hood ? `${hood.settlement}: ${Object.entries(hood.counts).map(([k, n]) => `${n} ${k}`).join(', ')} · ` : '';
     const what = terrain ? `${nb}${place.name} terrain (${place.biome}${terrain.snow ? ', snow' : ''}, ${terrain.treeCount} trees, ${terrain.ms} ms) · ` : '';
-    label.textContent = `${bs}${hs}${what}Block world ${volume.size.x} × ${volume.size.y} × ${volume.size.z} · ${chunks} chunks · ${calls} draw calls · ${triangles} triangles · ${edits} edits · click breaks, shift-click places`;
+    label.textContent = `${bs}${bs2}${hs}${what}Block world ${volume.size.x} × ${volume.size.y} × ${volume.size.z} · ${chunks} chunks · ${calls} draw calls · ${triangles} triangles · ${edits} edits · click breaks, shift-click places`;
   };
   const wrapSet = world.setBlock;
   world.setBlock = (x, y, z, b) => {
@@ -171,6 +190,7 @@ export async function mount(root) {
     neighborhood: hood,
     house,
     building: bld,
+    blueprint: bpb && { template: bpb.template, rooms: bpb.rooms, doors: bpb.info.doors, windows: bpb.windows.length, path: bpb.path },
     get calls() { return world.info.calls; },
     get triangles() { return world.info.triangles; },
     get chunks() { return world.info.chunks; },

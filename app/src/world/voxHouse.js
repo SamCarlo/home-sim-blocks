@@ -22,7 +22,7 @@ const ROOF_SHAPE = { gable: 'gable', hip: 'hip', flat: 'flat', shed: 'flat', bar
 const hex = (h) => [1, 3, 5].map((i) => parseInt(String(h).slice(i, i + 2), 16));
 const dist = (a, b) => a.reduce((t, c, i) => t + (c - b[i]) ** 2, 0);
 /** Closest tinted block of a role ('plaster' | 'roof' | 'trim') to a hex color. */
-function nearest(role, color) {
+export function nearest(role, color) {
   const want = hex(color);
   let best = null, bd = Infinity;
   for (const b of BLOCKS) {
@@ -80,7 +80,7 @@ export function doorway(v, cells, side, feet) {
 }
 
 /** Stepped roof over rect at y. Gable ends are flush walls; only cells `ok(x, y, z)` are written. */
-function stepRoof(v, r, y, { shape, ridge, run, roofId, trimId, wallId, ok }) {
+export function stepRoof(v, r, y, { shape, ridge, run, roofId, trimId, wallId, ok }) {
   const put = (x, yy, z, id) => { if (ok(x, yy, z)) set(v, x, yy, z, id); };
   if (shape === 'flat') {
     for (let x = r.x0; x <= r.x1; x++) for (let z = r.z0; z <= r.z1; z++) {

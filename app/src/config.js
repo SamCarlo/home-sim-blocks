@@ -629,6 +629,15 @@ export const VOX_HOUSE = {
   bed: { w: 3, d: 2 },          // a garden bed
 };
 
+/** A student's blueprint build in blocks (13 §5, homeblocks 11; world/voxBlueprint.js). Lengths in blocks. */
+export const VOX_BLUEPRINT = {
+  minSpan: 4,                   // 13 §3 wall line to wall line, so every room is at least 3 × 3 inside
+  doorSpan: 2,                  // a shared wall with a door keeps at least one cell clear of the corners
+  solarPerKw: 2,                // ground-mounted solar-panel blocks per kW (07 §5 caps solar at 8 kW → 16)
+  tankBigGallons: 10000,        // catchment tanks this big or bigger are 5 across; smaller ones 3
+  roofShape: { gable: 'gable', hip: 'hip', shed: 'flat', flat: 'flat' }, // BLUEPRINT.roofStyles → stepRoof shapes
+};
+
 export const VOX_BUILDING = {
   storyH: 4,                    // 13 §3 floor-to-floor for every floor (lobby and parking decks too; see DEVIATIONS)
   maxW: 33,                     // widest building in blocks = the flat lot (2 × WORLD.lotHalf + 1); wide rows get narrower units
