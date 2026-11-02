@@ -245,6 +245,26 @@ docs/                          TASK_PROTOCOL, PROGRESS, OPEN_ITEMS, spec/
 - Gallery `?dev=landmarks[&seed=&month=]` (`dev/landmarksGallery.js`, 5 × 4 grid at scale 1, `window.__landmarks` = filled
   cells per key); `?dev=voxel&gen=terrain&loc=<id>&far=1` shows a place's world with its landmark. Tests `tests/unit/genLandmarks.test.js`.
 
+## The house in blocks (13 §3, §5, blocks task 09; `app/src/world/voxHouse.js` + `voxHouseYard.js` + `walk.js`, pure)
+- `voxHouse(v, {plan (planHouse), styleKey?, variant?, extras {gardenBeds, fruitTrees, coop}, origin? {x,y,z} (lot center at
+  ground top; default volume center, groundY), seed})` after genTerrain/genNeighborhood → `{door, exit, path, rooms [{type, box}],
+  windows [index], plantSpots, animalSpots, lotBox, parts [{kind main|wing|garage, side, x0..z1, stories, top, roofTop}], info
+  {stories, rooms, wanted, floorBlocks, sqft, roof, palette, ids}}`. Plan feet → blocks with `ftPos` (positions) / `ftToBlocks`
+  (sizes, area kept when a side is widened to `VOX_HOUSE.minSide` 5). Story = slab + 3 air (`VOX_HOUSE.storyH` 4); the ground-floor
+  slab replaces the ground top, so inside and outside feet are both groundY + 1. Wings share a wall with the main block.
+- Rooms: the requested 2 + beds + baths are spread over the floors by area and cut by BSP partition walls (each ≥ 3 × 3, so a
+  1-story 30 × 24 ft house only fits 2 rooms); types in order living (nearest the door), bedroom, bathroom, kitchen, then more
+  bedrooms/bathrooms, extra rooms 'den'. Doorways go where both sides can be stood on. Stairs: a 3-row × 4-column switchback zone
+  (planks-dark steps, even stories climb row A, odd row C, row B always floor) in a main-block corner chosen away from the door and
+  wing doorways. `paletteBlocks(style, variant, palette)`: palette 0 = the family's set, others = nearest-tint style blocks.
+- Yard (`addYard`): porch per `look.porch` (deck + trim posts + roof slab; patio no roof; stoop = stone step; wraparound adds the right
+  side), two-car garage (left, open front) / carport (right) / driveway at `plan.driveX`, gravel path, lot-edge fence per `FENCES`
+  with gates at the path and driveway, garden beds (dirt + crops), `fruit` trees, coop. Roofs: `look.roof` gable/hip/flat (shed → flat,
+  barrel → hip, aframe/saltbox → gable), `look.ridge`, 2-wide steps when `look.pitch` < `VOX_HOUSE.lowPitch`; gable ends are wall.
+- `walk.js`: `canStand(v,x,y,z)` (2 tall, solid ground below; fences/hedges/leaves aren't ground; doors are walked through),
+  `walkSearch(v, start, {bounds, goal})` → Map, `canWalk`, `walkPath` → waypoints at turns. Gallery
+  `?dev=voxel&gen=house&loc=&seed=&variant=house|shared&extras=0|1&palette=` (`window.__voxel.house`); tests `tests/unit/voxHouse.test.js`.
+
 ## Finance helpers (`app/src/finance/`, pure, integer cents, rates are annual decimals)
 - `money.js`: `dollarsToCents(input)` (numbers, "3,200", "$3,200.50", "-$45"; null when unparseable) · `assertCents` ·
   `mulRate(cents, rate)` (the one rounding rule: half away from zero) · `sumCents(arr | ...n)` · `pctOf(part, whole)` →

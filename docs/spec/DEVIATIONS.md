@@ -384,3 +384,10 @@ and where in the code. Keep entries short. The teacher's intent in `99-original-
   `app/src/three/voxel/engine.js` turns them into one mesh per chunk per pass (opaque, cutout, blend, glow) on one Kenney texture
   atlas. The engine's terrain generation and persistence are simply never instantiated. Its `Control`/`Player` stay available
   for Explore. Where: app/src/world/mesher.js, app/src/three/voxel/engine.js.
+
+- **2026-11-02, homeblocks 09: house palettes other than 0 use the nearest-colored existing style blocks.** Only palette 0 of each
+  family has tinted blocks (task 03), and appending a set for every palette would cost ~150 more of the 255 ids. `paletteBlocks`
+  picks, per role (plaster/roof/trim), the style block whose tint is closest to the palette color. Also: the A-frame cabin is one
+  story plus the loft under its roof, counted × 1.5 like `planHouse`; rooms are at least 3 × 3, so small one-story houses get fewer
+  rooms than beds + baths + 2 (types are ordered living, bedroom, bathroom, kitchen so a bedroom and bathroom always come first).
+  Where: app/src/world/voxHouse.js.

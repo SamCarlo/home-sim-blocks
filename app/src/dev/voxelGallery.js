@@ -4,6 +4,7 @@
 // far-scenery stepped hill (16 × 10 × 8 at scale 4) behind the world (with `&gen=`: the place's landmark, genFar). `&gen=terrain&loc=<id>&month=<n>&seed=<n>` shows
 // world/genTerrain.js for a location (homeblocks 06; default pahoa, month 0). `&gen=neighborhood&loc=<id>&kind=<homeKind>`
 // adds world/genNeighborhood.js on top (homeblocks 07; big-city volumes are WORLD.tallY high).
+// `&gen=house&loc=<id>&seed=<n>&variant=house|shared&extras=0|1&palette=<n>` adds world/voxHouse.js on the lot (homeblocks 09).
 // Click breaks the block under the pointer, shift-click places light planks on the face (proves edits through pick).
 // `window.__voxel = {world, calls, triangles, chunks, edits}` once the first frame is drawn.
 import { h, clear } from '../ui/dom.js';
@@ -14,6 +15,9 @@ import { genTerrain } from '../world/genTerrain.js';
 import { genNeighborhood, worldSizeFor } from '../world/genNeighborhood.js';
 import { byId } from '../data/locations/index.js';
 import { genFar } from '../world/genLandmarks.js';
+import { voxHouse } from '../world/voxHouse.js';
+import { planHouse } from '../phases/design/housePlan.js';
+import { SHARED_BEDROOMS } from '../phases/design/sharedModel.js';
 
 const id = (key) => BLOCK[key].id;
 
@@ -73,14 +77,22 @@ export async function mount(root) {
   root.append(h('section', { class: 'dev-scene' }, view, label));
 
   const { createVoxelWorld } = await import('../three/voxel/engine.js');
-  let volume, terrain = null, place = null, hood = null;
-  if (gen === 'terrain' || gen === 'neighborhood') {
+  let volume, terrain = null, place = null, hood = null, house = null;
+  if (gen === 'terrain' || gen === 'neighborhood' || gen === 'house') {
     place = byId[getFlag('loc') ?? 'pahoa'] ?? byId.pahoa;
     const homeKind = getFlag('kind') ?? 'house', seed = Number(getFlag('seed') ?? 1);
-    volume = createVolume(gen === 'neighborhood' ? worldSizeFor(place, homeKind) : undefined);
+    volume = createVolume(gen !== 'terrain' ? worldSizeFor(place, homeKind) : undefined);
     const t0 = performance.now();
     terrain = genTerrain(volume, { location: place, monthIndex: Number(getFlag('month') ?? 0), seed });
-    if (gen === 'neighborhood') hood = genNeighborhood(volume, { location: place, seed, homeKind });
+    if (gen !== 'terrain') hood = genNeighborhood(volume, { location: place, seed, homeKind });
+    if (gen === 'house') {
+      const variant = getFlag('variant') === 'shared' ? 'shared' : 'house';
+      const pal = getFlag('palette');
+      const plan = planHouse({ style: place.styleFamily, styleVariant: place.styleVariant, seed, variant,
+        palette: pal == null ? null : Number(pal), bedrooms: variant === 'shared' ? SHARED_BEDROOMS : null });
+      const extras = getFlag('extras') === '0' ? {} : { gardenBeds: 3, fruitTrees: 2, coop: true };
+      house = { variant, plan, ...voxHouse(volume, { plan, extras, seed }) };
+    }
     terrain.ms = Math.round(performance.now() - t0);
   } else volume = full ? flatVolume() : testVolume();
   let far = null;
@@ -94,7 +106,8 @@ export async function mount(root) {
     document.body.dataset.ready = '1';
     return () => { delete document.body.dataset.ready; };
   }
-  if (hood) world.setOrbit({ target: { x: 64, y: hood.settlement === 'big-city' ? 60 : 28, z: 70 }, distance: hood.settlement === 'big-city' ? 250 : 150 });
+  if (house) world.setOrbit({ target: { x: house.door.x, y: 28, z: house.door.z - 4 }, distance: 46 });
+  else if (hood) world.setOrbit({ target: { x: 64, y: hood.settlement === 'big-city' ? 60 : 28, z: 70 }, distance: hood.settlement === 'big-city' ? 250 : 150 });
   else if (terrain) world.setOrbit({ target: { x: 64, y: 26, z: 64 }, distance: 150 });
   else if (full) world.setOrbit({ target: { x: 64, y: 24, z: 64 }, distance: 190 });
   else world.setOrbit({ target: { x: 30, y: 9, z: 30 }, distance: 34 });
@@ -102,9 +115,10 @@ export async function mount(root) {
   let edits = 0;
   const show = () => {
     const { calls, triangles, chunks } = world.info;
+    const hs = house ? `${house.variant === 'shared' ? 'Shared house' : 'House'} (${house.plan.style}, ${house.info.stories} stories, ${house.info.roof} roof, ${house.rooms.length} rooms, ${house.windows.length} windows, ~${house.info.sqft} sq ft) · ` : '';
     const nb = hood ? `${hood.settlement}: ${Object.entries(hood.counts).map(([k, n]) => `${n} ${k}`).join(', ')} · ` : '';
     const what = terrain ? `${nb}${place.name} terrain (${place.biome}${terrain.snow ? ', snow' : ''}, ${terrain.treeCount} trees, ${terrain.ms} ms) · ` : '';
-    label.textContent = `${what}Block world ${volume.size.x} × ${volume.size.y} × ${volume.size.z} · ${chunks} chunks · ${calls} draw calls · ${triangles} triangles · ${edits} edits · click breaks, shift-click places`;
+    label.textContent = `${hs}${what}Block world ${volume.size.x} × ${volume.size.y} × ${volume.size.z} · ${chunks} chunks · ${calls} draw calls · ${triangles} triangles · ${edits} edits · click breaks, shift-click places`;
   };
   const wrapSet = world.setBlock;
   world.setBlock = (x, y, z, b) => {
@@ -134,6 +148,7 @@ export async function mount(root) {
     world,
     terrain,
     neighborhood: hood,
+    house,
     get calls() { return world.info.calls; },
     get triangles() { return world.info.triangles; },
     get chunks() { return world.info.chunks; },

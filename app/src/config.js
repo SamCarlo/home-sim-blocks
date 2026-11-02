@@ -617,6 +617,18 @@ export const FAR = {
 };
 
 /** Neighborhood by settlement (13 §5, homeblocks 07; world/genNeighborhood.js). Counts are inclusive [min, max]. */
+/** The student's house in blocks (13 §3, §5, homeblocks 09; world/voxHouse.js). Lengths in blocks. */
+export const VOX_HOUSE = {
+  storyH: 4,                    // 13 §3 floor-to-floor: slab + 3-block ceiling
+  minSide: 5,                   // 13 §3 every box is at least 5 wide outside, so rooms are at least 3 × 3 inside
+  windowEvery: [2, 3],          // a window every 2–3 blocks along outside walls (seeded per house)
+  lowPitch: 0.4,                // roofs flatter than this step in 2 blocks per rise
+  porchMax: 3,                  // deepest porch / lānai
+  garage: { w: 7, d: 7 },       // two-car garage beside the house
+  carport: { w: 4, d: 6 },
+  bed: { w: 3, d: 2 },          // a garden bed
+};
+
 export const NEIGHBORHOOD = {
   setback: 3,                   // blocks between the sidewalk and a neighbor's front wall
   gap: 2,                       // clear blocks kept between a neighbor and the lot, the street or another neighbor

@@ -2314,3 +2314,30 @@ each logs here under `## Blocks NN: <title>`.
 - Notes for later tasks: voxHome (task 12-ish) should call `genFar({location, seed: seedFor(meta.seed,'world',homeKey), monthIndex,
   worldSize})` and pass `{volume: {size, data}, scale, origin}` as `far`. The far volume is large (384 m) next to the 128 m world; it
   reads right from the ground but looks oversized in the high orbit view. Kohala's mist strips read as faint bars; fine at distance.
+
+## Blocks 09: Houses and shared houses in blocks
+- attempt started 2026-11-02T05:45:38-10:00
+- done 2026-11-02T06:00:19-10:00
+- Files added: app/src/world/voxHouse.js (`voxHouse`, `paletteBlocks`, `ftPos`), app/src/world/voxHouseYard.js (`addYard`),
+  app/src/world/walk.js (`canStand`, `walkSearch`, `canWalk`, `walkPath`), tests/unit/voxHouse.test.js (7 tests). Changed:
+  app/src/config.js (`VOX_HOUSE`), app/src/dev/voxelGallery.js (`&gen=house&loc=&seed=&variant=&extras=&palette=`), tools/smoke.txt
+  (+voxel-house), CLAUDE.md, docs/spec/DEVIATIONS.md.
+- Verified: `node --test tests/unit/voxHouse.test.js` 7/7 (all 20 places × house/shared seed 1 plus 6 places × seeds 2–3: door
+  reachable from the sidewalk by BFS at standing height, every room reachable, rooms ≥ 3 × 3, floor area within 25 % of plan sqft;
+  deterministic; extras appear only when set). A scratch sweep of 20 places × 2 variants × 3 seeds passed (each house 0–6 ms).
+  `bash tools/check.sh` OK (syntax 251 · tests · data · contrast · copy · smoke 87/87 · lazy-plan).
+  Shots `node tools/shoot.mjs --path '/index.html?dev=voxel&gen=house&loc=<id>&seed=1[&variant=shared]&theme=light' --wait-ready` → tools/shots/b09/:
+  - katy.png: two-story tan texas-suburban house, brown stepped hip roof, lower two-car garage on the left with an open front and a
+    concrete driveway to the street, gravel path to the door, no fence (family has none), coop, fruit tree and a garden bed behind.
+  - hilo.png (plantation): one-story white house with a low green hip roof stepping in 2 blocks per rise, plank lānai with posts in
+    front, hedge fence around the lot with gates at the path and driveway, coop and fruit trees; floor blocks and row houses around.
+  - honolulu-shared.png: two-story white stucco shared house with a flat roof and trim parapet, a wing, a carport with a flat roof
+    on the right, block-wall fence, among the big-city towers. 45 calls / 245k triangles.
+- Deviations: other palettes map to the nearest-colored style blocks; A-frame loft counted × 1.5; fewer rooms than requested in
+  small one-story houses (see DEVIATIONS).
+- Notes for later tasks: voxHome should call voxHouse after genTerrain + genNeighborhood on the same volume, with the plan built as
+  three/homeRender.js generatorFor does (house: home.house.seed/palette + the listing's sqftTarget/bedrooms; shared: home.shared.seed +
+  SHARED_BEDROOMS). walk.js is reusable for voxBuilding/voxBlueprint paths and spawn checks. Task 12 (furniture) gets rooms
+  [{type, box}] (box = interior at feet..feet+2); stairs fill a 3 × 4 corner of multi-story mains (planks-dark), keep furniture off
+  them. `windows` holds glass indices to light at night; garage boxes are in `parts`. One-story houses often have only 2–3 rooms,
+  so put the kitchen in the living room when typed rooms run out.
