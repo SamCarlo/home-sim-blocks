@@ -417,3 +417,11 @@ and where in the code. Keep entries short. The teacher's intent in `99-original-
   `document`/`document.body` with no dispose, and calls pointer lock on the body. Our world is a dense volume, so a pure volume test is simpler,
   testable in Node and disposable.
 - **Where:** `app/src/world/firstPerson.js`, `app/src/phases/life/explore.js`, `config.EXPLORE`, `tests/unit/firstPerson.test.js`.
+
+## 2026-11-02, blocks task 18: the cap refuses any new edit; Save button unchanged
+- **What:** at `WORLD.maxEdits` the builder refuses any change that would add an edit (placing, or breaking a generated block) with "Your world
+  is full. Break something first."; changes that remove an edit (breaking your own block) always work. The header Save button still calls
+  `saveNow('manual-save')` instead of a `'world'` checkpoint.
+- **Why:** 13 §7 only names placing, but breaking a generated block also grows the diff and the cap must hold. The Save button already saves the
+  whole state including `state.world`, and Explore (where edits happen) makes the header inert and checkpoints `'world'` on close.
+- **Where:** `app/src/phases/life/exploreBuild.js`, `app/src/world/worldState.js`, `app/src/phases/life/lifeScreen.js`.

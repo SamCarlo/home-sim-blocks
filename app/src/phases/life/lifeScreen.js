@@ -33,6 +33,8 @@ import { formatMoney } from '../../finance/money.js';
 import { liveYear, finishAutopilot } from '../../life/autopilot.js';
 import { canRelocate, startRelocation, moveOutQuote, quoteText } from '../../life/relocation.js';
 import { renderAutopilotRecap } from './autopilotRecap.js';
+import { recordEdits, savePose } from '../../world/worldState.js';
+import { WORLD } from '../../config.js';
 
 /**
  * The panel for each stage: `(ctx) → Node[]`. ctx = {state, go(fn, checkpoint), store, onUpdate(fn), onTick(fn)}. A panel
@@ -244,9 +246,30 @@ export async function mount(container, { store }) {
       explorer = openExplore({ view, contract: view.contract, state: s,
         reduced: !!s.settings?.reducedMotion || matchMedia('(prefers-reduced-motion: reduce)').matches,
         onSettings: (patch) => store.update((d) => { Object.assign(d.settings, patch); }),
-        onClose: () => { explorer = null; if (mounted) go(() => {}, 'explore'); } }); // task 18 saves the pose into state.world
+        onEdit: (edits) => {
+          pendingEdits = edits;
+          if (!editTimer) editTimer = setTimeout(flushEdits, WORLD.saveBatchMs);
+        },
+        onClose: (pose, edits, hotbar) => {
+          explorer = null;
+          clearTimeout(editTimer); editTimer = 0; pendingEdits = null;
+          if (!mounted) return;
+          const homeKey = view.contract.homeKey;
+          go((d) => { recordEdits(d, edits, { homeKey, hotbar }); savePose(d, pose); }, 'world');
+        } });
     },
   };
+  // Block edits reach the store without a checkpoint, at most every WORLD.saveBatchMs (13 §7, blocks task 18); the draft
+  // timer saves them. Leaving Explore saves checkpoint 'world'.
+  let editTimer = 0, pendingEdits = null;
+  function flushEdits() {
+    editTimer = 0;
+    const edits = pendingEdits;
+    pendingEdits = null;
+    if (!edits || !mounted || !view?.contract) return;
+    const homeKey = view.contract.homeKey;
+    store.update((d) => { recordEdits(d, edits, { homeKey }); });
+  }
   function go(fn, checkpoint) {
     store.update((s) => { fn(s); }, { checkpoint });
   }
@@ -294,6 +317,7 @@ export async function mount(container, { store }) {
     unsub();
     mounted = false;
     explorer?.close();
+    clearTimeout(editTimer);
     stopAnimation();
     view?.dispose();
     delete window.__life;

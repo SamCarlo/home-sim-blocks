@@ -92,3 +92,4 @@ voxel-blueprint /index.html?dev=voxel&gen=blueprint&loc=pahoa&template=cozy
 voxel-home /index.html?dev=voxel&seed=life-month1-house&cut=1
 mobs /index.html?dev=mobs&theme=light
 life-explore /index.html?seed=life-month1-house&theme=light&explore=1
+life-world-built /index.html?seed=life-world-built&theme=light

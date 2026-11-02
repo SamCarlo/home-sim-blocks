@@ -989,3 +989,16 @@ rename). History: `docs/PROGRESS.md`. Before shipping a change run `bash tools/c
   select(i) slot() edits() aimAt(x,y,z)`; onClose gets `(pose, edits)`. Engine `pick` uses the active camera; `maxDist` = `BLOCK_BUILD.reach` (6).
 - e2e `tests/e2e/blocks-build.json` on `?seed=life-month1-house&theme=light`; shot steps `tools/shots/b17/steps-{house,hilo}.json` (Hilo =
   `life-month1-apartment`). Aim far cells first (the ray clips your last block) and avoid furniture in the line of sight.
+
+## Saving the block world (13 §7, blocks task 18; `world/worldState.js` + `world/homeKey.js`, pure)
+- Schema v3: `state.world` = `{homeKey, edits (packed, edits.js), editCount, pose {x,y,z,yaw,pitch} | null, hotbar [ids], cleared}` or null;
+  `state.upgrade` = `{startedMonth, stage, homeBefore, worldBefore}` or null (tasks 20–21). `migrate.js` STEPS[2]; `schema.js` `worldErrors`/`upgradeErrors`.
+- `ensureWorld(s, homeKey, {hotbar})` (creates; a different homeKey resets unless `s.upgrade`), `recordEdits(s, map, {homeKey, hotbar})` → `{ok,
+  almostFull, full, count}` (over `WORLD.maxEdits` writes nothing), `fullness(n)`, `editsOf(world)` → Map, `restoreEdits(contract, world, base?)`
+  (writes into `contract.volume` in place when homeKeys match; `base` gets generated ids), `savePose`. `homeKeyFor`/`homeInputs` live in
+  `world/homeKey.js` (voxHome re-exports them), so seeds and state code don't load the generators.
+- blockView applies the saved edits at build and after every regenerate (season, new plants), exposes `savedBase`. Explore's builder starts from
+  them, calls `onEdit(edits)`; lifeScreen batches that into `store.update` (no checkpoint) every `WORLD.saveBatchMs`; Done/Esc → checkpoint
+  'world' with edits + pose. `.life-hotbar-full` shows "Your world is almost full" at 90 %.
+- Seed `life-world-built` (Katy, 38 edits = `plannedBuilds()`, pose on the sidewalk facing them). e2e `tests/e2e/blocks-persist.json` on
+  `/index.html?theme=light` (register → `store.replace` a seed → build → reload without a seed → same blocks and pose).

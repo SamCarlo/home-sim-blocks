@@ -1,0 +1,137 @@
+[
+ {
+  "waitReady": true
+ },
+ {
+  "click": "#tab-register"
+ },
+ {
+  "type": [
+   "#panel-register input[name=username]",
+   "worldkid"
+  ]
+ },
+ {
+  "type": [
+   "#panel-register input[name=classCode]",
+   "DEMO"
+  ]
+ },
+ {
+  "type": [
+   "#panel-register input[name=password]",
+   "password123"
+  ]
+ },
+ {
+  "type": [
+   "#panel-register input[name=confirm]",
+   "password123"
+  ]
+ },
+ {
+  "click": "#panel-register button[type=submit]"
+ },
+ {
+  "waitFor": ".app-header"
+ },
+ {
+  "waitReady": true
+ },
+ {
+  "eval": "(() => { const s = window.__homesim.seeds['life-month1-house'].build(Date.now()); window.__homesim.store.replace(s); return s.phase; })()"
+ },
+ {
+  "waitFor": ".life-explore-open:not([disabled])"
+ },
+ {
+  "assert": "window.__homesim.getState().world === null"
+ },
+ {
+  "click": ".life-explore-open"
+ },
+ {
+  "waitFor": ".life-explore .life-hotbar"
+ },
+ {
+  "click": ".life-explore-gotit"
+ },
+ {
+  "eval": "(() => { const e = window.__explore, c = window.__life.view().contract; const to = (x, z) => { for (let i = 0; i < 60; i++) { const p = e.pose(), dx = x - p.x, dz = z - p.z, d = Math.hypot(dx, dz); if (d < 0.15) return; e.look((p.yaw - Math.atan2(-dx, -dz)) / 0.0025, 0); e.move(['w'], Math.min(150, d * 280)); } }; to(c.door.x + 0.5, e.pose().z); to(c.door.x + 0.5, c.exit.z + 0.5); const p = e.pose(); e.look(p.yaw / 0.0025, 0); window.__b17 = {door: c.door, exit: c.exit, lot: c.property[0]}; return e.pose(); })()"
+ },
+ {
+  "eval": "(() => { const e = window.__explore, {door} = window.__b17; const w = window.__life.view().scene.world; const gy = (x, z) => { for (let y = Math.floor(e.pose().y) + 3; y > 0; y--) if (w.getBlock(x, y, z) === 0 && w.getBlock(x, y - 1, z) !== 0) return y; return -1; }; const z = Math.floor(e.pose().z) - 3, out = []; for (let i = 3; i >= 0; i--) { const x = door.x + 1 + i, y = gy(x, z); e.aimAt(x + 0.5, y, z + 0.5); out.push(e.placeBlock()); } window.__b17.row = out; return out.map((r) => [r.ok, r.reason, r.cell]); })()"
+ },
+ {
+  "assert": "window.__b17.row.every((r) => r.ok) && window.__explore.edits().size === 4"
+ },
+ {
+  "wait": 2500
+ },
+ {
+  "assert": "window.__homesim.getState().world?.editCount === 4"
+ },
+ {
+  "eval": "(() => { const w = window.__life.view().scene.world, e = window.__explore; e.look(0, 120); const cells = window.__b17.row.map((r) => ({ ...r.cell, id: w.getBlock(r.cell.x, r.cell.y, r.cell.z) })); const pose = e.pose(); sessionStorage.setItem('b18', JSON.stringify({ cells, pose })); return { cells, pose }; })()"
+ },
+ {
+  "shot": "tools/shots/b18/1-explore-before.png"
+ },
+ {
+  "press": "Escape"
+ },
+ {
+  "waitFor": "body:not([data-explore])"
+ },
+ {
+  "assert": "(() => { const w = window.__homesim.getState().world, p = JSON.parse(sessionStorage.getItem('b18')).pose; return w.editCount === 4 && Math.abs(w.pose.x - p.x) < 0.01 && Math.abs(w.pose.z - p.z) < 0.01 && Math.abs(w.pose.yaw - p.yaw) < 0.01; })()"
+ },
+ {
+  "wait": 6000
+ },
+ {
+  "shot": "tools/shots/b18/2-orbit-before.png"
+ },
+ {
+  "goto": "/index.html?theme=light"
+ },
+ {
+  "waitReady": true
+ },
+ {
+  "waitFor": ".life-explore-open:not([disabled])"
+ },
+ {
+  "assert": "(() => { const { cells } = JSON.parse(sessionStorage.getItem('b18')); const w = window.__life.view().scene.world; return cells.every((c) => c.id !== 0 && w.getBlock(c.x, c.y, c.z) === c.id) && window.__homesim.getState().world.editCount === 4; })()"
+ },
+ {
+  "shot": "tools/shots/b18/3-orbit-after.png"
+ },
+ {
+  "click": ".life-explore-open"
+ },
+ {
+  "waitFor": ".life-explore .life-hotbar"
+ },
+ {
+  "assert": "(() => { const { pose } = JSON.parse(sessionStorage.getItem('b18')); const p = window.__explore.pose(); return ['x', 'y', 'z', 'yaw', 'pitch'].every((k) => Math.abs(p[k] - pose[k]) < 0.01) && window.__explore.edits().size === 4; })()"
+ },
+ {
+  "shot": "tools/shots/b18/4-explore-after.png"
+ },
+ {
+  "eval": "(() => { const { cells } = JSON.parse(sessionStorage.getItem('b18')); const e = window.__explore; const c = cells[0]; e.aimAt(c.x + 0.5, c.y + 0.5, c.z + 1); const r = e.breakBlock(); return { r, size: e.edits().size }; })()"
+ },
+ {
+  "assert": "window.__explore.edits().size === 3"
+ },
+ {
+  "press": "Escape"
+ },
+ {
+  "waitFor": "body:not([data-explore])"
+ },
+ {
+  "assert": "window.__homesim.getState().world.editCount === 3"
+ }
+]

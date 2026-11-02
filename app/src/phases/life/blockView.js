@@ -2,6 +2,7 @@
 // voxHome contract (13 §6), renders it with the voxel adapter, lights it with the classic sky (sky dome, sun, moon,
 // palettes from sky.js) and adds the blocky character and animals (mobs.js). Returns the same handle as lifeView.js, so
 // lifeScreen, animation.js and careButton.js drive either one. Returns null when WebGL is unavailable.
+import { restoreEdits } from '../../world/worldState.js';
 import { h } from '../../ui/dom.js';
 import { LIFE3D, BLOCK_VIEW } from '../../config.js';
 import { BLOCK } from '../../world/blocks.js';
@@ -22,6 +23,10 @@ export async function createBlockView(container, { state }) {
   container.append(view);
 
   let vh = voxHome(state, { monthIndex: state.life.monthIndex });
+  // The student's saved builds (13 §7, blocks task 18) go into the generated volume before it is meshed; `base` keeps each
+  // edited cell's generated id so Explore can tell an undone edit from a new one.
+  const base = new Map();
+  restoreEdits(vh, state.world, base);
   const world = await createVoxelWorld(view, {
     volume: vh.volume, far: { volume: { size: vh.far.size, data: vh.far.data }, scale: vh.far.scale, origin: vh.far.origin } });
   if (!world) { view.remove(); return null; }
@@ -145,6 +150,9 @@ export async function createBlockView(container, { state }) {
   function regenerate(s, mi) {
     vh = voxHome(s, { monthIndex: mi });
     volume.data.set(vh.volume.data);
+    vh.volume = volume; // the contract reads live cells (buildRules.canEdit)
+    base.clear();
+    restoreEdits(vh, s.world, base);
     glassLit = false;
     world.invalidate();
     home = buildHome(s, vh);
@@ -185,6 +193,8 @@ export async function createBlockView(container, { state }) {
     get info() { return world.info; },
     /** The 13 §6 voxHome contract now shown (spawn, property, door …); Explore starts from it. */
     get contract() { return vh; },
+    /** Generated ids of the cells the saved edits changed (volume index → id); Explore's builder starts from it. */
+    get savedBase() { return base; },
     /** Voxel stats for tests and the dev panel. */
     get vox() { return vh.info; },
     /**

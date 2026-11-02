@@ -598,6 +598,7 @@ export const WORLD = {
   farScale: 4,                  // 13 §3 one far-scenery block = 4 m
   maxEdits: 20000,              // 13 §7 cap on changed blocks per save (≈ 130 KB packed)
   almostFullPct: 0.9,           // 13 §7 hotbar warns "Your world is almost full" at 90 % of maxEdits
+  saveBatchMs: 2000,            // 13 §7 block edits reach the store (no checkpoint) at most this often (blocks task 18)
   buildHeight: 24,              // 13 §9 owners build up to this many blocks above groundY (spec gives no number)
   digDepth: 4,                  // 13 §9 nothing below groundY − digDepth can be broken
   ftPerBlock: 3.28,             // 13 §3 ftToBlocks divisor

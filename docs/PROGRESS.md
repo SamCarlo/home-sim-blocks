@@ -2568,3 +2568,37 @@ each logs here under `## Blocks NN: <title>`.
   The builder writes into `world.volume` (the same object as the contract's volume), so canEdit reads live cells. A click acts on pointer *release*
   when the pointer moved ≤ 6 px; the click that captures the mouse does nothing. Scripts aim with `__explore.aimAt(x, y, z)` (a face centre) and must
   place far cells first or the ray clips the block placed before it; furniture also occludes, so pick a clear column.
+
+## Blocks 18: Saving the world (schema v3)
+- attempt started 2026-11-02T12:38:37-10:00
+- done 2026-11-02T12:50:04-10:00
+- Files added: app/src/world/worldState.js (`newWorld ensureWorld fullness recordEdits editsOf restoreEdits savePose`), app/src/world/homeKey.js
+  (`homeInputs`, `homeKeyFor` moved out of voxHome.js, which re-exports them, so seeds can key a world without loading the generators),
+  tests/unit/worldState.test.js (7 tests), tests/e2e/blocks-persist.json, tools/shots/b18/steps-seed.json. Changed: state/schema.js (STATE_VERSION 3,
+  `world`/`upgrade` null, `worldErrors`/`upgradeErrors`), state/migrate.js (STEPS[2]), config.js (`WORLD.saveBatchMs` 2000),
+  phases/life/blockView.js (applies saved edits on build and after every regenerate; `savedBase`; regenerate now points `vh.volume` at the live
+  volume so canEdit reads live cells), explore.js (pose only from a world with the same homeKey; `onEdit`; onClose(pose, edits, hotbar)),
+  exploreBuild.js (starts from saved edits + base; `.life-hotbar-full` "Your world is almost full" at 90 %; at the cap any change that would add
+  an edit is refused with "Your world is full. Break something first."), lifeScreen.js (edits → `store.update` without checkpoint, batched
+  every 2 s; Done/Esc → `recordEdits` + `savePose` with checkpoint 'world'), life.css, dev/lifeSeeds.js (`life-world-built`, `plannedBuilds`),
+  tools/smoke.txt, tests/unit/state.test.js (v1 migration now ends at v3), CLAUDE.md.
+- Verified: `npm test` + `bash tools/check.sh` OK (syntax 266 · tests · data · contrast · copy · smoke 93/93 · lazy-plan); `npm run test:e2e` 6/6;
+  tests/e2e/blocks-build.json and blocks-explore.json still ✓. `node tools/shoot.mjs --path '/index.html?theme=light' --wait-ready --steps
+  tests/e2e/blocks-persist.json` ✓: registers worldkid, loads the Katy house via `store.replace`, places 4 plaster blocks, store has editCount 4
+  within 2.5 s (no checkpoint), Esc saves pose + edits, `goto /index.html` (no seed) → same 4 block ids in the world, Explore reopens at the
+  exact pose with 4 edits, one break → editCount 3 after Esc. 20,000 random edits over a 128 × 160 × 128 volume: save JSON well under 899,999.
+  Shots → tools/shots/b18/:
+  - 1-explore-before.png / 4-explore-after.png: same first-person view on the sidewalk, the 4-block plaster wall in the front yard beside the
+    path, chicken and front door at the top; the two match.
+  - 2-orbit-before.png / 3-orbit-after.png: the Welcome panel and the orbit view of the Katy house, identical before and after the reload
+    (only the focus ring on "Explore & build" differs).
+  - 5-seed-world-built.png: `life-world-built` in Explore: the planter wall (plaster, two glass blocks, trim top, red flowers behind) in front
+    of the house; a fence post near the right edge.
+- Deviations: at the cap breaking a *generated* block is refused too (it would add an edit); breaking your own blocks always works. The header
+  Save button is unchanged (`saveNow('manual-save')` already saves state.world; Explore makes the header inert, and closing Explore writes the
+  world first). Recorded in DEVIATIONS.
+- Notes for later tasks: `ensureWorld` keeps the old world while `state.upgrade` is set (task 21 rebases with `edits.rebase` and sets
+  `cleared`); a different homeKey without an upgrade resets it (move). Season changes keep the homeKey, so saved edits are written over a snowy
+  base too. lifeScreen only checkpoints the world on Explore close; task 19's menu transitions should call `ensureWorld` as needed. e2e scripts
+  can load any seed after registering with `window.__homesim.store.replace(window.__homesim.seeds[name].build(Date.now()))`, then
+  `goto /index.html` reloads the real save.

@@ -385,6 +385,11 @@ body.has-explore { overflow: hidden; }
   margin: 0; padding: 2px 12px; border-radius: var(--r-pill); background: var(--surface); color: var(--ink); font-size: .9rem;
   font-weight: 700; box-shadow: var(--shadow);
 }
+.life-hotbar-full {
+  margin: 0; padding: 2px 12px; border-radius: var(--r-pill); background: var(--st-yellow-bg); color: var(--st-yellow-ink);
+  border: 1px solid var(--st-yellow-line); font-size: .9rem; font-weight: 700; box-shadow: var(--shadow);
+}
+.life-hotbar-full[hidden] { display: none; }
 .life-hotbar-row {
   display: flex; gap: 4px; padding: 4px; border-radius: var(--r-md, 10px); background: rgba(0, 0, 0, .55); pointer-events: auto;
 }

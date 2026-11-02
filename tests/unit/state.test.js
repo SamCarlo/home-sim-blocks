@@ -52,10 +52,12 @@ test('migrate: current passes through, future refused, steps run in order', () =
 test('migrate v1 → v2 adds the relocation slot', () => {
   const v1 = init();
   delete v1.relocation;
+  delete v1.world;
+  delete v1.upgrade;
   v1.version = 1;
   v1.life.monthIndex = 4;
   const out = migrate(v1);
-  assert.equal(out.version, 2);
+  assert.equal(out.version, STATE_VERSION);
   assert.equal(out.relocation, null);
   assert.equal(out.life.monthIndex, 4);
   assert.deepEqual(validateState(out), []);

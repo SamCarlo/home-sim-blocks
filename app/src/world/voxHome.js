@@ -16,40 +16,13 @@ import { planBuilding } from '../phases/design/buildingPlan.js';
 import { planHouse } from '../phases/design/housePlan.js';
 import { listings } from '../phases/design/houseModel.js';
 import { SHARED_BEDROOMS, sharedOptions } from '../phases/design/sharedModel.js';
-import { hashString, seedFor } from '../util/rng.js';
+import { seedFor } from '../util/rng.js';
 import { VOX_INTERIORS as VI, WORLD } from '../config.js';
 
 const ID = (k) => BLOCK[k].id;
 
-/** Stable JSON (sorted keys) so a homeKey never depends on property order. */
-function stable(x) {
-  if (Array.isArray(x)) return `[${x.map(stable).join(',')}]`;
-  if (x && typeof x === 'object') return `{${Object.keys(x).sort().map((k) => `${JSON.stringify(k)}:${stable(x[k])}`).join(',')}}`;
-  return JSON.stringify(x ?? null);
-}
-
-/** The inputs that shape the home's blocks (13 §7): location, kind and the kind's own picks. Plants/animals don't. */
-export function homeInputs(state) {
-  const home = state.home;
-  const base = { loc: home.locationId, kind: home.kind };
-  if (home.kind === 'apartment' || home.kind === 'condo') {
-    const b = home.building ?? {};
-    return { ...base, seed: b.seed ?? 0, floor: b.floor ?? null, unit: b.unit ?? 0 };
-  }
-  if (home.kind === 'house') {
-    const h = home.house ?? {};
-    const l = listings(state)[h.listingIndex ?? 0] ?? {};
-    return { ...base, seed: h.seed ?? 0, palette: h.palette ?? null, sqft: l.sqftTarget ?? null, bedrooms: l.bedrooms ?? null,
-      beds: h.gardenBeds ?? 0, trees: h.fruitTrees ?? 0, coop: !!h.coop };
-  }
-  if (home.kind === 'shared') return { ...base, seed: home.shared?.seed ?? 0, room: home.shared?.roomId ?? null };
-  return { ...base, bp: home.blueprint ?? null };
-}
-
-/** `${kind}:${hash}` of exactly the inputs that shape the home (13 §7); changes on a move or an upgrade. */
-export function homeKeyFor(state) {
-  return `${state.home.kind}:${hashString(stable(homeInputs(state))).toString(36)}`;
-}
+export { homeInputs, homeKeyFor } from './homeKey.js';
+import { homeKeyFor } from './homeKey.js';
 
 /** The shared-house bedroom that is the student's: the bedroom whose side of the house best matches the room's `side`. */
 function sharedRoom(state, rooms, door) {

@@ -13,6 +13,8 @@ export class MigrationError extends Error {
 export const STEPS = {
   // v2 (Phase 4 moves, 2026-10-03): the relocation slot (life/relocation.js); 'autopilot' joined LIFE_STAGES.
   1: (s) => { s.relocation = null; },
+  // v3 (Block Edition, blocks task 18, 13 §7): the block world's edits/pose and the upgrade slot (world/worldState.js).
+  2: (s) => { s.world = null; s.upgrade = null; },
 };
 
 /** Bring any older save up to STATE_VERSION. Refuses future or unknown versions so nothing gets overwritten. */

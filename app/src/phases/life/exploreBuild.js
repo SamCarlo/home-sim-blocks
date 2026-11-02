@@ -2,26 +2,30 @@
 // slot, the chosen block's name is shown and announced), break (left click / B) and place (right click, Shift + click / P)
 // on the crosshair's face, every action checked by the pure world/buildRules.js `canEdit`; a refusal shows a short toast.
 // Each edit updates the rendered world at once and goes into an in-memory edits Map (volume index → id, world/edits.js
-// format). Saving them is task 18.
+// format). Task 18: starts from the saved edits (`saved` + `savedBase`), reports every change through `onEdit(edits)` (the
+// caller batches it into the store), warns "Your world is almost full" at 90 % of WORLD.maxEdits and refuses new edits at the cap.
 import { h } from '../../ui/dom.js';
 import { BLOCK_BUILD } from '../../config.js';
+import { fullness } from '../../world/worldState.js';
 import { blockById } from '../../world/blocks.js';
 import { idx } from '../../world/volume.js';
 import { canEdit, hotbarFor, placeCell } from '../../world/buildRules.js';
 
+const FULL_TEXT = 'Your world is full. Break something first.';
 const TEX = new URL('../../../vendor/kenney-voxel/', import.meta.url);
 
 /**
  * createBuilder({world, contract, location, player, status}) → {el (hotbar), toast (element), slot(), select(i), cycle(step),
  * breakBlock(), placeBlock(), onKey(e) → bool, edits(), dispose()}. `player` is the live firstPerson player (feet + body),
- * `status` an aria-live element for announcements.
+ * `status` an aria-live element for announcements. `saved` (Map index → id) and `savedBase` (Map index → generated id) carry
+ * the builds already in the save; `onEdit(edits)` runs after every change.
  */
-export function createBuilder({ world, contract, location, player, status }) {
+export function createBuilder({ world, contract, location, player, status, saved = null, savedBase = null, onEdit = null }) {
   const volume = world.volume;
   const bar = hotbarFor(location);
   const allowed = new Set(bar);
-  const edits = new Map();   // volume index → id now (only cells that differ from the world as generated)
-  const base = new Map();    // volume index → the generated id, kept so undoing an edit drops it from `edits`
+  const edits = new Map(saved ?? []);   // volume index → id now (only cells that differ from the world as generated)
+  const base = new Map(savedBase ?? []); // volume index → the generated id, kept so undoing an edit drops it from `edits`
   let sel = 0, toastTimer = 0;
 
   const name = h('p', { class: 'life-hotbar-name', 'aria-hidden': 'true' });
@@ -35,6 +39,8 @@ export function createBuilder({ world, contract, location, player, status }) {
     swatch, h('span', { class: 'life-hotbar-key', 'aria-hidden': 'true' }, String(i + 1)));
   });
   const el = h('div', { class: 'life-hotbar', role: 'toolbar', 'aria-label': 'Blocks to place' }, name, h('div', { class: 'life-hotbar-row' }, ...slots));
+  const fullNote = h('p', { class: 'life-hotbar-full', role: 'status', hidden: true }, 'Your world is almost full');
+  el.prepend(fullNote);
   const toast = h('div', { class: 'life-explore-toast', role: 'status', 'aria-live': 'polite', hidden: true });
 
   function select(i, announce = false) {
@@ -52,11 +58,23 @@ export function createBuilder({ world, contract, location, player, status }) {
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => { toast.hidden = true; }, BLOCK_BUILD.toastMs);
   }
+  function showFullness() {
+    const f = fullness(edits.size);
+    fullNote.hidden = !f.almostFull;
+    el.dataset.full = f.full ? 'full' : f.almostFull ? 'almost' : '';
+  }
+  showFullness();
+  /** Write one cell. False (and the 13 §7 toast) when it would add an edit to a full world. */
   function record(c, id) {
     const i = idx(volume, c.x, c.y, c.z);
-    if (!base.has(i)) base.set(i, world.getBlock(c.x, c.y, c.z));
+    const gen = base.has(i) ? base.get(i) : world.getBlock(c.x, c.y, c.z);
+    if (!edits.has(i) && gen !== id && fullness(edits.size).full) { say(FULL_TEXT); return false; }
+    if (!base.has(i)) base.set(i, gen);
     world.setBlock(c.x, c.y, c.z, id);
     if (base.get(i) === id) edits.delete(i); else edits.set(i, id);
+    showFullness();
+    onEdit?.(edits);
+    return true;
   }
   const aim = () => world.pick(0, 0, BLOCK_BUILD.reach);
 
@@ -68,7 +86,7 @@ export function createBuilder({ world, contract, location, player, status }) {
     const r = canEdit(contract, c, 'break', hit.id, { player });
     if (!r.ok) { say(r.text); return { ...r, cell: c }; }
     const label = blockById(hit.id)?.label ?? 'Block';
-    record(c, 0);
+    if (!record(c, 0)) return { ok: false, reason: 'full', cell: c };
     status.textContent = `${label} removed`;
     return { ...r, cell: c };
   }
@@ -79,7 +97,7 @@ export function createBuilder({ world, contract, location, player, status }) {
     const c = placeCell(hit), id = bar[sel];
     const r = canEdit(contract, c, 'place', id, { player, allowed });
     if (!r.ok) { say(r.text); return { ...r, cell: c }; }
-    record(c, id);
+    if (!record(c, id)) return { ok: false, reason: 'full', cell: c };
     status.textContent = `${blockById(id).label} placed`;
     return { ...r, cell: c };
   }

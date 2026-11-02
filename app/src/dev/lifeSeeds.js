@@ -10,6 +10,28 @@ import { startPlan, setChoice, startLive, finishLive, nextMonth } from '../life/
 import { buy } from '../life/investments.js';
 import { startRelocation } from '../life/relocation.js';
 import { liveYear } from '../life/autopilot.js';
+import { homeKeyFor } from '../world/homeKey.js';
+import { recordEdits, savePose } from '../world/worldState.js';
+import { WORLD } from '../config.js';
+
+/**
+ * The builds in `life-world-built` (blocks task 18): a flower planter in the Katy front yard, 38 cells. Wall z 77 x 67–72
+ * (plaster, glass in the middle, trim on top), side walls x 67/72 z 75–76, flowers inside, lamps and pots on the corners.
+ */
+export function plannedBuilds() {
+  const { x: X, z: Z } = WORLD.size;
+  const at = (x, y, z) => x + X * (z + Z * y);
+  const m = new Map();
+  for (let x = 67; x <= 72; x++) {
+    m.set(at(x, 25, 77), 69);
+    m.set(at(x, 26, 77), x === 69 || x === 70 ? 18 : 69);
+    m.set(at(x, 27, 77), 71);
+  }
+  for (const x of [67, 72]) for (const z of [75, 76]) for (const y of [25, 26]) m.set(at(x, y, z), 69);
+  for (let x = 68; x <= 71; x++) for (const z of [75, 76]) m.set(at(x, 25, z), 32);
+  for (const x of [67, 72]) { m.set(at(x, 27, 75), 39); m.set(at(x, 27, 76), 111); }
+  return m;
+}
 
 /** Fail loudly when a seed's Move in refuses (a seed that silently stays in design would hide bugs). */
 function ok(result, name) {
@@ -60,6 +82,14 @@ export function addLifeSeeds(seeds) {
     build: (now) => {
       const s = seeds['design-house-katy'].build(now);
       ok(moveInHouse(s, { index: 0, gardenBeds: 1, fruitTrees: 0, coop: true, pet: 'cat' }), 'life-month1-house');
+      return s;
+    } };
+  seeds['life-world-built'] = { phase: 'life',
+    description: 'Katy house, January 2033 welcome, with 38 saved block edits (a front-yard planter) and an Explore pose facing it.',
+    build: (now) => {
+      const s = seeds['life-month1-house'].build(now);
+      recordEdits(s, plannedBuilds(), { homeKey: homeKeyFor(s), hotbar: [69, 70, 71, 22, 18, 12, 32, 39, 111] });
+      savePose(s, { x: 69.5, y: 25, z: 83.5, yaw: 0, pitch: -0.15 });
       return s;
     } };
   seeds['life-month1-build'] = { phase: 'life',

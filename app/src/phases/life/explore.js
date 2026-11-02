@@ -10,6 +10,7 @@ import { EXPLORE } from '../../config.js';
 import { createPlayer, poseOf, stepPlayer, turn } from '../../world/firstPerson.js';
 import { byId } from '../../data/locations/index.js';
 import { createBuilder } from './exploreBuild.js';
+import { editsOf } from '../../world/worldState.js';
 
 const KEYS = {
   KeyW: 'forward', ArrowUp: 'forward', KeyS: 'back', ArrowDown: 'back', KeyA: 'left', ArrowLeft: 'left', KeyD: 'right',
@@ -25,16 +26,18 @@ const CONTROLS = [
 ];
 
 /**
- * openExplore({view, contract, state, onClose(pose, edits), onSettings?(patch), reduced?}) → {el, pose(), move(keys, ms), look(dx, dy),
+ * openExplore({view, contract, state, onClose(pose, edits, hotbar), onEdit?(edits), onSettings?(patch), reduced?}) → {el, pose(), move(keys, ms), look(dx, dy),
  * breakBlock(), placeBlock(), select(i), slot(), edits(), close()} or null when the view has no block world. `view` is blockView's handle, `contract` its voxHome contract.
  */
-export function openExplore({ view, contract, state, onClose, onSettings = null, reduced = false }) {
+export function openExplore({ view, contract, state, onClose, onEdit = null, onSettings = null, reduced = false }) {
   const world = view?.scene?.world;
   if (!world || !contract) return null;
   const volume = world.volume;
   const camera = new THREE.PerspectiveCamera(EXPLORE.fov, 1, 0.05, 2000);
   camera.rotation.order = 'YXZ';
-  const player = createPlayer(state.world?.pose ?? contract.spawn);
+  // A saved world only counts for the home it was built on (13 §7).
+  const saved = state.world?.homeKey === contract.homeKey ? state.world : null;
+  const player = createPlayer(saved?.pose ?? contract.spawn);
   const input = {};
   const opener = document.activeElement;
 
@@ -61,7 +64,8 @@ export function openExplore({ view, contract, state, onClose, onSettings = null,
     stage,
     h('div', { class: 'life-explore-bar' }, h('h1', { class: 'life-explore-title', id: 'life-explore-title' }, 'Explore your home'), help, done),
     card, status);
-  const builder = createBuilder({ world, contract, location: byId[state.home?.locationId], player, status });
+  const builder = createBuilder({ world, contract, location: byId[state.home?.locationId], player, status,
+    saved: editsOf(saved), savedBase: view.savedBase, onEdit });
   el.append(builder.el, builder.toast);
   function showCard(on) {
     card.hidden = !on;
@@ -199,7 +203,7 @@ export function openExplore({ view, contract, state, onClose, onSettings = null,
     delete document.body.dataset.explore;
     if (window.__explore === api) delete window.__explore;
     if (opener?.isConnected) opener.focus();
-    onClose?.(poseOf(player), builder.edits());
+    onClose?.(poseOf(player), builder.edits(), builder.bar());
   }
 
   const api = {
