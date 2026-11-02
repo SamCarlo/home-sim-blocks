@@ -8,6 +8,8 @@
 // `&gen=blueprint&loc=<id>&template=tiny|cozy|family&yard=0|1&roof=<style>` adds world/voxBlueprint.js (homeblocks 11).
 // `&gen=building&loc=<id>&kind=apartment|condo&seed=<n>&floor=<n|top>&unit=<n>&inside=1` adds world/voxBuilding.js (homeblocks 10;
 // `inside=1` takes the roof off down to the unit's floor so the hollow unit shows).
+// `&seed=<life seed name>` (e.g. life-month1-house) renders that save's whole world through world/voxHome.js (homeblocks 12),
+// far scenery included; `&cut=1` cuts everything above the first block of the home's ground floor (or of the unit) away.
 // Click breaks the block under the pointer, shift-click places light planks on the face (proves edits through pick).
 // `window.__voxel = {world, calls, triangles, chunks, edits}` once the first frame is drawn.
 import { h, clear } from '../ui/dom.js';
@@ -87,8 +89,19 @@ export async function mount(root) {
   root.append(h('section', { class: 'dev-scene' }, view, label));
 
   const { createVoxelWorld } = await import('../three/voxel/engine.js');
-  let volume, terrain = null, place = null, hood = null, house = null, bld = null, bpb = null;
-  if (gen === 'terrain' || gen === 'neighborhood' || gen === 'house' || gen === 'building' || gen === 'blueprint') {
+  let volume, terrain = null, place = null, hood = null, house = null, bld = null, bpb = null, life = null;
+  const lifeSeed = /^life-/.test(getFlag('seed') ?? '') ? getFlag('seed') : null;
+  if (lifeSeed) { // a save's whole world through the voxel home contract (homeblocks 12)
+    const [{ buildSeed }, { voxHome }] = await Promise.all([import('./seeds.js'), import('../world/voxHome.js')]);
+    const state = buildSeed(lifeSeed, 0);
+    life = { seed: lifeSeed, state, ...voxHome(state) };
+    volume = life.volume;
+    place = byId[state.home.locationId];
+    if (getFlag('cut') === '1') {
+      const b = life.info.homeBox, top = (life.unit ? life.unit.y0 : life.door.y) + 1; // walls cut to one block, furniture shows
+      fillBox(volume, { x0: b.x0 - 3, x1: b.x1 + 3, z0: b.z0 - 3, z1: b.z1 + 3, y0: top, y1: volume.size.y - 1 }, 0);
+    }
+  } else if (gen === 'terrain' || gen === 'neighborhood' || gen === 'house' || gen === 'building' || gen === 'blueprint') {
     place = byId[getFlag('loc') ?? 'pahoa'] ?? byId.pahoa;
     const homeKind = getFlag('kind') ?? (gen === 'building' ? 'apartment' : 'house'), seed = Number(getFlag('seed') ?? 1);
     const bplan = gen === 'building' ? planBuilding({ style: place.styleFamily, variant: place.styleVariant, seed, kind: homeKind, settlement: place.settlement }) : null;
@@ -126,7 +139,8 @@ export async function mount(root) {
     terrain.ms = Math.round(performance.now() - t0);
   } else volume = full ? flatVolume() : testVolume();
   let far = null;
-  if (getFlag('far') === '1' && place) { // the place's landmark (homeblocks 08)
+  if (life) far = { volume: { size: life.far.size, data: life.far.data }, scale: life.far.scale, origin: life.far.origin };
+  else if (getFlag('far') === '1' && place) { // the place's landmark (homeblocks 08)
     const f = genFar({ location: place, seed: Number(getFlag('seed') ?? 1), monthIndex: Number(getFlag('month') ?? 0), worldSize: volume.size });
     far = { volume: { size: f.size, data: f.data }, scale: f.scale, origin: f.origin };
   } else if (getFlag('far') === '1') far = { volume: farHill(), scale: 4, origin: { x: volume.size.x / 2 - 32, y: 0, z: -40 } };
@@ -136,7 +150,13 @@ export async function mount(root) {
     document.body.dataset.ready = '1';
     return () => { delete document.body.dataset.ready; };
   }
-  if (bld) {
+  if (life) {
+    const cut = getFlag('cut') === '1', b = life.info.homeBox, d = life.door;
+    const tall = b.y1 - WORLD.groundY;
+    world.setOrbit(cut ? { target: { x: (b.x0 + b.x1) / 2, y: d.y, z: (b.z0 + b.z1) / 2 }, distance: 30 }
+      : { target: { x: (b.x0 + b.x1) / 2, y: WORLD.groundY + Math.min(tall, 60) / 2, z: (b.z0 + b.z1) / 2 }, distance: Math.min(240, 60 + tall * 1.2) });
+    if (cut && life.unit) world.setOrbit({ target: { x: (life.unit.x0 + life.unit.x1) / 2, y: life.unit.y0, z: (life.unit.z0 + life.unit.z1) / 2 }, distance: 24 });
+  } else if (bld) {
     const u = bld.unit, inside = getFlag('inside') === '1';
     const ty = inside ? u.y0 : Math.round((WORLD.groundY + bld.info.top) / 2);
     world.setOrbit({ target: { x: (u.x0 + u.x1) / 2, y: ty, z: (u.z0 + u.z1) / 2 + 4 },
@@ -153,12 +173,13 @@ export async function mount(root) {
   let edits = 0;
   const show = () => {
     const { calls, triangles, chunks } = world.info;
+    const ls = life ? `${life.seed}: ${life.homeKey} (${life.rooms.map((r) => r.type).join('/')}, ${life.info.pieces} pieces, ${life.windows.length} windows, path ${life.path.length}, ${life.info.ms} ms) · ` : '';
     const bs = bld ? `${bld.plan.kind} ${bld.info.form} (${bld.plan.style}, ${bld.info.floors} floors, ${bld.info.cols} × ${bld.info.rows} units, core ${bld.info.core ?? 'none'}; unit floor ${bld.info.floor} #${bld.info.unit}, ${bld.unitRooms.map((r) => r.type).join('/')}, ${bld.windows.length} windows, path ${bld.path.length}) · ` : '';
     const bs2 = bpb ? `Blueprint ${bpb.template} (${bpb.rooms.map((r) => r.type).join('/')}, ${bpb.info.doors.length} doors, ${bpb.windows.length} windows, ${bpb.info.roof} roof, path ${bpb.path.length}) · ` : '';
     const hs = house ? `${house.variant === 'shared' ? 'Shared house' : 'House'} (${house.plan.style}, ${house.info.stories} stories, ${house.info.roof} roof, ${house.rooms.length} rooms, ${house.windows.length} windows, ~${house.info.sqft} sq ft) · ` : '';
     const nb = hood ? `${hood.settlement}: ${Object.entries(hood.counts).map(([k, n]) => `${n} ${k}`).join(', ')} · ` : '';
     const what = terrain ? `${nb}${place.name} terrain (${place.biome}${terrain.snow ? ', snow' : ''}, ${terrain.treeCount} trees, ${terrain.ms} ms) · ` : '';
-    label.textContent = `${bs}${bs2}${hs}${what}Block world ${volume.size.x} × ${volume.size.y} × ${volume.size.z} · ${chunks} chunks · ${calls} draw calls · ${triangles} triangles · ${edits} edits · click breaks, shift-click places`;
+    label.textContent = `${ls}${bs}${bs2}${hs}${what}Block world ${volume.size.x} × ${volume.size.y} × ${volume.size.z} · ${chunks} chunks · ${calls} draw calls · ${triangles} triangles · ${edits} edits · click breaks, shift-click places`;
   };
   const wrapSet = world.setBlock;
   world.setBlock = (x, y, z, b) => {
@@ -190,6 +211,7 @@ export async function mount(root) {
     neighborhood: hood,
     house,
     building: bld,
+    home: life && { homeKey: life.homeKey, door: life.door, spawn: life.spawn, rooms: life.rooms.length, pieces: life.info.pieces, info: life.info },
     blueprint: bpb && { template: bpb.template, rooms: bpb.rooms, doors: bpb.info.doors, windows: bpb.windows.length, path: bpb.path },
     get calls() { return world.info.calls; },
     get triangles() { return world.info.triangles; },

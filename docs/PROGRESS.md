@@ -2401,3 +2401,34 @@ each logs here under `## Blocks NN: <title>`.
   genTerrain + genNeighborhood with `worldSizeFor(location, 'house')`. `rooms` carry the blueprint room `id` too; `info.doors` lists every
   placed door `{id, kind 'door'|'opening', x, y, z}`; `info.footprint` is the house's block rect. Furniture (task 12) must keep off door
   cells' inside neighbors and the lānai. Solar is ground-mounted behind the house (`VOX_BLUEPRINT.solarPerKw` panels per kW).
+
+## Blocks 12: Furniture and the voxel home contract
+- attempt started 2026-11-02T08:02:39-10:00
+- done 2026-11-02T08:40:00-10:00
+- Files added: app/src/world/voxInteriors.js (`furnish`), app/src/world/voxHome.js (`voxHome`, `homeKeyFor`, `homeInputs`),
+  tests/unit/voxHome.test.js (5 tests). Changed: app/src/world/blocks.js (appended 108 couch, 109 tub, 110 toilet, 111 potted-plant),
+  app/src/config.js (`VOX_INTERIORS`), app/src/dev/voxelGallery.js (`&seed=<life seed>&cut=1`), tools/smoke.txt (+voxel-home), CLAUDE.md,
+  docs/spec/DEVIATIONS.md.
+- Verified: `node --test tests/unit/voxHome.test.js` 5/5 over the five `life-month1-*` seeds (every contract field, far volume sized, windows
+  are glass, door → exit walkable and every waypoint standable, spawn air with floor under it and by the door, property holds spawn and door,
+  every room still reachable from the door after furnishing, a bed + counter + lamp in every home, bath fixtures in the house, every pot placed,
+  homeKey stable/different per kind/unchanged by plants/changed by the house seed, same blocks twice, each call < 800 ms: 23–75 ms) plus a
+  synthetic room test (cells inside a door and an opening stay free, walk-through still works for bedroom/kitchen/living/bathroom).
+  `bash tools/check.sh` OK (syntax 256 · tests · data · contrast · copy · smoke 90/90 · lazy-plan). Shots
+  `node tools/shoot.mjs --path '/index.html?dev=voxel&seed=life-month1-<kind>[&cut=1]&theme=light' --wait-ready` → tools/shots/b12/:
+  - apartment.png: Hilo, the student's mid-rise with a red hip roof and a front stair tower among floor blocks and row houses, ridge
+    behind, palms and ʻōhiʻa along the street. 39 calls / 135k triangles.
+  - condo.png: Miami glass tower with lit windows among towers, beach and sea on the left, far skyline of glass towers. 55 calls / 296k.
+  - house.png: the Katy two-story tan house with brown stepped hip roof, gravel path, coop behind, suburban neighbors. 39 calls / 96k.
+  - shared.png: Honolulu, the two-story white shared house sits in the middle among towers (partly hidden behind one from this orbit). 52 / 350k.
+  - build.png: Pāhoa cozy build, grey stepped roof, catchment tank, lānai, garden fields and lava-rock patches, Kīlauea ridge. 39 / 107k.
+  - house-cut.png (cut=1): walls cut to one block; beds, tubs (white), counters, shelves, lamps, blue/red rugs visible room by room; doorways clear.
+  - apartment-cut.png (cut=1): looking down into the unit: couch, bed, counter, table + chair, lamp, rug.
+- Deviations: four appended decor blocks (couch, tub, toilet, potted plant; 13 §4 lists none for these); renters' and condo owners'
+  `property` also holds the one door-step cell outside their door; shared renters spawn just inside their own room (DEVIATIONS).
+- Notes for later tasks: `voxHome(state, {monthIndex})` (numeric `season` also works; default `state.life.monthIndex`) returns the contract plus
+  `rooms`, `plants [{id, kind, x,y,z}]` (pots are `potted-plant` blocks, dead ones are left out; task 15 swaps them), `furniture {pieces, lamps,
+  rugs}` (lamps are emissive) and `info.homeBox` (lot box for houses/builds, the building box for units). `spawn.yaw` 0 looks toward −z.
+  homeKey ignores season and plants, so snow months rebuild a different base under the same key: task 18 should diff edits against the
+  season-free base or rebase on season change. Studios (one-room units) get the bed in the living room. Honolulu shared house hides behind
+  a tower from the default orbit; the life view (14) may want a lower/closer camera.

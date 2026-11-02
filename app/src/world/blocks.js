@@ -137,6 +137,11 @@ add('far-forest', 'Distant forest', f(PLASTER_TEX), { tint: '#3f6a3c', placeable
 add('far-haze', 'Distant ridge', f(PLASTER_TEX), { tint: '#8fa2b2', placeable: false, group: 'nature' });
 add('far-ochre', 'Distant red rock', f(PLASTER_TEX), { tint: '#b07a52', placeable: false, group: 'nature' });
 add('gold', 'Gold leaf', f(PLASTER_TEX), { tint: '#d4a93a', placeable: false, group: 'structure' });
+// Appended (homeblocks 12): furniture world/voxInteriors.js needs beyond the 13 §4 decor list, and the potted plant.
+add('couch', 'Couch', f('cotton_blue.png', 'wood.png', 'cotton_blue.png'), { group: 'decor' });
+add('tub', 'Bathtub', f(PLASTER_TEX), { tint: '#eef2f4', group: 'decor' });
+add('toilet', 'Toilet', f(PLASTER_TEX, 'greysand.png', PLASTER_TEX), { tint: '#f4f6f8', group: 'decor' });
+add('potted-plant', 'Potted plant', f('leaves_transparent.png'), { tint: '#4a9a50', solid: false, transparent: true, group: 'decor' });
 
 for (const b of BLOCKS) Object.freeze(b);
 Object.freeze(BLOCKS);

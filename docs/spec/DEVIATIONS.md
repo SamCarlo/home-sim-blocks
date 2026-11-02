@@ -403,3 +403,8 @@ and where in the code. Keep entries short. The teacher's intent in `99-original-
   an open lānai edge places no block (there is no wall), but it still counts as the way in. Student colors map to the nearest tinted block by
   RGB distance plus double weight on the blue-minus-red tilt (plain RGB sent the grey metal roof to a brown). Solar is ground-mounted behind
   the house like the 3D view. Why: 13 §3 room minimum and 13 §6 needs every room reachable. Where: app/src/world/voxBlueprint.js.
+- **2026-11-02, homeblocks 12 — furniture blocks and the contract's edges.** What: four decor blocks appended (108 couch, 109 tub,
+  110 toilet, 111 potted-plant) because 13 §4's decor list has no couch, bath fixtures or pot; apartment, condo and shared `property` also
+  includes the single door-step cell outside the student's door (13 §9 says the unit box) so the contract's door is on the property; the
+  shared renter's `spawn` is just inside their own room's door rather than the front door, so it stays on their property. Why: the task asks
+  for couches and bath fixtures, and its tests ask that property hold spawn and door. Where: app/src/world/blocks.js, voxHome.js.

@@ -638,6 +638,13 @@ export const VOX_BLUEPRINT = {
   roofShape: { gable: 'gable', hip: 'hip', shed: 'flat', flat: 'flat' }, // BLUEPRINT.roofStyles → stepRoof shapes
 };
 
+/** Furniture and the voxel home contract (13 §4, §6, homeblocks 12; world/voxInteriors.js, world/voxHome.js). */
+export const VOX_INTERIORS = {
+  bigRoom: 16,                  // rooms with at least this many floor cells get two chairs per table, smaller ones one
+  potSpacing: 1,                // blocks between a plant spot's pots when there are more pots than spots (LIFE3D.potSpacing)
+  maxMs: 800,                   // the whole voxHome call in Node (tests)
+};
+
 export const VOX_BUILDING = {
   storyH: 4,                    // 13 §3 floor-to-floor for every floor (lobby and parking decks too; see DEVIATIONS)
   maxW: 33,                     // widest building in blocks = the flat lot (2 × WORLD.lotHalf + 1); wide rows get narrower units

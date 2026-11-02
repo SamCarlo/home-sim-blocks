@@ -293,6 +293,24 @@ docs/                          TASK_PROTOCOL, PROGRESS, OPEN_ITEMS, spec/
   Yard items use the same grid, shifted into the lot; fence gates at the path and driveways; tank left of the house, solar behind it.
 - Gallery `?dev=voxel&gen=blueprint&loc=&template=tiny|cozy|family&yard=0|1&roof=` (`window.__voxel.blueprint`); tests `tests/unit/voxBlueprint.test.js`.
 
+## Furniture and the voxel home contract (13 §4, §6, blocks task 12; `app/src/world/voxInteriors.js` + `voxHome.js`, pure)
+- `voxHome(state, {monthIndex? | season (number)})` → 13 §6 `{volume, far {size, data, origin, scale, key}, homeKey, door, exit, path, spawn
+  {x,y,z,yaw (0 = toward −z)}, plantSpots, animalSpots, windows, property [box], unit, info {blocks, homeBlocks, kind, monthIndex, homeBox,
+  rooms, pieces, ms}}` + `rooms`, `plants [{id, kind, x,y,z}]`, `furniture`. Order: volume (buildingWorldSize for units, else worldSizeFor) →
+  genTerrain → genNeighborhood → voxBuilding/voxHouse/voxBlueprint → furnish → plants → genFar. Seed `seedFor(meta.seed, 'world', homeKey)`.
+  23–100 ms per call. The life view (task 14) uses only this.
+- `homeKeyFor(state)` = `${kind}:${hash(stable JSON of homeInputs(state))}`: location, kind and the kind's picks (building seed/floor/unit;
+  house seed/palette/listing sqft+beds/extras; shared seed/room; build blueprint). Plants, animals and season are not in it.
+- Property: house/build = lotBox; apartment/shared = unit (shared = the bedroom matching `home.shared.roomId`'s side); condo = unit + balcony
+  box; every unit kind also gets the door-step cell. Pots = `potted-plant` (111) at plantSpots (fanned out +x like LIFE3D.potSpacing), beds = crops.
+- `furnish(v, rooms, {styleKey, seed, keep})`: per type pieces (bedroom bed+shelf, living couch+shelf+rug, kitchen counters+shelf+table+chairs,
+  bathroom tub+toilet+counter, dining/office table, den couch, laundry/closet), a lamp per room (corner first), rugs replace the floor. Studios
+  get the bed in the living room; no kitchen → living room gets counter + table. Lānai/garage/porch get nothing, hallways a lamp. Cells inside
+  any wall opening, a ring around stairs and `keep` cells stay free; a piece is refused if it splits the room's free floor. Blocks 108–111:
+  couch, tub, toilet, potted-plant.
+- Gallery `?dev=voxel&seed=<life seed name>[&cut=1]` renders a save's world through voxHome (`cut=1` cuts walls to one block so furniture shows;
+  `window.__voxel.home`). Tests `tests/unit/voxHome.test.js`.
+
 ## Finance helpers (`app/src/finance/`, pure, integer cents, rates are annual decimals)
 - `money.js`: `dollarsToCents(input)` (numbers, "3,200", "$3,200.50", "-$45"; null when unparseable) · `assertCents` ·
   `mulRate(cents, rate)` (the one rounding rule: half away from zero) · `sumCents(arr | ...n)` · `pctOf(part, whole)` →
