@@ -2257,3 +2257,33 @@ each logs here under `## Blocks NN: <title>`.
   Nothing above groundY on the lot or street, so genNeighborhood/voxHouse can write there freely. `placeTree` only fills air
   (use it for yard fruit trees: kinds `fruit`, `banana`; `{wilted: true}` for a neglected yard). Seed in the gallery =
   `&seed=` (default 1); real worlds should pass `seedFor(meta.seed, 'world', homeKey)`. Bare oaks read a bit like posts.
+
+## Blocks 07: Neighborhood by settlement
+- attempt started 2026-11-02T04:13:36-10:00
+- done 2026-11-02T04:22:23-10:00
+- Files added: app/src/world/genNeighborhood.js (`genNeighborhood`, `neighborSettlement`, `worldSizeFor`), app/src/world/shells.js
+  (`houseShell`, `blockShell`, `towerShell`, `addRoof`, `addWindows`, `fenceRing`, `roofShapeFor`), tests/unit/genNeighborhood.test.js (6 tests).
+  Changed: app/src/world/blocks.js (appended ids 100 asphalt, 101 road-paint, 102 mailbox), app/src/config.js (`NEIGHBORHOOD`),
+  app/src/dev/voxelGallery.js (`&gen=neighborhood&loc=&kind=&seed=`), tools/smoke.txt (+voxel-neighborhood), CLAUDE.md.
+- Verified: `node --test tests/unit/genNeighborhood.test.js` 6/6 (all 20 places × house/apartment/condo, seeds 1–3; worst terrain +
+  neighborhood = Seattle ~110 ms); `bash tools/check.sh` OK (syntax 246 · tests · data · contrast · copy · smoke 85/85 · lazy-plan).
+  Shots `node tools/shoot.mjs --path '/index.html?dev=voxel&gen=neighborhood&loc=<id>&theme=light' --wait-ready` → tools/shots/b07/:
+  - pahoa.png (rural): sparse. A gravel road with 4 lamps, two far farmhouses (red hip roof, grey hip roof) and two fenced crop
+    fields among ʻōhiʻa, palms and lava rock; most of the map is open green. 37 calls / 96k triangles.
+  - hilo.png (small-city): medium. Asphalt street with dashed yellow line, curbs, sidewalks, lamps both sides; two 3–4 floor
+    blocks and two row-house terraces (brick, grey, white units) across and beside the lot. 40 calls / 102k triangles.
+  - katy.png (suburb): 8 detached houses in a row along both sides of the street, brown gable/hip roofs, brick/plank/plaster
+    walls, doors toward the street, trees behind. 38 calls / 82k triangles.
+  - brooklyn.png (big-city, January snow): dense. Six glass towers up to ~130 m in a 128 × 160 × 128 volume plus three brick
+    floor blocks with dark trim bands, lit windows; street and lamps in front. 38 calls / 258k triangles (13 §11 is ≤ 400k).
+  - valentine.png (rural, January): sparsest. Snow plains, a gravel road, two farmhouses, three fenced fields (no crops on
+    snow), a few bare oaks.
+- Deviations: none from 13 §5. Choices where the spec is silent: settlement step-up table (rural→small-town,
+  small-town/suburb→small-city, small-city→mid-city, mid-city→big-city) in `NEIGHBORHOOD.stepUp`; street band layout
+  sidewalk 2 · curb 1 · asphalt · curb 1 · sidewalk 2 (rural: gravel road only); appended asphalt/road-paint/mailbox blocks.
+- Notes for later tasks: call genNeighborhood **after** genTerrain on a volume of `worldSizeFor(location, homeKind)` (big-city
+  → `WORLD.tallY`). It returns `{settlement, neighbors [{kind house|row|block|tower|farmhouse|field, rect, box}], counts, lamps,
+  mailbox {x,y,z}, roadZ}`. Neighbor sites skip water and slopes > maxStep, clear trees in a 1-block margin and lay a stone-brick
+  foundation. The lot stays empty above groundY for voxHouse/voxBuilding; terrain tree canopies (and pine snow caps) can
+  still overhang the street band. Buildings are solid cores (houses are hollow); lit-glass reads tan by day. Towers are the
+  triangle budget driver (~35k each).

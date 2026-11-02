@@ -127,6 +127,10 @@ for (const key of STYLE_FAMILIES) {
 
 // Appended after the style blocks (homeblocks 06): ʻōhiʻa canopy with red lehua blossoms.
 add('lehua-leaves', 'ʻŌhiʻa leaves', f('leaves_orange_transparent.png'), { tint: '#e0484a', transparent: true, group: 'nature' });
+// Appended (homeblocks 07): the street.
+add('asphalt', 'Asphalt', f('greystone.png'), { tint: '#4a4c52', group: 'structure' });
+add('road-paint', 'Road paint', f(PLASTER_TEX), { tint: '#f2d25a', group: 'structure', placeable: false });
+add('mailbox', 'Mailbox', f(PLASTER_TEX, 'greysand.png', PLASTER_TEX), { tint: '#5a6a7e', group: 'decor' });
 
 for (const b of BLOCKS) Object.freeze(b);
 Object.freeze(BLOCKS);

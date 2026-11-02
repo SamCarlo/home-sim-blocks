@@ -608,3 +608,22 @@ export const WORLD = {
   shoreWidth: 4,                // 13 §5 flat sand/gravel shore between the water and the land
   treesPer1000: 6,              // 13 §5 tree attempts per 1000 open columns at density 1 (biome table scales it)
 };
+
+/** Neighborhood by settlement (13 §5, homeblocks 07; world/genNeighborhood.js). Counts are inclusive [min, max]. */
+export const NEIGHBORHOOD = {
+  setback: 3,                   // blocks between the sidewalk and a neighbor's front wall
+  gap: 2,                       // clear blocks kept between a neighbor and the lot, the street or another neighbor
+  maxStep: 3,                   // a neighbor site whose ground varies more than this is skipped (no cliffs of foundation)
+  storyH: 4,                    // 13 §3 floor-to-floor (3-block ceiling + slab)
+  lampEvery: 16,                // streetlamp spacing along the lot-side sidewalk (rural: ×2)
+  litChance: 0.25,              // share of neighbor windows that are lit-glass (glow at night)
+  // Apartment and condo homes see their surroundings one settlement step denser (13 §5).
+  stepUp: { rural: 'small-town', 'small-town': 'small-city', suburb: 'small-city', 'small-city': 'mid-city',
+    'mid-city': 'big-city', 'big-city': 'big-city' },
+  rural: { fields: [2, 4], farmhouses: [1, 2], farMin: 30 },
+  'small-town': { houses: [4, 6], stories: [1, 2] },
+  suburb: { houses: [6, 8], stories: [1, 2] },
+  'small-city': { rows: [1, 2], blocks: [2, 3], floors: [3, 4] },
+  'mid-city': { rows: [1, 2], blocks: [3, 4], floors: [4, 6] },
+  'big-city': { towers: [4, 6], towerFloors: [12, 30], blocks: [2, 3], floors: [5, 8] },
+};

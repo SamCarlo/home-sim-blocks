@@ -101,7 +101,7 @@ app/src/three/                 scene.js sky.js terrain.js landmarks.js materials
                                character.js · styles.js styleParts.js styleSwatch.js · buildingGen.js buildingParts.js · houseGen.js houseYard.js · blueprintTo3d.js · homeRender.js
                                (browser only, import() lazily; see 3D scene)
 app/vendor/                    three/ (+addons/) nspell/ dictionary-en/ vader/ · voxel/ (block engine, task 02) · kenney-voxel/ (CC0 tiles, blocks task 03) · VERSIONS.md (pinned, licensed)
-app/src/world/                 blocks.js (block registry) · volume.js (dense volume) · edits.js (save diffs) · mesher.js (face mesher + raycast) · genTerrain.js trees.js (blocks task 06) (pure; more generators, voxHome in later tasks)
+app/src/world/                 blocks.js (block registry) · volume.js (dense volume) · edits.js (save diffs) · mesher.js (face mesher + raycast) · genTerrain.js trees.js (blocks task 06) · genNeighborhood.js shells.js (blocks task 07) (pure; more generators, voxHome in later tasks)
 app/src/phases/<phase>/        one screen per phase (placeholders until their tasks); design/blueprint/ = the build editor
                                paperwork/: paperworkScreen.js · flow.js (pure) · steps/ (index.js registry, one module per step)
 app/src/accounts/              provider.js (AccountError, validation, chooseMode, selectProvider) · local.js (PBKDF2, homeblocks:v1:accounts/session)
@@ -221,6 +221,17 @@ docs/                          TASK_PROTOCOL, PROGRESS, OPEN_ITEMS, spec/
 - `trees.js`: `treeShape(kind, rng, {wilted, bare, snowCap})` → `[[dx,dy,dz,key]]`, `placeTree(v, kind, x, y, z, rng, opts)` (air
   only), kinds oak pine palm ohia cactus banana fruit. Gallery `?dev=voxel&gen=terrain&loc=<id>&month=<n>&seed=<n>`
   (`window.__voxel.terrain`); tests `tests/unit/genTerrain.test.js`.
+
+## Neighborhood (13 §5, blocks task 07; `app/src/world/`, pure)
+- `genNeighborhood(volume, {location, seed, homeKind})` after genTerrain → `{settlement, neighbors [{kind, rect, box}], counts, lamps,
+  mailbox, roadZ}`. Settlement = `neighborSettlement(location.settlement, homeKind)` (apartment/condo step up one, `NEIGHBORHOOD.stepUp`);
+  make the volume with `worldSizeFor(location, homeKind)` (big-city → `WORLD.tallY`). Street band: sidewalk · curb · asphalt with dashed
+  `road-paint` · curb · sidewalk (rural = gravel road), lamps every `lampEvery`, mailbox at `lot.x0 + 3`. Neighbors (rural fields +
+  far farmhouses; houses; row houses + floor blocks; towers + blocks) keep `NEIGHBORHOOD.gap` from the lot, street and each other,
+  skip water/steep sites, clear trees, sit on a stone-brick foundation. Shapes in `shells.js` (`houseShell` hollow, `blockShell`/
+  `towerShell` solid cores with glass in the face, `addRoof` gable|hip|flat, `fenceRing`). Blocks 100–102: asphalt, road-paint, mailbox.
+  Gallery `?dev=voxel&gen=neighborhood&loc=<id>&kind=<homeKind>&seed=` (`window.__voxel.neighborhood`); tests
+  `tests/unit/genNeighborhood.test.js`. Brooklyn ≈ 258k triangles (towers ~35k each).
 
 ## Finance helpers (`app/src/finance/`, pure, integer cents, rates are annual decimals)
 - `money.js`: `dollarsToCents(input)` (numbers, "3,200", "$3,200.50", "-$45"; null when unparseable) · `assertCents` ·

@@ -84,3 +84,4 @@ voxel-vendor /index.html?dev=voxel-vendor&theme=light
 voxel /index.html?dev=voxel&theme=light
 blocks /index.html?dev=blocks&theme=light
 voxel-terrain /index.html?dev=voxel&gen=terrain&loc=homer&month=0
+voxel-neighborhood /index.html?dev=voxel&gen=neighborhood&loc=hilo

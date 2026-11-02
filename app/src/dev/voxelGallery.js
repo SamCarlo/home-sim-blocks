@@ -2,7 +2,8 @@
 // Default: 64 × 32 × 64 with ground, a hollow plank house (door, glass and lit windows, roof), a tree and a pond.
 // `&full=1`: a flat 128 × 96 × 128 world (the 13 §11 budget check). `&t=<hours>` time of day (12). `&far=1` adds a
 // far-scenery stepped hill (16 × 10 × 8 at scale 4) behind the world. `&gen=terrain&loc=<id>&month=<n>&seed=<n>` shows
-// world/genTerrain.js for a location (homeblocks 06; default pahoa, month 0).
+// world/genTerrain.js for a location (homeblocks 06; default pahoa, month 0). `&gen=neighborhood&loc=<id>&kind=<homeKind>`
+// adds world/genNeighborhood.js on top (homeblocks 07; big-city volumes are WORLD.tallY high).
 // Click breaks the block under the pointer, shift-click places light planks on the face (proves edits through pick).
 // `window.__voxel = {world, calls, triangles, chunks, edits}` once the first frame is drawn.
 import { h, clear } from '../ui/dom.js';
@@ -10,6 +11,7 @@ import { getFlag } from './flags.js';
 import { BLOCK } from '../world/blocks.js';
 import { createVolume, fillBox, hollowBox, column } from '../world/volume.js';
 import { genTerrain } from '../world/genTerrain.js';
+import { genNeighborhood, worldSizeFor } from '../world/genNeighborhood.js';
 import { byId } from '../data/locations/index.js';
 
 const id = (key) => BLOCK[key].id;
@@ -70,12 +72,14 @@ export async function mount(root) {
   root.append(h('section', { class: 'dev-scene' }, view, label));
 
   const { createVoxelWorld } = await import('../three/voxel/engine.js');
-  let volume, terrain = null, place = null;
-  if (gen === 'terrain') {
+  let volume, terrain = null, place = null, hood = null;
+  if (gen === 'terrain' || gen === 'neighborhood') {
     place = byId[getFlag('loc') ?? 'pahoa'] ?? byId.pahoa;
-    volume = createVolume();
+    const homeKind = getFlag('kind') ?? 'house', seed = Number(getFlag('seed') ?? 1);
+    volume = createVolume(gen === 'neighborhood' ? worldSizeFor(place, homeKind) : undefined);
     const t0 = performance.now();
-    terrain = genTerrain(volume, { location: place, monthIndex: Number(getFlag('month') ?? 0), seed: Number(getFlag('seed') ?? 1) });
+    terrain = genTerrain(volume, { location: place, monthIndex: Number(getFlag('month') ?? 0), seed });
+    if (gen === 'neighborhood') hood = genNeighborhood(volume, { location: place, seed, homeKind });
     terrain.ms = Math.round(performance.now() - t0);
   } else volume = full ? flatVolume() : testVolume();
   const far = getFlag('far') === '1' ? { volume: farHill(), scale: 4, origin: { x: volume.size.x / 2 - 32, y: 0, z: -40 } } : null;
@@ -85,14 +89,16 @@ export async function mount(root) {
     document.body.dataset.ready = '1';
     return () => { delete document.body.dataset.ready; };
   }
-  if (terrain) world.setOrbit({ target: { x: 64, y: 26, z: 64 }, distance: 150 });
+  if (hood) world.setOrbit({ target: { x: 64, y: hood.settlement === 'big-city' ? 60 : 28, z: 70 }, distance: hood.settlement === 'big-city' ? 250 : 150 });
+  else if (terrain) world.setOrbit({ target: { x: 64, y: 26, z: 64 }, distance: 150 });
   else if (full) world.setOrbit({ target: { x: 64, y: 24, z: 64 }, distance: 190 });
   else world.setOrbit({ target: { x: 30, y: 9, z: 30 }, distance: 34 });
 
   let edits = 0;
   const show = () => {
     const { calls, triangles, chunks } = world.info;
-    const what = terrain ? `${place.name} terrain (${place.biome}${terrain.snow ? ', snow' : ''}, ${terrain.treeCount} trees, ${terrain.ms} ms) · ` : '';
+    const nb = hood ? `${hood.settlement}: ${Object.entries(hood.counts).map(([k, n]) => `${n} ${k}`).join(', ')} · ` : '';
+    const what = terrain ? `${nb}${place.name} terrain (${place.biome}${terrain.snow ? ', snow' : ''}, ${terrain.treeCount} trees, ${terrain.ms} ms) · ` : '';
     label.textContent = `${what}Block world ${volume.size.x} × ${volume.size.y} × ${volume.size.z} · ${chunks} chunks · ${calls} draw calls · ${triangles} triangles · ${edits} edits · click breaks, shift-click places`;
   };
   const wrapSet = world.setBlock;
@@ -122,6 +128,7 @@ export async function mount(root) {
   window.__voxel = {
     world,
     terrain,
+    neighborhood: hood,
     get calls() { return world.info.calls; },
     get triangles() { return world.info.triangles; },
     get chunks() { return world.info.chunks; },
