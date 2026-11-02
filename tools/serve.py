@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Serve the game (HS/app) for manual testing. No API: everything runs in the browser.
 
-Run:  python3 tools/serve.py          (then open http://127.0.0.1:1270)
+Run:  python3 tools/serve.py          (then open http://127.0.0.1:1271)
       python3 tools/serve.py 8080     (different port)
 
 Bound to 127.0.0.1 only. HTML is sent with Cache-Control: no-store so a reload
@@ -15,7 +15,7 @@ from pathlib import Path
 from socketserver import ThreadingTCPServer
 
 APP = Path(__file__).resolve().parent.parent / "app"
-PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 1270
+PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 1271
 
 
 class Handler(SimpleHTTPRequestHandler):

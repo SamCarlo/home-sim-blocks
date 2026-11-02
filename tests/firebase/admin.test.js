@@ -12,7 +12,7 @@ import * as fbStore from 'firebase/firestore';
 import { EMULATOR } from '../../app/src/accounts/firebase.js';
 
 const run = promisify(execFile);
-const PROJECT = 'demo-home-sim';
+const PROJECT = 'demo-home-blocks';
 const FS = `http://127.0.0.1:8080/v1/projects/${PROJECT}/databases/(default)/documents`;
 const owner = { Authorization: 'Bearer owner' };
 

@@ -31,5 +31,5 @@
   { "assert": "document.querySelector('.stepper li.is-current').textContent.includes('Plan')" },
   { "wait": 5500 },
   { "assert": "document.querySelector('.save-indicator').textContent === 'Saved ✓'" },
-  { "assert": "JSON.parse(localStorage.getItem('homesim:v1:save:' + window.__homesim.user.uid)).phase === 'plan'" }
+  { "assert": "JSON.parse(localStorage.getItem('homeblocks:v1:save:' + window.__homesim.user.uid)).phase === 'plan'" }
 ]

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Point the game at the teacher's Firebase project (11 §8). Idempotent: re-running with the same input changes nothing.
 //   node tools/configure.mjs --config <firebaseConfig.json | file with the pasted JS snippet | - for stdin> --admin <email> [--project <id>]
-//   node tools/configure.mjs --placeholder      restore the committed defaults (local mode, admin@example.com, demo-home-sim)
+//   node tools/configure.mjs --placeholder      restore the committed defaults (local mode, admin@example.com, demo-home-blocks)
 // Writes app/src/firebase-config.js, firestore.rules (from firestore.rules.template) and .firebaserc.
 // It never talks to the network or to Firebase; deploying is a separate, deliberate step.
 import fs from 'node:fs';
@@ -12,10 +12,10 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PLACEHOLDER = {
   admin: 'admin@example.com',
-  project: 'demo-home-sim',
+  project: 'demo-home-blocks',
   // Byte-for-byte the committed app/src/firebase-config.js, so --placeholder is a clean undo.
   configJs: "// Placeholder. tools/configure.mjs (task 49) overwrites this file with the teacher's project.\n"
-    + "export const FIREBASE_ENABLED = false; export const ADMIN_EMAIL = 'admin@example.com'; export const firebaseConfig = { apiKey: 'demo', authDomain: 'demo-home-sim.firebaseapp.com', projectId: 'demo-home-sim' };\n",
+    + "export const FIREBASE_ENABLED = false; export const ADMIN_EMAIL = 'admin@example.com'; export const firebaseConfig = { apiKey: 'demo', authDomain: 'demo-home-blocks.firebaseapp.com', projectId: 'demo-home-blocks' };\n",
 };
 const CONFIG_KEYS = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId', 'measurementId'];
 const REQUIRED_KEYS = ['apiKey', 'authDomain', 'projectId', 'appId'];

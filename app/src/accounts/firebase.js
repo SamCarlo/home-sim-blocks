@@ -9,7 +9,7 @@ export const EMULATOR = {
   authUrl: 'http://127.0.0.1:9099',
   firestoreHost: '127.0.0.1',
   firestorePort: 8080,
-  config: { apiKey: 'demo-key', authDomain: 'demo-home-sim.firebaseapp.com', projectId: 'demo-home-sim' },
+  config: { apiKey: 'demo-key', authDomain: 'demo-home-blocks.firebaseapp.com', projectId: 'demo-home-blocks' },
 };
 
 export const FIREBASE_MESSAGES = {

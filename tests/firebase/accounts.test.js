@@ -13,7 +13,7 @@ import { createFirebaseProvider, emailFor } from '../../app/src/accounts/firebas
 import { MESSAGES } from '../../app/src/accounts/provider.js';
 
 const run = promisify(execFile);
-const PROJECT = 'demo-home-sim';
+const PROJECT = 'demo-home-blocks';
 const FS = `http://127.0.0.1:8080/v1/projects/${PROJECT}/databases/(default)/documents`;
 const owner = { Authorization: 'Bearer owner', 'Content-Type': 'application/json' };
 const sdk = { app: fbApp, auth: fbAuth, firestore: fbStore };

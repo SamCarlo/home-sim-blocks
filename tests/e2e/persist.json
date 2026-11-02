@@ -54,7 +54,7 @@
     "assert": "window.__homesim.getState().player.jobTitle === 'Lifeguard' && window.__homesim.getState().player.weeklyJobHours === 32"
   },
   {
-    "assert": "JSON.parse(localStorage.getItem('homesim:v1:save:' + window.__homesim.user.uid)).player.jobTitle === 'Lifeguard'"
+    "assert": "JSON.parse(localStorage.getItem('homeblocks:v1:save:' + window.__homesim.user.uid)).player.jobTitle === 'Lifeguard'"
   },
   {
     "eval": "window.__homesim.getState().meta.saveCount"

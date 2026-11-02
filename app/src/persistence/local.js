@@ -1,4 +1,4 @@
-// Local persistence adapter (01 §6, 02 §7): saves in localStorage under homesim:v1:save:<uid>.
+// Local persistence adapter (01 §6, 02 §7): saves in localStorage under homeblocks:v1:save:<uid>.
 // A quota error resolves { ok: false, code: 'quota' } so the policy shows "Couldn't save" instead of crashing.
 import { STORAGE_PREFIX } from '../config.js';
 

@@ -18,7 +18,7 @@ export function createLocalProvider(opts = {}) {
     local = globalThis.localStorage,
     session = globalThis.sessionStorage,
     crypto = globalThis.crypto,
-    classCodes = null, // null = the admin console's local codes (homesim:v1:classCodes), else LOCAL_CLASS_CODES
+    classCodes = null, // null = the admin console's local codes (homeblocks:v1:classCodes), else LOCAL_CLASS_CODES
     iterations = ACCOUNTS.pbkdf2Iterations,
   } = opts;
   const listeners = new Set();

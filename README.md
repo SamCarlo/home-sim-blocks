@@ -1,4 +1,4 @@
-# Home & Life Sim
+# Home & Life Sim: Block Edition
 
 *Plan it. Sign it. Build it. Live it.*
 
@@ -9,6 +9,11 @@ month by month from January 2033 while budgeting their time, money and wellbeing
 
 It's vanilla JavaScript modules with no build step. It runs completely in the browser (local mode) and can optionally be
 put online with Firebase so students have accounts and the teacher has an admin console.
+
+**Block Edition.** This folder is a fork of the classic game (`interfaces/home-sim`) whose Phase 4 is a block world of the
+student's home (spec: [`docs/spec/13-blocks.md`](docs/spec/13-blocks.md)). It runs on port 1271 and saves under
+`homeblocks:v1:`, so it never touches classic saves. Online, it needs its **own** Firebase project: its saves are a newer
+format (schema v3), so never point it at the classic game's project.
 
 ## Status
 
@@ -37,10 +42,10 @@ Needs Python 3 (to serve the files) and, for tests, Node.js 20 or newer.
 python3 tools/serve.py
 ```
 
-Open http://127.0.0.1:1270. Use another port with `python3 tools/serve.py 8080`. Stop it with Ctrl+C.
+Open http://127.0.0.1:1271. Use another port with `python3 tools/serve.py 8080`. Stop it with Ctrl+C.
 
 In local mode everything is saved in that browser's storage. Register with any username and the class code `DEMO`.
-The admin console is at http://127.0.0.1:1270/admin.html (click **Local admin (dev only)**); it sees the accounts in
+The admin console is at http://127.0.0.1:1271/admin.html (click **Local admin (dev only)**); it sees the accounts in
 that same browser.
 
 Dev shortcuts (they work in local mode and on localhost only; the deployed site ignores them):

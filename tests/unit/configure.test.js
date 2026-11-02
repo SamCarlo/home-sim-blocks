@@ -100,5 +100,5 @@ test('the committed files are the placeholder defaults', async () => {
   assert.equal(mod.ADMIN_EMAIL, 'admin@example.com');
   const rules = fs.readFileSync(path.join(ROOT, 'firestore.rules'), 'utf8');
   assert.equal(rules, renderRules(fs.readFileSync(path.join(ROOT, 'firestore.rules.template'), 'utf8'), 'admin@example.com'));
-  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(ROOT, '.firebaserc'), 'utf8')), { projects: { default: 'demo-home-sim' } });
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(ROOT, '.firebaserc'), 'utf8')), { projects: { default: 'demo-home-blocks' } });
 });

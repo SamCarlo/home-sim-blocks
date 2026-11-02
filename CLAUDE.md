@@ -1,4 +1,9 @@
-# Home & Life Sim — working guide
+# Home & Life Sim: Block Edition, working guide
+
+This is the **Block Edition**, a fork of Home & Life Sim that swaps Phase 4's procedural 3D home for a block world the
+student can walk around and build in. Its spec is [`docs/spec/13-blocks.md`](docs/spec/13-blocks.md) (where it is silent,
+`docs/spec/00`–`12` still apply). It has its own title, port (1271), storage prefix (`homeblocks:v1:`) and Firebase project.
+The classic game lives in `interfaces/home-sim` and must never be edited from here.
 
 A browser game for the Life Skills course (grades 7–8, Pāhoa, Hawaiʻi Island). Students enter their class job's net
 income and savings, pick a home from 20 places × 5 home types, do the real paperwork, design the home, then live
@@ -9,7 +14,7 @@ Teacher-facing docs: `README.md`, `docs/DEPLOY.md` (Firebase setup), `docs/TEACH
 changing rules, adding a location). Keep their commands, labels and paths true when you change the UI or tools.
 
 ## Commands
-- Serve: `python3 tools/serve.py` → http://127.0.0.1:1270 (`python3 tools/serve.py 8080` for another port)
+- Serve: `python3 tools/serve.py` → http://127.0.0.1:1271 (`python3 tools/serve.py 8080` for another port)
 - Test: `npm test` (= `node --test "tests/unit/*.test.js"`; Node 25 rejects a bare directory, see DEVIATIONS)
 - Train the letter model: `npm run train:letters` (corpus → `app/src/letters/model.json`; `--dry` reports only)
 - Check: `npm run check` (= `bash tools/check.sh`): syntax → unit tests → data imports → contrast → copy audit → smoke → lazy-plan network assertion. Run it before every commit.
@@ -47,7 +52,8 @@ changing rules, adding a location). Keep their commands, labels and paths true w
 - Build DOM with `h()` from `ui/dom.js`. Never put student-typed text into `innerHTML`; use `escapeHtml()` for SVG/HTML strings.
 - Tokens live in `app/styles/tokens.css`; component classes are prefixed per area (`plan-`, `pw-`, `life-`…).
 - Every tunable number lives in `app/src/config.js`, commented with its spec section.
-- Storage keys start with `homesim:v1:`. Files stay under ~400 lines; exported functions get a JSDoc line.
+- Storage keys start with `STORAGE_PREFIX` (`homeblocks:v1:`, config.js); code uses the constant, never a literal, so a
+  Block Edition save can never read or overwrite a classic (`homesim:…`) one. Files stay under ~400 lines; exported functions get a JSDoc line.
 - Every screen sets `document.body.dataset.ready = "1"` when rendered and clears it on unmount.
 - Every new screen gets a seed in `app/src/dev/seeds.js` and a line in `tools/smoke.txt` (from task 02/04 on).
 - Hawaiian words use the ʻokina and kahakō. All businesses and people are fictional.
@@ -82,8 +88,8 @@ app/src/util/                  escape.js format.js rng.js dates.js (pure)
 app/src/finance/               money.js loans.js costs.js affordability.js grid.js · ledger.js (+ ledgerRecords.js
                                ledgerTotals.js) creditScore.js loanOptions.js buying.js build.js insurance.js creditCard.js underwriting.js (pure; see Finance helpers, Plan numbers, Ledger)
 app/src/state/                 schema.js migrate.js summary.js (pure) · store.js · persistence.js (save policy)
-app/src/persistence/local.js   localStorage adapter (homesim:v1:save:<uid>, …summary:<uid>)
-app/src/persistence/firestore.js  Firestore adapter (saves/{uid} + players/{uid}.summary, homesim:v1:cloudcopy:<uid>; task 51)
+app/src/persistence/local.js   localStorage adapter (homeblocks:v1:save:<uid>, …summary:<uid>)
+app/src/persistence/firestore.js  Firestore adapter (saves/{uid} + players/{uid}.summary, homeblocks:v1:cloudcopy:<uid>; task 51)
 app/src/ui/                    dom.js (h, clear, qs) · screens.js (registerScreen, renderPhase) · header.js · saveStatus.js ·
                                letterReport.js (renderLetterReport) · modal.js (openModal, confirmDialog) · icons.js · drawer.js (openDrawer) ·
                                portfolio/ (index.js openPortfolio + tabs; portfolioModel.js pure; settings.js applySettings;
@@ -97,7 +103,7 @@ app/src/three/                 scene.js sky.js terrain.js landmarks.js materials
 app/vendor/                    three/ (+addons/) nspell/ dictionary-en/ vader/ · VERSIONS.md (pinned, licensed)
 app/src/phases/<phase>/        one screen per phase (placeholders until their tasks); design/blueprint/ = the build editor
                                paperwork/: paperworkScreen.js · flow.js (pure) · steps/ (index.js registry, one module per step)
-app/src/accounts/              provider.js (AccountError, validation, chooseMode, selectProvider) · local.js (PBKDF2, homesim:v1:accounts/session)
+app/src/accounts/              provider.js (AccountError, validation, chooseMode, selectProvider) · local.js (PBKDF2, homeblocks:v1:accounts/session)
                                · firebase.js (Firebase Auth, synthetic email, lazy SDK; task 50)
                                ui/login.js (welcome screen: Log in / Create account tabs)
 app/src/content/names.js       fictional people/businesses per region (pure, seeded) · tips.js · glossary.js (task 55)
@@ -113,7 +119,7 @@ tests/unit/                    node --test files importing ../../app/src/…
 app/favicon.svg                tab icon (also keeps /favicon.ico 404s out of shoot reports)
 tests/e2e/                     shoot.mjs step scripts (example, persist, register, intake, plan-keys, choose-home …) · play-*.json playthroughs (generated)
 tools/e2e/                     genPlaythroughs.mjs (writes play-*.json) · playHelper.js (window.__play) · run.mjs (npm run test:e2e)
-tools/serve.py                 static server, port 1270 · tools/shots/ (gitignored)
+tools/serve.py                 static server, port 1271 · tools/shots/ (gitignored)
 tools/shoot.mjs lib/cdp.mjs    headless harness · check.sh · smoke.txt
 tools/sim-months.mjs           12-month simulation printout (task 44)
 tools/configure.mjs            Firebase setup: firebase-config.js + firestore.rules + .firebaserc (task 49)
@@ -636,7 +642,7 @@ shows "3 of 8 required done". `readOnly` renders values as text (the portfolio's
   {sign_in_provider: 'password'}})`; admin = `admin@example.com`, `email_verified: true`, provider 'google.com'.
   `beforeEach` clears Firestore and seeds two codes (IO-P3 active, OLD-P1 inactive), players lani-uid and paused-uid
   (disabled) with saves. `setLogLevel('silent')` hides the SDK's PERMISSION_DENIED noise.
-- Emulator ports: auth 9099, firestore 8080, hosting 5000; UI off; project `demo-home-sim` (a `demo-` project never
+- Emulator ports: auth 9099, firestore 8080, hosting 5000; UI off; project `demo-home-blocks` (a `demo-` project never
   touches the cloud). The firestore emulator jar downloads to `~/.cache/firebase/emulators` on first run.
 
 ## Firebase accounts (11 §1–§2, task 50)
@@ -665,7 +671,7 @@ shows "3 of 8 required done". `readOnly` renders values as text (the portfolio's
   `tests/unit/firestoreAdapter.test.js` (fake firestore module with a `gate` promise to simulate an offline commit).
 - Emulator tests: `tests/firebase/accounts.test.js` (Node provider tests + shoot runs of `tests/e2e/firebase-register.json`
   and `firebase-errors.json` on `/index.html?emulator=1&theme=light`). Seed the emulator over REST with
-  `Authorization: Bearer owner` (skips rules); reset with `DELETE …/emulator/v1/projects/demo-home-sim/accounts` and
+  `Authorization: Bearer owner` (skips rules); reset with `DELETE …/emulator/v1/projects/demo-home-blocks/accounts` and
   `…/databases/(default)/documents`. Node providers need a unique `appName` each and `deleteApp` in `after()`, or the
   test process never exits (emulators:exec then hangs).
 
@@ -674,7 +680,7 @@ shows "3 of 8 required done". `readOnly` renders values as text (the portfolio's
   credential (emulator only); local mode → "Local admin (dev only)" (`?localAdmin=1` skips the button). Its Firebase app is
   named 'admin'. Email ≠ `ADMIN_EMAIL` → "This account isn't the admin"; the rules are the real lock.
 - `dataSource.js`: one interface (`listCodes createCode setCodeActive deleteCode listPlayers loadSave writeSave(uid, state,
-  summary, extra?) updatePlayer deleteClass`). Local codes live in `homesim:v1:classCodes` and the local provider uses them.
+  summary, extra?) updatePlayer deleteClass`). Local codes live in `homeblocks:v1:classCodes` and the local provider uses them.
 - Every action confirms (`actions.js`); delete class data needs the typed code. Actions write the summary themselves.
 - Tests: `tests/unit/admin.test.js`; emulator `tests/firebase/admin.test.js` (shoot `tests/e2e/admin-flow.json`,
   `admin-not-admin.json`). Dev: `window.__admin`, `body[data-detail-ready]`.

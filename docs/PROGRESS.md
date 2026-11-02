@@ -2117,3 +2117,27 @@ life-month1-house · seed 7 · income $4,300/mo
 Forked from `interfaces/home-sim` at dfece19 plus the uncommitted task-58 tree (commit a282a32). The new edition swaps
 Phase 4's procedural 3D for a block world (`docs/spec/13-blocks.md`). Tasks are `homeblocks_01` … `homeblocks_24`;
 each logs here under `## Blocks NN: <title>`.
+
+## Blocks 01: Fork identity (title, port, storage, Firebase)
+- attempt started 2026-11-01T23:37:37-10:00
+- done 2026-11-01T23:44:50-10:00
+- Files changed: app/src/config.js (GAME_TITLE, STORAGE_PREFIX = `homeblocks:v1:`), app/index.html + admin.html (<title>),
+  app/styles/components.css (title wraps to two lines at ≤1100px), comments in accounts/local.js + persistence/local.js,
+  app/src/firebase-config.js + accounts/firebase.js EMULATOR + .firebaserc + package.json scripts + tools/configure.mjs +
+  tools/e2e/run.mjs + tests/firebase/*.test.js + tests/unit/configure.test.js (emulator project `demo-home-blocks`),
+  tests/e2e/{firebase-offline,firebase-saves,intake,persist,register}.json (storage keys), tools/serve.py (port 1271),
+  CLAUDE.md (retitled, fork paragraph, port, storage-key rule, emulator id), README.md (title + Block Edition note),
+  docs/DEPLOY.md (own Firebase project callout, folder/project/app names), docs/TEACHER_GUIDE.md (port),
+  docs/spec/{01-architecture,02-state,11-accounts-firebase,DEVIATIONS}.md (keys, port, emulator id).
+- Verified: `bash tools/check.sh` OK twice (smoke 80/80, after the CSS fix too); `npm run test:e2e -- --only apartment-hilo`
+  1/1. `grep -rn "homesim:v1\|1270"` (word match) finds only PROGRESS history and the 13-blocks §1 identity table, whose
+  Classic column is meant to name the classic values. Shots (tools/shots/b01/):
+  - login.png: welcome card reads "Home & Life Sim: Block Edition", local-mode chip, no clipping.
+  - plan.png (`?seed=plan-comfortable`, keys.json steps): header title is the new name; localStorage keys are
+    `homeblocks:v1:save:local-dev` and `homeblocks:v1:summary:local-dev` only (assert passed); sessionStorage empty.
+  - plan-{1180,1100,800,700}.png + headers.png: at 800 the longer title first pushed Portfolio and Log out off screen;
+    after the fix it wraps to "Home & Life Sim: / Block Edition" at ≤1100 and every header tool stays visible.
+- Deviations: none.
+- Notes for later tasks: `window.__homesim` and the uid hash salt `homesim:${username}` in accounts/local.js are left
+  as-is on purpose (tests use the first; the second isn't a storage key, and changing it would change uids). The env flag
+  `HOMESIM_FIREBASE=1` for check.sh is unchanged. A non-word grep for 1270 hits numbers like 12700 in data; ignore those.

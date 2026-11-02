@@ -37,6 +37,8 @@
 @media (max-width: 1100px) {
   .stepper li:not(.is-current) .step-label { display: none; }
   .stepper li:not(.is-current) { padding: .3rem; }
+  /* Block Edition's longer title wraps to two lines here so the header tools stay on screen (homeblocks 01). */
+  .app-title { white-space: normal; max-width: 9em; line-height: 1.1; font-size: 1.1rem; }
 }
 @media (max-width: 760px) {
   .app-header { flex-wrap: wrap; }

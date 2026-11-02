@@ -14,7 +14,7 @@
 - Fonts come from Google Fonts with system fallbacks, the same way `interfaces/bank/index.html` does it.
 - Target browser: current Chrome/ChromeOS. Edge, Firefox and Safari are best effort. Main screen
   size is 1366×768 (Chromebook). It must also look right at 1920×1080 and stay usable down to 1024×640.
-- ES modules need http(s). Use `python3 tools/serve.py` (port 1270) by hand; `tools/shoot.mjs`
+- ES modules need http(s). Use `python3 tools/serve.py` (port 1271) by hand; `tools/shoot.mjs`
   runs its own server.
 
 ## 2. Folder layout (target — tasks create these as they go)
@@ -126,7 +126,7 @@ Login, intake and the plan table must not pull in any of these.
   (glossary, tips, explanations) goes in `app/src/content/`. Reading level is grades 6–7 (see `12-ux-content.md`).
 - **Errors**: `main.js` installs one error boundary that shows "Something went wrong. Your progress
   is saved up to your last step." with a Reload button. Details only appear when dev flags are on.
-- **Storage keys** for localStorage and sessionStorage start with `homesim:v1:`.
+- **Storage keys** for localStorage and sessionStorage start with `homeblocks:v1:`.
 
 ## 5. Boot sequence (`app/src/main.js`)
 
@@ -183,7 +183,7 @@ They're silently ignored in production Firebase mode on the real domain.
 | `?dev=1` | show the dev panel (jump to phase, reset, dump/download state, month/time controls) |
 | `?dev=<gallery>` | render a dev gallery instead of the game: `gallery2d`, `scene`, `props`, `buildings`, `houses`, `blueprint3d` (tasks add these) |
 | `?adapter=local` | force local mode even when Firebase is configured |
-| `?emulator=1` | connect the Firebase SDK to local emulators (auth :9099, firestore :8080) with project `demo-home-sim` |
+| `?emulator=1` | connect the Firebase SDK to local emulators (auth :9099, firestore :8080) with project `demo-home-blocks` |
 | `?speed=<n>` | animation speed multiplier for the life animation (tests use 20) |
 | `?care=hit\|miss\|half` | auto-resolve the care-button minigame (tests) |
 | `?theme=light\|dark` | force a theme |
@@ -199,7 +199,7 @@ They're silently ignored in production Firebase mode on the real domain.
 
 ## 8. Verification tools
 
-**`tools/serve.py`** serves `app/` on http://localhost:1270 for manual use, with `Cache-Control: no-store` on HTML.
+**`tools/serve.py`** serves `app/` on http://localhost:1271 for manual use, with `Cache-Control: no-store` on HTML.
 
 **`tools/shoot.mjs`** (zero npm dependencies; Node ≥ 22 built-ins only):
 - It starts its own static HTTP server for `app/` on a free port. `--base <url>` uses an existing server instead.

@@ -207,7 +207,7 @@ Steps:
 1. Open `app/src/config.js` in a text editor, change the number, and save.
 2. In the terminal, in the `home-sim` folder, run `bash tools/check.sh`. It should end with `check: OK`. If it fails,
    it names the problem; undo your edit or ask Claude.
-3. Try it locally (`python3 tools/serve.py`, then open http://127.0.0.1:1270).
+3. Try it locally (`python3 tools/serve.py`, then open http://127.0.0.1:1271).
 4. Publish it: `npx firebase-tools deploy --only hosting`.
 
 Changes affect new calculations from then on; students' past months don't change. Or simply ask Claude: "In home-sim,

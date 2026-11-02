@@ -161,8 +161,8 @@ and admin actions. It is not written on every save.
 
 ## 7. Local mode storage
 
-- Saves are stored under `homesim:v1:save:<uid>`, and local accounts under `homesim:v1:accounts`.
-  The local session goes in `sessionStorage` under `homesim:v1:session`, or in `localStorage` when "keep me logged in" is ticked.
+- Saves are stored under `homeblocks:v1:save:<uid>`, and local accounts under `homeblocks:v1:accounts`.
+  The local session goes in `sessionStorage` under `homeblocks:v1:session`, or in `localStorage` when "keep me logged in" is ticked.
 - A local "uid" is `local-<hash(username)>`.
 
 ## 8. Migrations

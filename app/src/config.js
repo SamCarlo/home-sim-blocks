@@ -3,7 +3,7 @@
 // Money is integer cents; rates are decimals. Pure module: no DOM, no imports.
 
 /** Shown in the header and the page title (00 §5, OPEN_ITEMS: the teacher may rename it). */
-export const GAME_TITLE = 'Home & Life Sim';
+export const GAME_TITLE = 'Home & Life Sim: Block Edition';
 /** monthIndex 0 = January of this year (00 D15). */
 export const START_YEAR = 2033;
 /** Class codes accepted in local mode (11 §2). */
@@ -434,7 +434,7 @@ export const ACCOUNTS = {
 };
 
 /** Storage key prefix for localStorage and sessionStorage (01 §4). */
-export const STORAGE_PREFIX = 'homesim:v1:';
+export const STORAGE_PREFIX = 'homeblocks:v1:';
 
 /** Hosts where dev flags work even in Firebase mode (01 §7). */
 export const DEV_HOSTS = ['localhost', '127.0.0.1'];

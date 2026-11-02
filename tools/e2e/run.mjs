@@ -10,7 +10,7 @@ const HS = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const args = process.argv.slice(2);
 const emulator = args.includes('--emulator');
 const only = args.includes('--only') ? args[args.indexOf('--only') + 1] : null;
-const PROJECT = 'demo-home-sim';
+const PROJECT = 'demo-home-blocks';
 
 const files = fs.readdirSync(path.join(HS, 'tests/e2e')).filter((f) => /^play-.*\.json$/.test(f))
   .filter((f) => (emulator ? f === 'play-apartment-hilo.json' : true))

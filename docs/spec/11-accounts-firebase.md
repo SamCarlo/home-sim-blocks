@@ -10,7 +10,7 @@ sounds good but I have not set anything up with that system before, so let me kn
 |---|---|---|---|
 | **Local** | `FIREBASE_ENABLED` false (the default until the teacher's setup), or `?adapter=local` / `?seed=` | `accounts/local.js` (localStorage) | `persistence/local.js` (localStorage) |
 | **Firebase** | `app/src/firebase-config.js` filled in by `tools/configure.mjs` | `accounts/firebase.js` (Firebase Auth) | `persistence/firestore.js` (Cloud Firestore) |
-| **Emulator** | Firebase code plus `?emulator=1` on localhost | Auth emulator :9099 | Firestore emulator :8080 (project `demo-home-sim`) |
+| **Emulator** | Firebase code plus `?emulator=1` on localhost | Auth emulator :9099 | Firestore emulator :8080 (project `demo-home-blocks`) |
 
 A small badge in the footer shows which mode is live: "Local mode: saves stay in this browser" / "Online".
 
@@ -25,7 +25,7 @@ A small badge in the footer shows which mode is live: "Local mode: saves stay in
 
 **Local provider** (`accounts/local.js`):
 - stores `{username → {salt, hash (SHA-256 via WebCrypto, 100k PBKDF2 iterations), classCode, uid}}` in
-  `homesim:v1:accounts`;
+  `homeblocks:v1:accounts`;
 - class codes come from `config.LOCAL_CLASS_CODES` (default `['DEMO']`);
 - it's meant for development and demos, and the UI says so.
 
@@ -176,7 +176,7 @@ service cloud.firestore {
   `mise exec java@temurin-21 -- <cmd>`. No sudo, and nothing outside mise's own folders.
 - `package.json` devDependencies: `firebase-tools` (pinned), `@firebase/rules-unit-testing`, `firebase`.
 - Scripts:
-  - `test:rules`: `firebase emulators:exec --only firestore,auth --project demo-home-sim "node --test tests/firebase/"`;
+  - `test:rules`: `firebase emulators:exec --only firestore,auth --project demo-home-blocks "node --test tests/firebase/"`;
   - `test:e2e:emulator`: runs `tools/shoot.mjs` step files against `?emulator=1` while the emulators are up.
 - **Emulator admin sign-in** for tests: when connected to the emulator, `?fakeAdmin=<email>` signs in with
   `signInWithCredential(auth, GoogleAuthProvider.credential('{"sub":"admin-1","email":"<email>","email_verified":true}'))`,

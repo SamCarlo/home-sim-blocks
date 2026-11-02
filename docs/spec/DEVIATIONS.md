@@ -320,7 +320,7 @@ and where in the code. Keep entries short. The teacher's intent in `99-original-
   files from `tests/firebase/accounts.test.js` (shoot's own server; the page talks to the emulators on 9099/8080).
   Where: app/src/accounts/{firebase,provider}.js, app/src/accounts/ui/login.js, app/src/main.js, tests/firebase/accounts.test.js.
 - 2026-10-03, task 51, Firestore saves: (1) the conflict-check copy lives in localStorage under
-  `homesim:v1:cloudcopy:<uid>` as `{updatedAt, state}`, written on every save and, while a write is still in flight,
+  `homeblocks:v1:cloudcopy:<uid>` as `{updatedAt, state}`, written on every save and, while a write is still in flight,
   by the policy's `adapter.stash` (so a reload or failed flush keeps the newest state); logout drops it when the status is
   "Saved" so shared Chromebooks keep nothing. (2) The summary goes in the same `writeBatch` as `saves/{uid}` (one commit
   in flight, 2 document writes) with `summary.updatedAt` = the save time; after a save loads from the server the first
@@ -334,7 +334,7 @@ and where in the code. Keep entries short. The teacher's intent in `99-original-
   Where: app/src/persistence/firestore.js, app/src/state/persistence.js, app/src/main.js, tools/shoot.mjs.
 
 ## 2026-10-03, task 52: Admin console
-- **Local-mode class codes** live in `homesim:v1:classCodes` (admin/dataSource.js `LOCAL_CODES_KEY`); the local provider
+- **Local-mode class codes** live in `homeblocks:v1:classCodes` (admin/dataSource.js `LOCAL_CODES_KEY`); the local provider
   accepts the active ones (default `LOCAL_CLASS_CODES` = DEMO until the local console saves a list). The local provider now
   refuses paused (`disabled`) accounts, and local "Delete class data" also removes the local accounts (they are the local
   sign-ins). Why: 11 §3 asks for a local console that works without Firebase; without these, its actions did nothing.

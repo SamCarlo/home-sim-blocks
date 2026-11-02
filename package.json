@@ -6,10 +6,10 @@
     "test": "node --test \"tests/unit/*.test.js\"",
     "check": "bash tools/check.sh",
     "test:e2e": "node tools/e2e/run.mjs",
-    "test:e2e:emulator": "firebase emulators:exec --only firestore,auth --project demo-home-sim \"node tools/e2e/run.mjs --emulator\"",
+    "test:e2e:emulator": "firebase emulators:exec --only firestore,auth --project demo-home-blocks \"node tools/e2e/run.mjs --emulator\"",
     "train:letters": "node tools/letter-model/train.mjs",
-    "test:rules": "firebase emulators:exec --only firestore,auth --project demo-home-sim \"node --test --test-concurrency=1 'tests/firebase/rules.test.js'\"",
-    "test:firebase": "firebase emulators:exec --only firestore,auth --project demo-home-sim \"node --test --test-concurrency=1 'tests/firebase/*.test.js'\""
+    "test:rules": "firebase emulators:exec --only firestore,auth --project demo-home-blocks \"node --test --test-concurrency=1 'tests/firebase/rules.test.js'\"",
+    "test:firebase": "firebase emulators:exec --only firestore,auth --project demo-home-blocks \"node --test --test-concurrency=1 'tests/firebase/*.test.js'\""
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "5.0.2",

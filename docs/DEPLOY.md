@@ -1,4 +1,8 @@
-# Putting Home & Life Sim online (Firebase)
+# Putting Home & Life Sim: Block Edition online (Firebase)
+
+> **Use a new Firebase project for the Block Edition.** Don't reuse the classic game's project. Block Edition saves are a
+> newer format (schema v3) that the classic game can't read, and the two would share one database of accounts and saves.
+> Follow the steps below from Step 1 with a new project name such as `home-blocks`.
 
 This guide takes you from "the game runs on my laptop" to "students play it at a web address and I can see their
 progress." It assumes you have never used Firebase. Plan on about 20 minutes. You do it once.
@@ -12,10 +16,10 @@ students playing every day stay well under the free limits (about 7,000 database
 **What you need:**
 - A Google account to be the admin. A personal Gmail is safest (see [Troubleshooting](#school-google-account-blocked)).
   This is the only account that can open the admin console.
-- This computer, with the `home-sim` folder and Node.js 20 or newer (`node --version` prints `v20` or higher).
-- A terminal open in the `home-sim` folder. Every command below is typed there:
+- This computer, with the `home-sim-blocks` folder and Node.js 20 or newer (`node --version` prints `v20` or higher).
+- A terminal open in the `home-sim-blocks` folder. Every command below is typed there:
   ```
-  cd /home/sam/Documents/work/teaching/interfaces/home-sim
+  cd /home/sam/Documents/work/teaching/interfaces/home-sim-blocks
   ```
 - Run `npm install` once if the `node_modules` folder is missing. It installs the Firebase command-line tool locally;
   nothing is installed system-wide.
@@ -30,8 +34,8 @@ students playing every day stay well under the free limits (about 7,000 database
 
 1. Go to **https://console.firebase.google.com** and sign in with your admin Google account.
 2. Click **Create a project** (on some screens it's a large **Get started with a Firebase project** card).
-3. **Project name:** type something like `home-sim`. Under the name, Firebase shows the **project ID** it will use, such
-   as `home-sim-4f2a1`. Write the project ID down. Your game's address will be `https://<project ID>.web.app`.
+3. **Project name:** type something like `home-blocks`. Under the name, Firebase shows the **project ID** it will use, such
+   as `home-blocks-4f2a1`. Write the project ID down. Your game's address will be `https://<project ID>.web.app`.
    - Click the pencil next to the ID if you want to choose a nicer one. It can't be changed later.
 4. Accept the terms and click **Continue**.
 5. If it asks about **Gemini in Firebase** or other AI assistance, you can turn it off. The game doesn't use it.
@@ -54,7 +58,7 @@ Students sign in with a username and password. You sign in with Google. Both hav
    - Click **Save**.
 4. Click **Add new provider**, then **Google**.
    - Switch on **Enable**.
-   - **Public-facing name for project:** something students would recognize, like `Home & Life Sim`.
+   - **Public-facing name for project:** something students would recognize, like `Home & Life Sim: Block Edition`.
    - **Support email for project:** pick your admin email from the list.
    - Click **Save**.
 5. The list now shows **Email/Password: Enabled** and **Google: Enabled**.
@@ -79,7 +83,7 @@ behind the scenes, so no student personal information is stored.
 1. At the top of the left sidebar, click the **gear icon** next to **Project Overview**, then **Project settings**.
 2. Stay on the **General** tab and scroll down to **Your apps**. It says "There are no apps in your project".
 3. Click the **Web** button. Its icon is `</>`.
-4. **App nickname:** type `home-sim`.
+4. **App nickname:** type `home-blocks`.
 5. Tick **Also set up Firebase Hosting for this app**. If a list of sites appears, leave the one it suggests.
 6. Click **Register app**.
 7. Under **Add Firebase SDK** you'll see a box of code. Either tab (**Use npm** or **Use a `<script>` tag**) is fine.
@@ -87,9 +91,9 @@ behind the scenes, so no student personal information is stored.
    ```js
    const firebaseConfig = {
      apiKey: "AIza...",
-     authDomain: "home-sim-4f2a1.firebaseapp.com",
-     projectId: "home-sim-4f2a1",
-     storageBucket: "home-sim-4f2a1.firebasestorage.app",
+     authDomain: "home-blocks-4f2a1.firebaseapp.com",
+     projectId: "home-blocks-4f2a1",
+     storageBucket: "home-blocks-4f2a1.firebasestorage.app",
      messagingSenderId: "1234567890",
      appId: "1:1234567890:web:abc123"
    };
@@ -97,19 +101,19 @@ behind the scenes, so no student personal information is stored.
    Select from `const firebaseConfig = {` down to the closing `};` and copy it. Copying the whole box is also fine; the
    configure tool only reads the `firebaseConfig` part.
 8. Open a plain text editor, paste it, and save it as **`firebase-snippet.txt` in your Downloads folder**
-   (`~/Downloads/firebase-snippet.txt`). Keep it outside the `home-sim` folder so it doesn't end up in the game's files.
+   (`~/Downloads/firebase-snippet.txt`). Keep it outside the `home-sim-blocks` folder so it doesn't end up in the game's files.
 9. Back in the browser, click **Next** through the remaining screens (they describe installing the CLI and deploying,
    which the steps below cover) and finish with **Continue to console**.
 
 The `apiKey` in that snippet isn't a password. It only says which project to talk to; the security rules are what
 protect the data. It's normal for it to be visible in the published game.
 
-> If you closed the window before copying: **Project settings → General → Your apps**, click your `home-sim` app, and
+> If you closed the window before copying: **Project settings → General → Your apps**, click your `home-blocks` app, and
 > the same `firebaseConfig` box is under **SDK setup and configuration** (choose **Config**).
 
 ## Step 5. Point the game at your project (1 minute)
 
-In the terminal, in the `home-sim` folder, run this with **your** admin email:
+In the terminal, in the `home-sim-blocks` folder, run this with **your** admin email:
 
 ```
 node tools/configure.mjs --config ~/Downloads/firebase-snippet.txt --admin you@gmail.com
@@ -118,7 +122,7 @@ node tools/configure.mjs --config ~/Downloads/firebase-snippet.txt --admin you@g
 It prints something like:
 
 ```
-configure: project home-sim-4f2a1, admin you@gmail.com
+configure: project home-blocks-4f2a1, admin you@gmail.com
   updated    app/src/firebase-config.js
   updated    firestore.rules
   updated    .firebaserc
@@ -155,8 +159,8 @@ Notes:
    ```
    ✔  Deploy complete!
 
-   Project Console: https://console.firebase.google.com/project/home-sim-4f2a1/overview
-   Hosting URL: https://home-sim-4f2a1.web.app
+   Project Console: https://console.firebase.google.com/project/home-blocks-4f2a1/overview
+   Hosting URL: https://home-blocks-4f2a1.web.app
    ```
    The **Hosting URL** is the address students use.
 
@@ -258,5 +262,5 @@ version at once.
   `bash tools/check.sh`, then deploy again (step 6, part 2).
 - **New school year:** in the admin console, use **Delete class data** on last year's codes, then delete their sign-in
   accounts under **Build → Authentication → Users** (each row's three-dot menu → **Delete account**).
-- **Moving to a new computer:** copy the `home-sim` folder, run `npm install`, and `npx firebase-tools login`.
+- **Moving to a new computer:** copy the `home-sim-blocks` folder, run `npm install`, and `npx firebase-tools login`.
   Configure doesn't need to be run again; its results are in the folder.

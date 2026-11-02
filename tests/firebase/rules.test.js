@@ -30,7 +30,7 @@ const anon = () => env.unauthenticatedContext().firestore();
 
 before(async () => {
   setLogLevel('silent'); // every assertFails would otherwise print a PERMISSION_DENIED stream warning
-  env = await initializeTestEnvironment({ projectId: 'demo-home-sim', firestore: { rules } });
+  env = await initializeTestEnvironment({ projectId: 'demo-home-blocks', firestore: { rules } });
 });
 after(async () => { await env?.cleanup(); });
 beforeEach(async () => {
