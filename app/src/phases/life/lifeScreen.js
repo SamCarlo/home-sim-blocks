@@ -198,7 +198,7 @@ export async function mount(container, { store }) {
       onSpeed: (sp) => store.update((d) => { d.settings.animationSpeed = sp; }),
       onEnd: () => go((d) => { d.life.current.care = care.result(); finishLive(d); }, 'life-summary'),
     });
-    care = createCareGame({ plan: s.life.current.plan, anim, wrap: stage.parentElement, settings: s.settings,
+    care = createCareGame({ plan: s.life.current.plan, anim, wrap: stage.parentElement, view, settings: s.settings,
       seed: s.meta.seed, flag: getFlag('care') });
     root.dataset.anim = reduced ? 'calendar' : '3d';
     startTicker(s, anim);

@@ -2485,3 +2485,28 @@ each logs here under `## Blocks NN: <title>`.
   is a dummy Object3D carrying `userData {healthy, cell, block}` so animation.js and the care e2e keep working. `setSeason` regenerates the whole
   near volume in place (`volume.data.set` + `world.invalidate()`) only when snow comes or goes, and `syncHome` does the same when plants/animals
   are added: task 18 must re-apply `state.world` edits after both. `view.vox` = voxHome info. Animals stand at animalSpots (no wander yet).
+
+## Blocks 15: Live this month in the block world
+- attempt started 2026-11-02T10:20:37-10:00
+- done 2026-11-02T10:50:00-10:00
+- Files changed: app/src/phases/life/blockView.js (`careAnchor(fx)`, weekend `yard` = `alongPath(path, BLOCK_VIEW.yardBlocks)`),
+  app/src/phases/life/careButton.js (optional `view`; anchored buttons, stepped clear of other open ones), app/src/phases/life/lifeScreen.js
+  (passes `view` to the care game), app/src/config.js (`BLOCK_VIEW.yardStep` → `yardBlocks: 3`), tools/shoot.mjs (`{"reducedMotion": bool}`
+  step, CDP Emulation.setEmulatedMedia). Added tests/e2e/blocks-live-month.json, tools/shots/b15/steps-{live,reduced}.json. CLAUDE.md.
+- animation.js needed no change: task 14's handle already worked (character follows the block-space `path`, sun, lit glass, setLiving).
+  The existing e2e `life-live`, `life-live-reduced`, `life-care-{hit,miss}` reference nothing classic-only, so they are unchanged.
+- Verified: `bash tools/check.sh` OK (syntax 260 · tests · data · contrast · copy · smoke 91/91 · lazy-plan). `blocks-live-month.json` ✓ on
+  `?seed=life-live-house&theme=light&speed=20` (house) and `?seed=life-plan-filled&theme=light&speed=20` (Hilo apartment): month plays to the
+  summary, the character was seen outside and the night factor passed litAt, no console errors. `life-live`, `life-live-reduced`,
+  `life-care-hit`, `life-care-miss`, `life-care-play` all ✓. Shots (`?seed=life-live-house&theme=light&speed=4`) → tools/shots/b15/:
+  - 1-morning-path.png: Mon Jan 10 at 0.30, pink dawn sky, the character mid-stride on the gravel front path from the door to the gate.
+  - 2-noon.png: same day at noon, bright sky, character away at work (hidden), house and neighbors in full light.
+  - 3-night.png: 0.92, dark blue sky with stars, the home's windows and the neighbor's lit yellow, streetlamp caps glowing, character inside.
+  - 4-care-anchored.png: Jan 11, care button (`data-anchored=1`) centred above the house where its potted plant stands, inside the free area.
+  - 5-reduced-grid.png (reducedMotion emulated): calendar grid over the still world, days 1–14 filled, 14 outlined as today; three care
+    buttons up at once, now stacked without overlapping.
+- Deviations: none.
+- Notes for later tasks: in reduced motion at 4× a month (31 × 75 ms) is shorter than a care window (2.5 s), so several buttons are up at
+  once and the month holds until they close (classic behaved the same; buttons now stack instead of overlapping). A paused `seek` never
+  advances walks, so a seek straight from 'yard'/'out' to another daytime place leaves the character where it was; real play always
+  passes through 'inside' overnight. Wilting is only visible on `syncHome` after the month, as 13 §8 says (misses don't wilt mid-month).

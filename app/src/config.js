@@ -690,7 +690,7 @@ export const BLOCK_VIEW = {
   liftStep: 0.3,                // rise added each time a neighbor blocks the line of sight to the home
   liftSteps: 10,                // give up tilting after this many tries (≈ straight down)
   litAt: 0.5,                   // nightFactor at which the home's glass swaps to lit glass
-  yardStep: 1,                  // path waypoint (from the door) where weekend time at home is spent
+  yardBlocks: 3,                // weekend time at home is spent this many blocks along the path from the door (front walk)
 };
 
 export const VOX_MOBS = {

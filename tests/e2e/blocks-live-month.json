@@ -1,0 +1,10 @@
+[
+  {"eval": "(() => { const b = document.querySelector('[data-stage=plan] .life-go'); if (b) b.click(); return !!b; })()"},
+  {"waitFor": ".life-anim"},
+  {"assert": "!!window.__life.view().vox && document.querySelector('.life').dataset.anim === '3d'"},
+  {"eval": "(() => { window.__b15 = {out: false, lit: false}; window.__life.animation().onTick(() => { const v = window.__life.view(); if (v.home.character.object.visible) window.__b15.out = true; if (v.scene.nightFactor >= 0.5) window.__b15.lit = true; }); return true; })()"},
+  {"waitFor": "[data-stage=summary]"},
+  {"assert": "!!window.__homesim.getState().life.current.result && window.__homesim.getState().life.current.stage === 'summary'"},
+  {"assert": "window.__b15.out && window.__b15.lit"},
+  {"assert": "window.__life.view().home.character.object.visible && document.querySelector('.life-title').textContent.endsWith('how it went')"}
+]

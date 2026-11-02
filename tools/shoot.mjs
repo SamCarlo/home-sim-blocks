@@ -166,6 +166,8 @@ async function runStep(page, env, step, log) {
     case 'type': return type(page, arg[0], arg[1]);
     case 'press': return press(page, arg);
     case 'offline': return setOffline(page, !!arg, log);
+    case 'reducedMotion': // {"reducedMotion": true} emulates prefers-reduced-motion: reduce (applies from the next goto)
+      return page.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: arg ? 'reduce' : 'no-preference' }] });
     case 'noRequests': return noRequests(page, arg, log);
     default: throw new Error(`unknown step ${JSON.stringify(step)}`);
   }

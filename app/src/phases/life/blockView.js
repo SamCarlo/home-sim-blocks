@@ -95,8 +95,9 @@ export async function createBlockView(container, { state }) {
       return { id: p.id, kind: p.kind, object };
     });
     const path = v.path.map(cellCentre);
-    // Weekend time at home happens on the walk a few steps out from the door, in view.
-    const yard = path[Math.min(BLOCK_VIEW.yardStep, path.length - 1)] ?? cellCentre(v.door);
+    // Weekend time at home happens on the walk a few blocks out from the door, in view (the path is corners only, so a
+    // plain waypoint would be the street gate).
+    const yard = alongPath(path, BLOCK_VIEW.yardBlocks) ?? cellCentre(v.door);
     return {
       character, plants, animals, path, yard, door: cellCentre(v.door), exit: cellCentre(v.exit), windows: v.windows,
       /** Lit glass in the home's windows past BLOCK_VIEW.litAt night (13 §8); the glow pass carries lamps and streetlamps. */
@@ -122,6 +123,16 @@ export async function createBlockView(container, { state }) {
         world.requestRender();
       },
     };
+  }
+  /** The point `d` blocks along a corner path (clamped to its end). */
+  function alongPath(pts, d) {
+    if (!pts.length) return null;
+    for (let i = 1; i < pts.length; i++) {
+      const len = pts[i].distanceTo(pts[i - 1]);
+      if (d <= len) return pts[i - 1].clone().lerp(pts[i], len ? d / len : 1);
+      d -= len;
+    }
+    return pts.at(-1).clone();
   }
   /** Swap one cell (volume index = x + X·(z + Z·y)) from → to. */
   function setIndex(i, from, to) {
@@ -174,6 +185,19 @@ export async function createBlockView(container, { state }) {
     get info() { return world.info; },
     /** Voxel stats for tests and the dev panel. */
     get vox() { return vh.info; },
+    /**
+     * Care game anchor (13 §8): screen point (client px) of the home's plant/animal spot picked by `f` (0–1, careSpot's fx),
+     * or null when nothing living is in view. Plants first, then present animals.
+     */
+    careAnchor(f) {
+      const pts = [...home.plants.map((p) => p.object.position),
+        ...home.animals.filter((a) => a.object.visible).map((a) => a.object.position)];
+      if (!pts.length) return null;
+      const p = pts[Math.min(pts.length - 1, Math.floor(f * pts.length))].clone().add(new THREE.Vector3(0, 0.5, 0)).project(world.camera);
+      if (p.z > 1 || Math.abs(p.x) > 1 || Math.abs(p.y) > 1) return null;
+      const r = world.renderer.domElement.getBoundingClientRect();
+      return { x: r.left + ((p.x + 1) / 2) * r.width, y: r.top + ((1 - p.y) / 2) * r.height };
+    },
     /** Re-apply window glow after a time-of-day change. */
     refreshNight() { home.setNight(sky.nightFactor); world.requestRender(); },
     /** Show wilted plants / departed animals from a home record. */

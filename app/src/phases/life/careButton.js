@@ -10,13 +10,15 @@ import { CARE_TEXT, careWindows, careWindowMs, careAutoResult, careSpot } from '
 const SPLASH_MS = 700;
 // The free part of the stage: clear of the day bar (top left), the wellbeing card (right), toasts and hint (bottom).
 const SAFE = { left: 16, top: 72, right: 292, bottom: 130 };
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
 /**
- * createCareGame({plan, anim, wrap, settings, seed, flag}) → `{el, result() → {shown, hits}, dispose}`. `anim` =
- * createAnimation's handle, `wrap` = the stage wrapper the button goes over, `seed` = state.meta.seed, `flag` = ?care=.
+ * createCareGame({plan, anim, wrap, view, settings, seed, flag}) → `{el, result() → {shown, hits}, dispose}`. `anim` =
+ * createAnimation's handle, `wrap` = the stage wrapper the button goes over, `seed` = state.meta.seed, `flag` = ?care=. `view` (optional) = the block view; its `careAnchor(fx)` places
+ * each button beside a plant or animal.
  * `el` (the tally) goes in the live panel; null when the home has nothing to care for.
  */
-export function createCareGame({ plan, anim, wrap, settings = {}, seed = 'care', flag = null }) {
+export function createCareGame({ plan, anim, wrap, view = null, settings = {}, seed = 'care', flag = null }) {
   const count = plan.care?.needed ? plan.care.count : 0;
   if (!count) return { el: null, result: () => ({ shown: 0, hits: 0 }), dispose() {} };
   const auto = careAutoResult(flag, count);
@@ -51,9 +53,22 @@ export function createCareGame({ plan, anim, wrap, settings = {}, seed = 'care',
     a.closesAt = now + windowMs;
     const { width, height } = wrap.getBoundingClientRect();
     const w = Math.min(300, Math.max(160, width - SAFE.left - SAFE.right));
-    const x = SAFE.left + a.spot.fx * Math.max(0, width - SAFE.left - SAFE.right - w);
-    const y = SAFE.top + a.spot.fy * Math.max(0, height - SAFE.top - SAFE.bottom - 72);
-    a.btn = h('button', { class: 'life-care-btn', type: 'button', dataset: { index: a.index },
+    let x = SAFE.left + a.spot.fx * Math.max(0, width - SAFE.left - SAFE.right - w);
+    let y = SAFE.top + a.spot.fy * Math.max(0, height - SAFE.top - SAFE.bottom - 72);
+    // Block view: pop up next to the plant or animal the spot picks (projected), kept inside the free area.
+    const at = view?.careAnchor?.(a.spot.fx);
+    if (at) {
+      const r = wrap.getBoundingClientRect();
+      x = clamp(at.x - r.left - w / 2, SAFE.left, Math.max(SAFE.left, width - SAFE.right - w));
+      y = clamp(at.y - r.top - 72, SAFE.top, Math.max(SAFE.top, height - SAFE.bottom - 72));
+      a.anchored = true;
+      // Two buttons up at once can pick the same spot: step this one clear of the others.
+      const taken = apps.filter((o) => o !== a && o.btn).map((o) => parseFloat(o.btn.style.top));
+      const lo = SAFE.top, hi = Math.max(SAFE.top, height - SAFE.bottom - 72);
+      const free = [0, 84, -84, 168, -168, 252, -252].map((d) => y + d).find((c) => c >= lo && c <= hi && !taken.some((t) => Math.abs(t - c) < 80));
+      if (free != null) y = free;
+    }
+    a.btn = h('button', { class: 'life-care-btn', type: 'button', dataset: a.anchored ? { index: a.index, anchored: '1' } : { index: a.index },
       style: `left:${Math.round(x)}px;top:${Math.round(y)}px;width:${Math.round(w)}px`,
       onClick: () => hit(a) }, CARE_TEXT);
     layer.append(a.btn);

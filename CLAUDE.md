@@ -67,7 +67,7 @@ changing rules, adding a location). Keep their commands, labels and paths true w
     `--smoke <file>`.
   - Steps (JSON array): `{"click":css}` (real mouse at the center; `el.click()` when covered/zero-size), `{"type":[css,text]}`,
     `{"press":"Enter"}`, `{"wait":ms}`, `{"waitFor":css}`, `{"waitReady":true}`, `{"eval":js}` (prints JSON),
-    `{"assert":js}`, `{"shot":png}`, `{"goto":path}`, `{"offline":bool}` (CDP network emulation; cuts same-origin too), `{"noRequests":[regex…]}` (fails if any URL the tab has requested so far matches; task 54). `tests/e2e/example.json` uses every one.
+    `{"assert":js}`, `{"shot":png}`, `{"goto":path}`, `{"offline":bool}` (CDP network emulation; cuts same-origin too), `{"reducedMotion":bool}` (emulates prefers-reduced-motion; takes effect on the next `goto`, blocks task 15), `{"noRequests":[regex…]}` (fails if any URL the tab has requested so far matches; task 54). `tests/e2e/example.json` uses every one.
   - Relative `--out`/`shot` paths resolve against the cwd; smoke shots always go to `HS/tools/shots/smoke-<name>.png`.
 - **Readiness**: shoot waits for `body[data-ready="1"]` with `--wait-ready`, `waitReady` and in every smoke line. A screen
   that never sets it times out.
@@ -957,5 +957,10 @@ rename). History: `docs/PROGRESS.md`. Before shipping a change run `bash tools/c
   `userData.healthy`. Season (snow on/off) and new plants/animals regenerate the near volume in place (`world.invalidate()`).
 - Framing: towers taller than `BLOCK_VIEW.tallBlocks` frame the unit's floor ± `tallBand`; the camera tilts up until its line of sight hits the
   home first. Tunables `config.BLOCK_VIEW`. Five month-1 seeds: 44–69 calls, 85k–341k triangles (budget 150 / 400k).
+- Live this month (blocks task 15): animation.js drives the block view unchanged; `home.yard` = `BLOCK_VIEW.yardBlocks` along the path (the
+  house path is corners only, door → street gate). `view.careAnchor(fx)` → client px of a plant/present animal (null when off screen);
+  careButton places each button above it (`data-anchored="1"`) and steps it clear of other open buttons. Paused `seek`s freeze walks, so a
+  screenshot that seeks must call `home.character.update(5)` to finish one (steps in `tools/shots/b15/steps-*.json`). e2e
+  `tests/e2e/blocks-live-month.json` runs on `life-live-house` or `life-plan-filled` at `speed=20`.
 - `life/homeDescription.js` `describeSurroundings(state)`: one sentence (settlement + landmark), appended to the sr-only description.
 
