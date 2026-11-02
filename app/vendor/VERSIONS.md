@@ -10,6 +10,7 @@ Upgrade steps are in `HS/CLAUDE.md` → "Vendor".
 | dictionary-en | 4.0.0 (en_US Hunspell, SCOWL 2020.12.07) | npm `dictionary-en` | MIT AND BSD (`dictionary-en/LICENSE`) | `dictionary-en/index.aff`, `dictionary-en/index.dic` | 2026-09-30 |
 | vader-sentiment | 1.1.3 | npm `vader-sentiment` (Comcast JS port of VADER) | Apache-2.0 (`vader/LICENSE`, `vader/NOTICE`); VADER lexicon MIT (Hutto & Gilbert) | `vader/vader.js` (esbuild ESM bundle; exports `polarityScores(text) → {neg, neu, pos, compound}`, also the default export) | 2026-09-30 |
 | voxel engine | vyse12138/minecraft-threejs @ `ead87efbd95eb2092a1b341b7c3cc6c78187904d` | https://github.com/vyse12138/minecraft-threejs | MIT (`voxel/LICENSE`) | `voxel/` (terrain, worker generator, noise, highlight, control, player, utils: esbuild per-file TS → ESM, no bundling; hand changes marked `// BLOCKS:`, listed in `voxel/README.md`) + `three/addons/controls/PointerLockControls.js` (three r186, as is) | 2026-11-02 |
+| Kenney Voxel Pack | base pack (files dated 2020-11-23) | https://kenney.nl/assets/voxel-pack | CC0 (`kenney-voxel/License.txt`) | `kenney-voxel/*.png`: the 35 tiles `world/blocks.js` uses, 128 px, original names; water/ice alpha set (see `kenney-voxel/README.md`) | 2026-11-02 |
 | Firebase JS SDK | 12.19.0 | `https://www.gstatic.com/firebasejs/12.19.0/firebase-{app,auth,firestore}.js` (import map) | Apache-2.0 | not vendored | 2026-09-30 |
 
 Tool used: esbuild 0.28.2 via `npx -y esbuild`.

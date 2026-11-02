@@ -41,7 +41,7 @@ changing rules, adding a location). Keep their commands, labels and paths true w
   own shell line kills the shell too).
 
 ## Key rules (01 §3–§4)
-- **Pure modules** (`util/ data/ finance/ letters/ life/`, `state/{schema,migrate,summary}.js`, `phases/plan/preview2d/`,
+- **Pure modules** (`util/ data/ finance/ letters/ life/ world/`, `state/{schema,migrate,summary}.js`, `phases/plan/preview2d/`,
   `phases/design/blueprint/{model,validate,cost,templates,yard,moveIn}.js`, `phases/design/{buildingPlan,apartmentModel,housePlan,houseModel,sharedModel}.js`): no DOM, `window`, `localStorage`, `three` or network;
   relative imports only; importable from Node tests.
 - three.js, the spelling dictionary and Firebase load lazily with `import()`; login, intake and the plan table never pull them in.
@@ -96,11 +96,12 @@ app/src/ui/                    dom.js (h, clear, qs) · screens.js (registerScre
                                agreementDoc.js registerAgreementDoc/agreementSchema)
 app/src/forms/                 engine.js (renderForm) · fields.js (field kinds) · validate.js (pure rules + helpers)
 app/src/dev/                   flags.js (devAllowed, getFlag) · galleries.js (?dev=<name> registry) · vendorCheck.js
-                               seeds.js (fixtures) · designSeeds.js (design-* seeds, addDesignSeeds) · sampleLetters.js · devPanel.js (?dev=1) · gallery2d.js (?dev=gallery2d) · formsGallery.js (?dev=forms) · lettersGallery.js (?dev=letters) · sceneGallery.js (?dev=scene) · propsGallery.js (?dev=props) · stylesGallery.js (?dev=styles) · buildingsGallery.js (?dev=buildings) · housesGallery.js (?dev=houses) · blueprint3dGallery.js (?dev=blueprint3d) · voxelVendorGallery.js (?dev=voxel-vendor) · lifeSeeds.js (life-* seeds, addLifeSeeds)
+                               seeds.js (fixtures) · designSeeds.js (design-* seeds, addDesignSeeds) · sampleLetters.js · devPanel.js (?dev=1) · gallery2d.js (?dev=gallery2d) · formsGallery.js (?dev=forms) · lettersGallery.js (?dev=letters) · sceneGallery.js (?dev=scene) · propsGallery.js (?dev=props) · stylesGallery.js (?dev=styles) · buildingsGallery.js (?dev=buildings) · housesGallery.js (?dev=houses) · blueprint3dGallery.js (?dev=blueprint3d) · voxelVendorGallery.js (?dev=voxel-vendor) · blocksGallery.js (?dev=blocks[&night=1]) · lifeSeeds.js (life-* seeds, addLifeSeeds)
 app/src/three/                 scene.js sky.js terrain.js landmarks.js materials.js · props.js propKit.js animals.js yard.js
                                character.js · styles.js styleParts.js styleSwatch.js · buildingGen.js buildingParts.js · houseGen.js houseYard.js · blueprintTo3d.js · homeRender.js
                                (browser only, import() lazily; see 3D scene)
-app/vendor/                    three/ (+addons/) nspell/ dictionary-en/ vader/ · voxel/ (block engine, task 02) · VERSIONS.md (pinned, licensed)
+app/vendor/                    three/ (+addons/) nspell/ dictionary-en/ vader/ · voxel/ (block engine, task 02) · kenney-voxel/ (CC0 tiles, blocks task 03) · VERSIONS.md (pinned, licensed)
+app/src/world/                 blocks.js (block registry, pure; blocks task 03 → volume, generators, voxHome in later tasks)
 app/src/phases/<phase>/        one screen per phase (placeholders until their tasks); design/blueprint/ = the build editor
                                paperwork/: paperworkScreen.js · flow.js (pure) · steps/ (index.js registry, one module per step)
 app/src/accounts/              provider.js (AccountError, validation, chooseMode, selectProvider) · local.js (PBKDF2, homeblocks:v1:accounts/session)
@@ -165,6 +166,19 @@ docs/                          TASK_PROTOCOL, PROGRESS, OPEN_ITEMS, spec/
 - Gallery `?dev=voxel-vendor` (`dev/voxelVendorGallery.js`): one 32 × 32 chunk with fixed seeds, placeholder colors, orbit
   camera; `window.__voxel = {calls, triangles, chunks, blocks}`. `lazy-plan.json` also forbids `/vendor/voxel/` and
   `/src/three/voxel/` before Phase 4.
+
+## Block registry (13 §4, blocks task 03; `app/src/world/blocks.js`, pure)
+- `BLOCKS` (index = id), `BLOCK[key]`, `blockById`, `isSolid`, `isTransparent` (Uint8 lookups; unknown ids = transparent,
+  not solid), `placeableBlocks()`, `styleBlocks(family, variant?)` → `{wall, roof, trim, floor}` ids, `textureFiles()`.
+- **Ids are append only, never renumber** (saves store them; `blocks.test.js` snapshots a few). 0 air, 1 bedrock, base
+  blocks 2–47, then plaster/roof/trim per family in `STYLE_FAMILIES` order (palette 0; a variant with its own palettes,
+  i.e. `maritime:alaska`, gets its own set right after its family) = 99 blocks. New blocks go at the end.
+- Tints multiply light textures: plaster/trim/metal = `snow.png`, roof = `trunk_white_side.png`. Only palette 0 has a
+  block set; other palettes (house customization) would need appended sets or a render-time tint. `floor` is planks for
+  wood-sided looks (batten/shingle/siding/log), else the slab. Tinted style blocks have `placeable: false` (the hotbar adds
+  the home's set via styleBlocks; placing them is still allowed). Doors are `solid: false`.
+- Textures: `app/vendor/kenney-voxel/<Kenney name>.png`, 128 px, sRGB, NearestFilter (see its README; water/ice alpha fixed).
+  `?dev=blocks` shows every block; emissive blocks use `emissiveMap = map` and `emissiveIntensity = block.emissive` at night.
 
 ## Finance helpers (`app/src/finance/`, pure, integer cents, rates are annual decimals)
 - `money.js`: `dollarsToCents(input)` (numbers, "3,200", "$3,200.50", "-$45"; null when unparseable) · `assertCents` ·

@@ -2165,3 +2165,27 @@ each logs here under `## Blocks NN: <title>`.
   (pointer lock, collisions, place/remove) where it fits. Its generator worker can't see the import map (imports three by
   relative path). The worker's `Noise` never gets `leafSeed`, so leaves are not deterministic. `Control` has no
   dispose and listens on document.body. materials.js holds placeholder colors (`COLORS`) for task 03 to replace.
+
+## Blocks 03: CC0 textures and the block registry
+- attempt started 2026-11-02T01:09:39-10:00
+- done 2026-11-02T01:16:30-10:00
+- Files added: app/src/world/blocks.js (registry, 99 blocks), app/src/dev/blocksGallery.js (?dev=blocks, &night=1),
+  tests/unit/blocks.test.js, app/vendor/kenney-voxel/ (35 Kenney tiles at 128 px, License.txt, README.md; 172 KB).
+  Changed: app/src/dev/galleries.js, tools/smoke.txt (+blocks), app/vendor/VERSIONS.md (Kenney row),
+  tests/unit/production.test.js (hosted-folder allowlist accepts kenney-voxel PNGs + License.txt), CLAUDE.md.
+- Source: kenney.nl/assets/voxel-pack (signed link from kenney.nl/download-link/<id>; needs a browser User-Agent, plain
+  curl gets 403). License.txt says "Creative Commons Zero, CC0". Water/ice alpha set flat (170/210) with Pillow; no
+  downscale needed (under 600 KB at 128 px).
+- Verified: `node --test tests/unit/blocks.test.js` 7/7; `bash tools/check.sh` OK (syntax 237, tests, data, contrast,
+  copy, smoke 82/82, lazy-plan). No PNG in app/ outside kenney-voxel; no Mojang/Minecraft art.
+  - b03/blocks.png (1600x1000, light): 98 textured cubes in a 14-column grid with labels; grass/snow show top+side
+    faces, glass is a see-through frame, leaves have holes; the 17 style sets visibly differ (Miami pink plaster,
+    Hawaiʻi plantation sage/red roof, NYC dark brown, Appalachian green roof, Alaska blue-grey). Night button readable.
+  - b03/blocks-night.png (&night=1): dark navy sky, every cube dim, Lit window (19) and Lamp (39) glow bright yellow.
+  - b03/toggled-night.png: clicking the button switches to night (assert `__blocks.night === true` passed).
+- Deviations: none from 13 §4. Choices: one tint set per family from palette 0 (13 §4 says "each family maps to
+  {plaster, roof, trim}"); maritime:alaska has its own set because it brings its own palettes; hillside reuses its family's.
+- Notes for later tasks: the house palette choice (palettes 1–3) has no block set; voxHouse can tint at render time or
+  append sets at the END. styleBlocks gives plaster for every wall, so voxHouse should pick brick / stone-brick /
+  lava-rock / planks from `look.wallTex` (brick, ashlar, log) itself. Gallery material recipe (Lambert, sRGB map,
+  alphaTest 0.05 + DoubleSide for transparent, emissiveMap) is a good start for the task 05 mesher.

@@ -15,6 +15,7 @@ export const galleries = {
   houses: () => import('./housesGallery.js'),
   blueprint3d: () => import('./blueprint3dGallery.js'),
   'voxel-vendor': () => import('./voxelVendorGallery.js'),
+  blocks: () => import('./blocksGallery.js'),
 };
 
 /** Mount gallery `name` into root. Returns false when no such gallery exists. */
