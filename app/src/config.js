@@ -675,3 +675,12 @@ export const NEIGHBORHOOD = {
   'mid-city': { rows: [1, 2], blocks: [3, 4], floors: [4, 6] },
   'big-city': { towers: [4, 6], towerFloors: [12, 30], blocks: [2, 3], floors: [5, 8] },
 };
+
+/** Blocky character and animals in the block world (13 §8, blocks task 13; three/voxel/mobs.js, world/wander.js). 1 unit = 1 block = 1 m. */
+export const VOX_MOBS = {
+  walkSpeed: 1.4,               // blocks/s when walkTo gets no duration (an easy walking pace)
+  stride: 0.7,                  // blocks per step; sets the limb-swing rate
+  swing: 0.6,                   // max leg swing in radians (arms swing 80% of it)
+  maxTriangles: 300,            // per mob (the ?dev=mobs gallery reports each one)
+  wander: { leg: 4, walkShare: 0.55 }, // seconds per wander leg, share of it spent walking
+};

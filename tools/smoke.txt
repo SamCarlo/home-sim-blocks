@@ -90,3 +90,4 @@ landmarks /index.html?dev=landmarks&theme=light
 voxel-building /index.html?dev=voxel&gen=building&loc=hilo&kind=apartment&seed=1
 voxel-blueprint /index.html?dev=voxel&gen=blueprint&loc=pahoa&template=cozy
 voxel-home /index.html?dev=voxel&seed=life-month1-house&cut=1
+mobs /index.html?dev=mobs&theme=light

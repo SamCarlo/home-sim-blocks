@@ -18,6 +18,7 @@ export const galleries = {
   blocks: () => import('./blocksGallery.js'),
   voxel: () => import('./voxelGallery.js'),
   landmarks: () => import('./landmarksGallery.js'),
+  mobs: () => import('./mobsGallery.js'),
 };
 
 /** Mount gallery `name` into root. Returns false when no such gallery exists. */

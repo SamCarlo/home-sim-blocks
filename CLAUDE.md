@@ -96,12 +96,12 @@ app/src/ui/                    dom.js (h, clear, qs) · screens.js (registerScre
                                agreementDoc.js registerAgreementDoc/agreementSchema)
 app/src/forms/                 engine.js (renderForm) · fields.js (field kinds) · validate.js (pure rules + helpers)
 app/src/dev/                   flags.js (devAllowed, getFlag) · galleries.js (?dev=<name> registry) · vendorCheck.js
-                               seeds.js (fixtures) · designSeeds.js (design-* seeds, addDesignSeeds) · sampleLetters.js · devPanel.js (?dev=1) · gallery2d.js (?dev=gallery2d) · formsGallery.js (?dev=forms) · lettersGallery.js (?dev=letters) · sceneGallery.js (?dev=scene) · propsGallery.js (?dev=props) · stylesGallery.js (?dev=styles) · buildingsGallery.js (?dev=buildings) · housesGallery.js (?dev=houses) · blueprint3dGallery.js (?dev=blueprint3d) · voxelVendorGallery.js (?dev=voxel-vendor) · blocksGallery.js (?dev=blocks[&night=1]) · landmarksGallery.js (?dev=landmarks) · lifeSeeds.js (life-* seeds, addLifeSeeds)
-app/src/three/                 scene.js sky.js terrain.js landmarks.js materials.js · props.js propKit.js animals.js yard.js · voxel/engine.js (block world adapter, blocks task 05)
+                               seeds.js (fixtures) · designSeeds.js (design-* seeds, addDesignSeeds) · sampleLetters.js · devPanel.js (?dev=1) · gallery2d.js (?dev=gallery2d) · formsGallery.js (?dev=forms) · lettersGallery.js (?dev=letters) · sceneGallery.js (?dev=scene) · propsGallery.js (?dev=props) · stylesGallery.js (?dev=styles) · buildingsGallery.js (?dev=buildings) · housesGallery.js (?dev=houses) · blueprint3dGallery.js (?dev=blueprint3d) · voxelVendorGallery.js (?dev=voxel-vendor) · blocksGallery.js (?dev=blocks[&night=1]) · landmarksGallery.js (?dev=landmarks) · mobsGallery.js (?dev=mobs) · lifeSeeds.js (life-* seeds, addLifeSeeds)
+app/src/three/                 scene.js sky.js terrain.js landmarks.js materials.js · props.js propKit.js animals.js yard.js · voxel/engine.js (block world adapter, blocks task 05) · voxel/mobs.js (blocky character + animals, task 13)
                                character.js · styles.js styleParts.js styleSwatch.js · buildingGen.js buildingParts.js · houseGen.js houseYard.js · blueprintTo3d.js · homeRender.js
                                (browser only, import() lazily; see 3D scene)
 app/vendor/                    three/ (+addons/) nspell/ dictionary-en/ vader/ · voxel/ (block engine, task 02) · kenney-voxel/ (CC0 tiles, blocks task 03) · VERSIONS.md (pinned, licensed)
-app/src/world/                 blocks.js (block registry) · volume.js (dense volume) · edits.js (save diffs) · mesher.js (face mesher + raycast) · genTerrain.js trees.js (blocks task 06) · genNeighborhood.js shells.js (blocks task 07) · genLandmarks.js (blocks task 08) · voxHouse.js voxHouseYard.js walk.js (task 09) · voxBuilding.js voxBuildingParts.js (task 10) (pure; more generators, voxHome in later tasks)
+app/src/world/                 blocks.js (block registry) · volume.js (dense volume) · edits.js (save diffs) · mesher.js (face mesher + raycast) · genTerrain.js trees.js (blocks task 06) · genNeighborhood.js shells.js (blocks task 07) · genLandmarks.js (blocks task 08) · voxHouse.js voxHouseYard.js walk.js (task 09) · wander.js (task 13) · voxBuilding.js voxBuildingParts.js (task 10) (pure; more generators, voxHome in later tasks)
 app/src/phases/<phase>/        one screen per phase (placeholders until their tasks); design/blueprint/ = the build editor
                                paperwork/: paperworkScreen.js · flow.js (pure) · steps/ (index.js registry, one module per step)
 app/src/accounts/              provider.js (AccountError, validation, chooseMode, selectProvider) · local.js (PBKDF2, homeblocks:v1:accounts/session)
@@ -937,3 +937,12 @@ shows "3 of 8 required done". `readOnly` renders values as text (the portfolio's
 All 57 build tasks are done (2026-10-03), plus task 58 (moving and the year fast-forward, same day). Every requirement R1–R40 in `docs/spec/99-original-request.md` §3 is verified
 there with its evidence. What's left is in `docs/OPEN_ITEMS.md` (only the teacher's Firebase setup and an optional
 rename). History: `docs/PROGRESS.md`. Before shipping a change run `bash tools/check.sh` and `npm run test:e2e`.
+
+## Blocky character and animals (13 §8, blocks task 13; `app/src/three/voxel/mobs.js` browser only, `world/wander.js` pure)
+- `createBlockCharacter(colors)` has exactly `createCharacter`'s API (`object, colors, walking, walkTo(points, ms?) → Promise<bool>,
+  setVisible, update(dt)`), but in blocks: ~1.8 tall, feet on y = 0, faces +z / travel direction, `VOX_MOBS.walkSpeed` 1.4 blocks/s.
+  Colors from `characterColors` (our own look, no Minecraft skin). Waypoints must be block-space (cell centre = +0.5).
+- `createBlockAnimal(kind, {color})` for `ANIMAL_KINDS` (chicken cat dog goat; black stray = cat + `LIFE.autopilot.blackCatColor`, dark
+  coats get light eyes). `userData.idle(t)` (t = total seconds: peck, tail swish, wag, hop, graze); `userData.wander(box, {seed})` makes
+  idle also walk it inside an inclusive box of air cells (feet on `box.y0`, `world/wander.js wanderAt(box, t)`, pure in t), `wander(null)` stops.
+- Every mob < `VOX_MOBS.maxTriangles` (300). Gallery `?dev=mobs` (`window.__mobs` = triangles per mob); tests `tests/unit/wander.test.js`.

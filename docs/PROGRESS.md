@@ -2432,3 +2432,26 @@ each logs here under `## Blocks NN: <title>`.
   homeKey ignores season and plants, so snow months rebuild a different base under the same key: task 18 should diff edits against the
   season-free base or rebase on season change. Studios (one-room units) get the bed in the living room. Honolulu shared house hides behind
   a tower from the default orbit; the life view (14) may want a lower/closer camera.
+
+## Blocks 13: Blocky character and animals
+- attempt started 2026-11-02T08:48:41-10:00
+- done 2026-11-02T09:05:00-10:00
+- Files added: app/src/three/voxel/mobs.js (`createBlockCharacter`, `createBlockAnimal`), app/src/world/wander.js (`wanderAt`,
+  `wanderPoint`, pure), app/src/dev/mobsGallery.js (?dev=mobs), tests/unit/wander.test.js (4 tests). Changed: app/src/config.js
+  (`VOX_MOBS`), app/src/dev/galleries.js (+mobs), tools/smoke.txt (+mobs), CLAUDE.md.
+- Verified: `node --test tests/unit/wander.test.js` 4/4 (stays in box with feet on y0, pure in t and seed, pauses on the waypoint,
+  no jumps between frames, one-cell box never moves). `bash tools/check.sh` OK (syntax 259 · tests · data · contrast · copy · smoke
+  91/91 · lazy-plan). Shots `node tools/shoot.mjs --path '/index.html?dev=mobs&theme=light' --wait-ready --steps <wait 600, shot a,
+  wait 800, shot b>` → tools/shots/b13/:
+  - mobs-a.png: stone-brick plaza, the character (orange shirt, navy pants, dark hair) mid-step on the square path; white chicken,
+    orange cat, brown dog, white goat and black cat (yellow eyes) on five grass pads; a brown chicken in the back grass yard.
+  - mobs-b.png: 0.8 s later the character has moved along the path with legs in a wide stride and one arm forward; the goat's
+    head is down grazing, the cat and dog tails have swung, the wandering chicken has crossed to the middle of the yard.
+  - `window.__mobs` = character 180, chicken 120, cat 144, dog 156, goat 204, black cat 144 triangles (all < 300).
+- Deviations: none. The black cat is the `cat` kind with `LIFE.autopilot.blackCatColor` (as in classic); dark coats get light
+  eyes automatically so the face reads.
+- Notes for later tasks: `createBlockCharacter` is a drop-in for `createCharacter` but in blocks (1.8 tall, `VOX_MOBS.walkSpeed`
+  1.4 blocks/s), so task 14 must pass block-space waypoints (voxHome `path`, cell centres +0.5, feet on the floor's top y).
+  `createBlockAnimal(kind, {color})` takes the same args as `createAnimal`; `userData.idle(t)` expects TOTAL seconds (as
+  animation.js already passes); `userData.wander(box, {seed})` makes idle also move/turn the animal inside an inclusive box of
+  air cells (feet on box.y0), so do not set its position yourself while wandering; `wander(null)` stops. Models face +z.
