@@ -63,3 +63,33 @@ export function describeHome(state) {
   const roomText = `${NUM[rooms] ?? rooms} room${rooms === 1 ? '' : 's'}`;
   return `The ${style} house you designed in ${loc.name}: ${things ? `${roomText}, ${things}` : roomText}.`;
 }
+
+/** What the block world shows around the home, per settlement (13 §11). */
+const SETTLEMENT_TEXT = {
+  rural: 'open country with fields and a few far-off farmhouses',
+  'small-town': 'a quiet small-town street of houses',
+  'small-city': 'a small-city street with houses and shops',
+  'mid-city': 'a city street lined with row houses',
+  'big-city': 'a busy big-city street between tall buildings',
+  suburb: 'a suburban street of houses with yards',
+};
+
+/** The far landmark in words, for the surroundings sentence. */
+const LANDMARK_TEXT = {
+  'kilauea-plume': 'the steam plume of Kīlauea', maunakea: 'Maunakea', hualalai: 'Hualālai', 'kohala-hills': 'the Kohala hills',
+  leahi: 'Lēʻahi (Diamond Head)', 'needle-rainier': 'a tall needle tower and Mount Rainier', 'manhattan-skyline': 'the Manhattan skyline',
+  'biscayne-skyline': 'the skyline across Biscayne Bay', 'water-tower': 'the town water tower', 'harbour-lighthouse': 'a harbor lighthouse',
+  'kachemak-spit': 'the spit reaching into Kachemak Bay', 'gold-dome': 'a gold-domed capitol', 'lookout-mountain': 'Lookout Mountain',
+  'allegheny-ridges': 'the Allegheny ridges', 'delta-crossroads': 'a flat Delta crossroads', 'mule-mountains': 'the Mule Mountains',
+  'sandhills-windmill': 'a windmill in the Sandhills', 'pine-ridges': 'pine-covered ridges', 'ore-dock': 'a long ore dock on the lake',
+  'strip-mountains': 'striped desert mountains',
+};
+
+/** One sentence about the block world around the home (settlement + landmark), e.g. "Around it: …; far off you can see …". */
+export function describeSurroundings(state) {
+  const loc = byId[state.home?.locationId];
+  if (!loc) return '';
+  const around = SETTLEMENT_TEXT[loc.settlement] ?? 'a neighborhood street';
+  const far = LANDMARK_TEXT[loc.landmark];
+  return `Around it is ${around}${far ? `, and far off you can see ${far}` : ''}.`;
+}

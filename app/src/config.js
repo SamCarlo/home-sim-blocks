@@ -677,6 +677,22 @@ export const NEIGHBORHOOD = {
 };
 
 /** Blocky character and animals in the block world (13 §8, blocks task 13; three/voxel/mobs.js, world/wander.js). 1 unit = 1 block = 1 m. */
+/** Phase 4 block view (13 §8, §11; phases/life/blockView.js). Distances in blocks (1 block = 1 m). */
+export const BLOCK_VIEW = {
+  tallBlocks: 24,               // homes taller than this (≈ 80 ft) frame the student's floor, like lifeView's towers
+  tallBand: 10,                 // blocks above and below the unit kept in frame for tall buildings
+  padding: 0.7,                 // camera distance × fit radius for houses and builds
+  buildingPadding: 0.9,         // apartments/condos (whole building)
+  towerPadding: 1.15,           // tall buildings (the student's floor band)
+  fog: [160, 520],              // fog near/far: softens the world edge against the sky dome
+  side: 0.45,                   // camera offset east (x) per unit toward the street (z)
+  lift: 0.55,                   // starting camera rise per unit toward the street (taller homes start at 70 %)
+  liftStep: 0.3,                // rise added each time a neighbor blocks the line of sight to the home
+  liftSteps: 10,                // give up tilting after this many tries (≈ straight down)
+  litAt: 0.5,                   // nightFactor at which the home's glass swaps to lit glass
+  yardStep: 1,                  // path waypoint (from the door) where weekend time at home is spent
+};
+
 export const VOX_MOBS = {
   walkSpeed: 1.4,               // blocks/s when walkTo gets no duration (an easy walking pace)
   stride: 0.7,                  // blocks per step; sets the limb-swing rate

@@ -2455,3 +2455,33 @@ each logs here under `## Blocks NN: <title>`.
   `createBlockAnimal(kind, {color})` takes the same args as `createAnimal`; `userData.idle(t)` expects TOTAL seconds (as
   animation.js already passes); `userData.wander(box, {seed})` makes idle also move/turn the animal inside an inclusive box of
   air cells (feet on box.y0), so do not set its position yourself while wandering; `wander(null)` stops. Models face +z.
+
+## Blocks 14: Phase 4 shows the block world
+- attempt started 2026-11-02T09:34:38-10:00
+- done 2026-11-02T09:43:44-10:00
+- Files added: app/src/phases/life/blockView.js (`createBlockView`, same handle as `createLifeView`). Changed: app/src/phases/life/lifeScreen.js
+  (blockView by default, `getFlag('view') === 'classic'` → lifeView; sr-only text = describeHome + describeSurroundings),
+  app/src/phases/life/animation.js (uses `home.yard` when the view gives one), app/src/three/voxel/engine.js (`materials`, `lights {hemi, sun}`,
+  `setGlow(f)`, `invalidate()`, `leftover` after dispose), app/src/life/homeDescription.js (`describeSurroundings`: settlement + landmark
+  phrase tables), app/src/config.js (`BLOCK_VIEW`), tests/unit/life-flow.test.js (+1 test, all 20 places), CLAUDE.md.
+- Verified: `bash tools/check.sh` OK (syntax 260 · tests · data · contrast · copy · smoke 91/91 · lazy-plan). e2e `life-month1.json` on all five
+  `life-month1-*` seeds, `life-flow.json` (life-month1-house), `life-plan.json` (life-plan-filled), `life-care-hit.json` / `life-care-miss.json`
+  (life-live-house, speed=20) all ✓ OK on the block view. Shots `node tools/shoot.mjs --path '/index.html?seed=life-month1-<kind>&theme=light'
+  --wait-ready --steps <wait 800, eval __life.info()>` → tools/shots/b14/ (money strip, wellbeing card and Welcome panel unchanged in all):
+  - apartment.png: Hilo four-story walk-up framed whole (red stepped roof, front stair tower with the door), row-house neighbors, street with
+    lamps in front. 44 calls / 116k triangles.
+  - shared.png: Honolulu two-story white house seen from above on its green lot between big-city towers, character at the door. 62 / 341k.
+  - condo.png: Miami glass tower around floor 15 (±10 blocks), the character on the balcony, neighbor towers and sea edge. 57 / 267k.
+  - house.png: Katy two-story tan house with brown stepped hip roof, character at the door, coop and chickens behind, suburban neighbors,
+    forest ridge far off. 69 / 85k.
+  - build.png: Pāhoa Cozy build (grey stepped roof, lānai), garden beds, ʻōhiʻa trees, lava-rock patches, Kīlauea ridge. 63 / 92k.
+  - night-house.png (setTimeOfDay 0.9): dark sky with stars, home windows swapped to lit glass, streetlamps glowing. classic-house.png
+    (`&view=classic`): the old procedural house, unchanged.
+- Deviations: none from 13 §8. The surroundings sentence is a separate pure `describeSurroundings(state)` appended by lifeScreen, so the
+  existing `describeHome` wording/tests stay as they were.
+- Notes for later tasks: blockView swaps the adapter's lights for `createSky` (sky dome, sun/moon, palettes) plus fog `BLOCK_VIEW.fog`; the glow
+  pass follows `sky.nightFactor` via `world.setGlow`. Camera: fit sphere × `BLOCK_VIEW.*padding`, then tilts up (`lift`/`liftStep`) until a
+  `mesher.raycast` from the eye first hits the home box (big-city neighbors otherwise hide the home). Plants are blocks; `home.plants[i].object`
+  is a dummy Object3D carrying `userData {healthy, cell, block}` so animation.js and the care e2e keep working. `setSeason` regenerates the whole
+  near volume in place (`volume.data.set` + `world.invalidate()`) only when snow comes or goes, and `syncHome` does the same when plants/animals
+  are added: task 18 must re-apply `state.world` edits after both. `view.vox` = voxHome info. Animals stand at animalSpots (no wander yet).

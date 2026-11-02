@@ -145,7 +145,11 @@ export async function createVoxelWorld(container, { volume, far = null, timeOfDa
   let disposed = false, pending = 0;
   const api = {
     scene, camera, renderer, controls, volume, info: { calls: 0, triangles: 0, chunks: chunks.length },
-    requestRender, setTimeOfDay,
+    requestRender, setTimeOfDay, materials: mats, lights: { hemi, sun },
+    /** Glow pass (lamps, lit glass) emissive intensity 0–1; the life view drives it from the sky's nightFactor. */
+    setGlow(f) { mats[3].emissiveIntensity = f; requestRender(); },
+    /** Remesh every chunk on the next render (after the volume's data was replaced in place, e.g. a season change). */
+    invalidate() { chunks.forEach((ch) => { ch.dirty = true; }); requestRender(); },
     /** Block id at a cell (air outside the volume). */
     getBlock: (x, y, z) => getCell(volume, x, y, z),
     /** Set a cell and remesh its chunk (and the neighbor chunk on a chunk edge). Returns false outside the volume. */
@@ -191,6 +195,7 @@ export async function createVoxelWorld(container, { volume, far = null, timeOfDa
       farGroup.traverse((o) => o.geometry?.dispose());
       atlas.dispose();
       renderer.dispose();
+      api.leftover = { ...renderer.info.memory }; // {geometries: 0, textures: 0} = nothing leaked
       renderer.forceContextLoss();
       canvas.remove();
     },

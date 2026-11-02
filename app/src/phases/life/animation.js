@@ -87,7 +87,8 @@ export function createAnimation({ plan, choices = {}, view = null, wrap, dayBar,
   const out = home ? (home.path.length > 1 ? home.path.slice(1) : [home.exit]) : [];
   const back = home ? [...home.path.slice(0, -1).reverse(), homePos] : [];
   // Weekend time at home happens on the front lawn/porch, in view (plant spots often sit behind the house or up on a balcony).
-  const yard = home ? homePos.clone().add(new homePos.constructor(...LIFE3D.yardOffset)) : null;
+  // The block view gives its own `yard` point (a walkable path cell); classic offsets from the door in feet.
+  const yard = home ? (home.yard?.clone() ?? homePos.clone().add(new homePos.constructor(...LIFE3D.yardOffset))) : null;
   let place = 'inside', walkId = 0;
   if (ch && !reduced) ch.setVisible(false);
 

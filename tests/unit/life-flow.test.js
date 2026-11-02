@@ -8,7 +8,8 @@ import {
   currentStage, welcomeTitle, recap, canLive, defaultChoices, startPlan, setChoice, startLive, finishLive, nextMonth,
   wellbeingBars, moneyStrip,
 } from '../../app/src/life/monthFlow.js';
-import { describeHome, livingThings } from '../../app/src/life/homeDescription.js';
+import { describeHome, describeSurroundings, livingThings } from '../../app/src/life/homeDescription.js';
+import { LOCATIONS } from '../../app/src/data/locations/index.js';
 
 const NOW = Date.UTC(2026, 9, 2);
 const KINDS = ['apartment', 'shared', 'condo', 'house', 'build'];
@@ -93,4 +94,13 @@ test('home descriptions name the place and the living things', () => {
   assert.match(describeHome(seeds['life-month1-apartment'].build(NOW)), /^Unit \w+, on floor \d+ of .* in Hilo\./);
   assert.match(describeHome(seeds['life-month1-build'].build(NOW)), /you designed in Pāhoa/);
   for (const kind of KINDS) assert.doesNotMatch(describeHome(seeds[`life-month1-${kind}`].build(NOW)), /undefined|NaN/);
+});
+
+test('describeSurroundings names the settlement and the far landmark for every place (13 §11)', () => {
+  for (const loc of LOCATIONS) {
+    const text = describeSurroundings({ home: { locationId: loc.id } });
+    assert.match(text, /^Around it is .+, and far off you can see .+\.$/, loc.id);
+    assert.doesNotMatch(text, /undefined/);
+  }
+  assert.match(describeSurroundings(seeds['life-month1-build'].build(NOW)), /Kīlauea/);
 });

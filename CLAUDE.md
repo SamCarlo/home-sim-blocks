@@ -199,7 +199,7 @@ docs/                          TASK_PROTOCOL, PROGRESS, OPEN_ITEMS, spec/
 ## Voxel adapter (13 §2, §11, blocks task 05; `app/src/three/voxel/engine.js` browser only, `world/mesher.js` pure)
 - `await createVoxelWorld(container, {volume, far?: {volume, scale, origin {x,y,z}}, timeOfDay? (hours, 12)})` → `{scene, camera,
   renderer, controls, volume, setBlock(x,y,z,id) → bool, getBlock, pick(ndcX, ndcY) → {x,y,z, normal [nx,ny,nz], id} | null,
-  setOrbit({target, distance}), setTimeOfDay(h), info {calls, triangles, chunks}, requestRender, firstFrame(), dispose()}` or
+  setOrbit({target, distance}), setTimeOfDay(h), setGlow(f), invalidate(), materials, lights, info {calls, triangles, chunks}, requestRender, firstFrame(), dispose()}` or
   **null** without WebGL. It is async (atlas load). Nothing else imports `vendor/voxel/`; its Terrain is never used (DEVIATIONS).
 - Meshing: `world/mesher.js` `blockTables(textureFiles())`, `meshChunk(v, tables, {x0,z0,x1,z1, singlePass})` → per pass
   `{positions, normals, colors, uvs, indices, faces}`; `PASSES` = opaque · cutout (alphaTest, DoubleSide) · blend (water, ice) ·
@@ -946,3 +946,16 @@ rename). History: `docs/PROGRESS.md`. Before shipping a change run `bash tools/c
   coats get light eyes). `userData.idle(t)` (t = total seconds: peck, tail swish, wag, hop, graze); `userData.wander(box, {seed})` makes
   idle also walk it inside an inclusive box of air cells (feet on `box.y0`, `world/wander.js wanderAt(box, t)`, pure in t), `wander(null)` stops.
 - Every mob < `VOX_MOBS.maxTriangles` (300). Gallery `?dev=mobs` (`window.__mobs` = triangles per mob); tests `tests/unit/wander.test.js`.
+
+## Phase 4 block view (13 §8, §11, blocks task 14; `app/src/phases/life/blockView.js`, browser only)
+- `createBlockView(container, {state})` returns lifeView's handle (`scene {setSeason, setTimeOfDay, nightFactor, season, requestRender, controls,
+  camera, renderer, memory(), leftover}`, `home {character, plants, animals, path, door, exit, yard, windows, setNight, setLiving}`, `info`,
+  `vox` (voxHome info), `refreshNight`, `setLiving`, `syncHome`, `firstFrame`, `dispose`) from voxHome + createVoxelWorld + mobs. lifeScreen mounts
+  it by default; `?view=classic` mounts lifeView. All positions are block space (cell centre +0.5); `home.yard` replaces `LIFE3D.yardOffset`.
+- Sky/lights come from `three/sky.js` (the adapter's own lights are removed); `world.setGlow(nightFactor)` lights lamps/streetlamps; at
+  `BLOCK_VIEW.litAt` the home's `windows` swap glass ↔ lit-glass. Wilted plants → `leaves-wilted` blocks; plant `object`s are dummies with
+  `userData.healthy`. Season (snow on/off) and new plants/animals regenerate the near volume in place (`world.invalidate()`).
+- Framing: towers taller than `BLOCK_VIEW.tallBlocks` frame the unit's floor ± `tallBand`; the camera tilts up until its line of sight hits the
+  home first. Tunables `config.BLOCK_VIEW`. Five month-1 seeds: 44–69 calls, 85k–341k triangles (budget 150 / 400k).
+- `life/homeDescription.js` `describeSurroundings(state)`: one sentence (settlement + landmark), appended to the sr-only description.
+

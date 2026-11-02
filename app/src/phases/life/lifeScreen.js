@@ -11,7 +11,7 @@
 import { h } from '../../ui/dom.js';
 import { byId } from '../../data/locations/index.js';
 import { monthLabel, monthName } from '../../util/dates.js';
-import { describeHome } from '../../life/homeDescription.js';
+import { describeHome, describeSurroundings } from '../../life/homeDescription.js';
 import {
   currentStage, welcomeTitle, recap, canLive, startPlan, setChoice, startLive, finishLive, nextMonth, isYearEnd, finishReview,
 } from '../../life/monthFlow.js';
@@ -172,7 +172,7 @@ export async function mount(container, { store }) {
 
   const money = renderMoneyStrip(state);
   const wb = renderWellbeingCard(state);
-  const desc = h('p', { class: 'sr-only', id: 'life-3d-desc' }, describeHome(state));
+  const desc = h('p', { class: 'sr-only', id: 'life-3d-desc' }, `${describeHome(state)} ${describeSurroundings(state)}`.trim());
   const stage = h('div', { class: 'life-stage', role: 'img', 'aria-describedby': 'life-3d-desc',
     'aria-label': `Your home in ${loc.name}. Drag to rotate, scroll to zoom.` });
   const dayLabel = h('div', { class: 'life-daybar', hidden: true, 'aria-hidden': 'true' }); // calendar strip + day (task 45)
@@ -251,8 +251,9 @@ export async function mount(container, { store }) {
 
   stage.append(h('p', { class: 'life-loading muted' }, 'Loading your home…'));
   try {
-    const { createLifeView } = await import('./lifeView.js');
-    view = await createLifeView(stage, { state });
+    // Block Edition (13 §8): the block world by default; ?view=classic keeps the procedural home for comparison.
+    if (getFlag('view') === 'classic') view = await (await import('./lifeView.js')).createLifeView(stage, { state });
+    else view = await (await import('./blockView.js')).createBlockView(stage, { state });
   } catch (err) {
     console.warn('3D life view failed', err);
   }
