@@ -101,7 +101,7 @@ app/src/three/                 scene.js sky.js terrain.js landmarks.js materials
                                character.js · styles.js styleParts.js styleSwatch.js · buildingGen.js buildingParts.js · houseGen.js houseYard.js · blueprintTo3d.js · homeRender.js
                                (browser only, import() lazily; see 3D scene)
 app/vendor/                    three/ (+addons/) nspell/ dictionary-en/ vader/ · voxel/ (block engine, task 02) · kenney-voxel/ (CC0 tiles, blocks task 03) · VERSIONS.md (pinned, licensed)
-app/src/world/                 blocks.js (block registry, pure; blocks task 03 → volume, generators, voxHome in later tasks)
+app/src/world/                 blocks.js (block registry) · volume.js (dense volume) · edits.js (save diffs) (pure; generators, voxHome in later tasks)
 app/src/phases/<phase>/        one screen per phase (placeholders until their tasks); design/blueprint/ = the build editor
                                paperwork/: paperworkScreen.js · flow.js (pure) · steps/ (index.js registry, one module per step)
 app/src/accounts/              provider.js (AccountError, validation, chooseMode, selectProvider) · local.js (PBKDF2, homeblocks:v1:accounts/session)
@@ -179,6 +179,22 @@ docs/                          TASK_PROTOCOL, PROGRESS, OPEN_ITEMS, spec/
   the home's set via styleBlocks; placing them is still allowed). Doors are `solid: false`.
 - Textures: `app/vendor/kenney-voxel/<Kenney name>.png`, 128 px, sRGB, NearestFilter (see its README; water/ice alpha fixed).
   `?dev=blocks` shows every block; emissive blocks use `emissiveMap = map` and `emissiveIntensity = block.emissive` at night.
+
+## World volume and edits (13 §3, §7, blocks task 04; `app/src/world/`, pure)
+- `config.WORLD`: `size {128, 96, 128}`, `tallY` 160, `groundY` 24, `farScale` 4, `maxEdits` 20000, `almostFullPct` 0.9,
+  `buildHeight` 24 (spec gives no number), `digDepth` 4, `ftPerBlock` 3.28.
+- `volume.js`: `createVolume(size = WORLD.size)` → `{size, data: Uint8Array}`; index = `x + X * (z + Z * y)` (`idx`,
+  `coords(v, i)`, `inBounds`). `get` (air outside), `set` (ignores out of bounds / non-integers, returns bool).
+  Boxes are `{x0, y0, z0, x1, y1, z1}`, **both ends inclusive**, any corner order, clipped (`clipBox`). `fillBox` → cells
+  written, `hollowBox(v, box, wallId, {floorId, ceilId})` (walls on the 4 sides incl. corners, floor/ceiling inside the
+  walls, interior set to air; floorId/ceilId 0 = none), `line(v, a, b, id)` (DDA), `column(v, x, z, y0, y1, id)`,
+  `replace(v, box, from, to)` → count, `topSolidY(v, x, z)` (uses `isSolid`; −1 for none), `clone`, `ftToBlocks(ft)`.
+- `edits.js`: an edit set is `Map<index, id>`. `diff(base, current)`, `apply(base, edits)` → new volume, `pack` (base64 of
+  varint count + varint index deltas + id bytes; `btoa`/`atob`, no Buffer), `unpack` ('' / null → empty Map; throws on a
+  corrupt string), `countEdits(str)` (reads only the header), `rebase(oldBase, newBase, edits)` → `{edits, dropped}`
+  (string in → string out, Map in → Map out). `apply`/`rebase` accept a Map or a packed string. Packed size at random
+  spread: 1k ≈ 3.8 KB, 10k ≈ 32 KB, 20k ≈ 57 KB; pack 20k ≈ 9 ms. Tests `tests/unit/volume.test.js` (also guard purity
+  and the 400-line limit for every `world/*.js`).
 
 ## Finance helpers (`app/src/finance/`, pure, integer cents, rates are annual decimals)
 - `money.js`: `dollarsToCents(input)` (numbers, "3,200", "$3,200.50", "-$45"; null when unparseable) · `assertCents` ·

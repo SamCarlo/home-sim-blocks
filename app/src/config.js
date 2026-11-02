@@ -589,3 +589,16 @@ export const LIFE3D = {
 export const PROPS3D = {
   budget: { tree: 300, animal: 400 }, // 08 §5 triangles per prop
 };
+
+/** Block Edition world volume and saves (13 §3, §7, §9; world/volume.js, world/edits.js). 1 block = 1 m. */
+export const WORLD = {
+  size: { x: 128, y: 96, z: 128 }, // 13 §3 dense volume; index = x + X * (z + Z * y)
+  tallY: 160,                   // 13 §3 height for big-city towers
+  groundY: 24,                  // 13 §3 top of the ground at the lot; y = 0 is bedrock
+  farScale: 4,                  // 13 §3 one far-scenery block = 4 m
+  maxEdits: 20000,              // 13 §7 cap on changed blocks per save (≈ 130 KB packed)
+  almostFullPct: 0.9,           // 13 §7 hotbar warns "Your world is almost full" at 90 % of maxEdits
+  buildHeight: 24,              // 13 §9 owners build up to this many blocks above groundY (spec gives no number)
+  digDepth: 4,                  // 13 §9 nothing below groundY − digDepth can be broken
+  ftPerBlock: 3.28,             // 13 §3 ftToBlocks divisor
+};

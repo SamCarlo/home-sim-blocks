@@ -2189,3 +2189,20 @@ each logs here under `## Blocks NN: <title>`.
   append sets at the END. styleBlocks gives plaster for every wall, so voxHouse should pick brick / stone-brick /
   lava-rock / planks from `look.wallTex` (brick, ashlar, log) itself. Gallery material recipe (Lambert, sRGB map,
   alphaTest 0.05 + DoubleSide for transparent, emissiveMap) is a good start for the task 05 mesher.
+
+## Blocks 04: The pure world volume and edit diffs
+- attempt started 2026-11-02T01:55:40-10:00
+- done 2026-11-02T02:00:01-10:00
+- Files added: app/src/world/volume.js (142 lines), app/src/world/edits.js, tests/unit/volume.test.js (14 tests).
+  Changed: app/src/config.js (`WORLD` group), CLAUDE.md (folder map + "World volume and edits" section).
+- Verified: `node --test tests/unit/volume.test.js` 14/14; `bash tools/check.sh` OK (syntax 239 files · tests · data ·
+  contrast · copy · smoke 82/82 · lazy-plan). No screen in this task, so no screenshot.
+  - Packed size (seeded random edits spread over the 128 × 96 × 128 volume, ids 1–98):
+    1k = 3,896 chars (3.8 KB) · 10k = 32,648 chars (31.9 KB) · 20k = 58,640 chars (57.3 KB). Pack 20k ≈ 9 ms, unpack ≈ 3 ms.
+    Real builds cluster on the lot, so their deltas are smaller and packs will be smaller still.
+- Deviations: none. Choice where 13 is silent: `WORLD.buildHeight = 24` (13 §9 names it but gives no number).
+- Notes for later tasks: boxes are `{x0,y0,z0,x1,y1,z1}` with both ends inclusive and clipped, so generators can
+  overshoot the edge safely. `hollowBox` clears the interior to air (rooms carve); pass `floorId: 0` / `ceilId: 0` to
+  leave them open. `apply`/`rebase` take a Map or a packed string; `rebase` returns the same type it was given and
+  also drops kept edits that now equal the new base. `countEdits` reads only the header, cheap enough for every save.
+  The purity test in volume.test.js scans every `world/*.js` for three/DOM/Buffer imports and the 400-line limit.
