@@ -700,3 +700,21 @@ export const VOX_MOBS = {
   maxTriangles: 300,            // per mob (the ?dev=mobs gallery reports each one)
   wander: { leg: 4, walkShare: 0.55 }, // seconds per wander leg, share of it spent walking
 };
+
+/** Explore mode, first person (13 §8–§9, blocks task 16). Body and jump numbers come from the vendored engine's Player/Control. */
+export const EXPLORE = {
+  walkSpeed: 3.57,              // blocks/s: vendor Player Speed.walking 5.612 × 2/π, as its Control moves
+  gravity: 25,                  // blocks/s², vendor Control
+  jumpSpeed: 8,                 // blocks/s upward, vendor Control (clears one block)
+  maxFall: 38.4,                // blocks/s, vendor Player.falling
+  bodyHalf: 0.25,               // half the vendor Player body width (0.5)
+  bodyHeight: 1.8,              // vendor Player body height
+  eyeHeight: 1.62,              // eye above the feet
+  autoStep: true,               // walk up a single block (door sills, a front step) without jumping
+  turnSpeed: 2.2,               // rad/s for Q/E and R/F (keyboard-only look)
+  mouseSens: 0.0025,            // rad per pixel for pointer lock and drag-to-look
+  pitchLimit: 1.5,              // rad, just under straight up/down
+  fov: 70,                      // degrees
+  bob: { amp: 0.05, perBlock: 2.2 }, // head bob height and radians per block walked (off with reduced motion)
+  maxDt: 0.05,                  // s, longest physics step per frame (a stalled tab doesn't tunnel)
+};

@@ -64,6 +64,13 @@ function moveButton(state, go) {
   } }, 'Find a new place to live');
 }
 
+/** "Explore & build" (13 §8, blocks task 16): opens the block world in first person. Never on the live stage. */
+function exploreButton(explore) {
+  if (!explore) return null;
+  return h('button', { class: 'btn btn-secondary life-explore-open', type: 'button', disabled: !explore.ready(),
+    onClick: () => explore.open() }, 'Explore & build');
+}
+
 /** "Live like this for a year" (task 58): confirms, then lives up to 12 months at once (life/autopilot.js). */
 function yearButton(choices, go) {
   return h('button', { class: 'btn btn-secondary btn-lg life-year', type: 'button', disabled: !canLive(choices),
@@ -80,7 +87,7 @@ function yearButton(choices, go) {
 }
 
 const PANELS = {
-  welcome({ state, go }) {
+  welcome({ state, go, explore }) {
     const mi = state.life.monthIndex;
     const { line, warnings } = recap(state);
     return [
@@ -92,10 +99,11 @@ const PANELS = {
         + 'Your choices change your money and your wellbeing.'),
       h('div', { class: 'life-go-row' },
         h('button', { class: 'btn btn-primary btn-lg life-go', type: 'button', onClick: () => go(startPlan, 'life-plan') }, 'Plan my month'),
+        exploreButton(explore),
         moveButton(state, go)),
     ];
   },
-  plan({ state, go, store, onUpdate }) {
+  plan({ state, go, store, onUpdate, explore }) {
     const mi = state.life.monthIndex;
     const choices = state.life.current?.choices ?? {};
     const questions = renderQuestions({ state, choices,
@@ -118,7 +126,7 @@ const PANELS = {
       h('h1', { class: 'life-title' }, welcomeTitle(mi)),
       questions.el,
       invest?.el,
-      moveButton(state, go),
+      h('div', { class: 'life-go-row' }, exploreButton(explore), moveButton(state, go)),
       // The bar and the buttons stay pinned at the bottom of the panel so the bar is in view while answering.
       h('div', { class: 'life-plan-foot' }, budget.el, h('div', { class: 'life-go-row' }, live, year)),
     ];
@@ -136,7 +144,7 @@ const PANELS = {
       invest?.el,
     ];
   },
-  summary({ state, go, onUpdate }) {
+  summary({ state, go, onUpdate, explore }) {
     const mi = state.life.monthIndex;
     const invest = investBlock(state, go, 'summary', state.life.current?.plan?.days ?? 28);
     if (invest) onUpdate((s) => invest.update(s));
@@ -145,9 +153,10 @@ const PANELS = {
       h('h1', { class: 'life-title' }, `${monthLabel(mi)} — how it went`),
       h('div', { class: 'life-summary', dataset: { slot: 'summary' } }, ...renderSummary(state)),
       invest?.el,
-      h('div', { class: 'life-plan-foot' },
+      h('div', { class: 'life-plan-foot' }, h('div', { class: 'life-go-row' },
         h('button', { class: 'btn btn-primary btn-lg life-go', type: 'button', onClick: () => go(nextMonth, 'life-month') },
-          isYearEnd(mi) ? 'See your year in review' : `Continue to ${monthName(mi + 1)}`)),
+          isYearEnd(mi) ? 'See your year in review' : `Continue to ${monthName(mi + 1)}`),
+        exploreButton(explore))),
     ];
   },
   review({ state, go }) {
@@ -224,6 +233,20 @@ export async function mount(container, { store }) {
     anim = null;
     delete root.dataset.anim;
   }
+  // Explore (blocks task 16): the block view's world in first person; Done/Esc comes back here and saves.
+  let explorer = null, mounted = true;
+  const exploreCtx = getFlag('view') === 'classic' ? null : {
+    ready: () => !!(viewReady && view?.contract && !anim),
+    async open() {
+      if (explorer || !exploreCtx.ready()) return;
+      const { openExplore } = await import('./explore.js');
+      const s = store.getState();
+      explorer = openExplore({ view, contract: view.contract, state: s,
+        reduced: !!s.settings?.reducedMotion || matchMedia('(prefers-reduced-motion: reduce)').matches,
+        onSettings: (patch) => store.update((d) => { Object.assign(d.settings, patch); }),
+        onClose: () => { explorer = null; if (mounted) go(() => {}, 'explore'); } }); // task 18 saves the pose into state.world
+    },
+  };
   function go(fn, checkpoint) {
     store.update((s) => { fn(s); }, { checkpoint });
   }
@@ -241,7 +264,7 @@ export async function mount(container, { store }) {
     shownStage = st; shownMonth = s.life.monthIndex; panelUpdate = null; panelTick = null;
     stopAnimation();
     if (st !== 'live') view?.syncHome(s); // wilted plants, departed or new animals (care game, home & garden answer)
-    panel.replaceChildren(...PANELS[st]({ state: s, go, store, onUpdate: (fn) => { panelUpdate = fn; },
+    panel.replaceChildren(...PANELS[st]({ state: s, go, store, explore: exploreCtx, onUpdate: (fn) => { panelUpdate = fn; },
       onTick: (fn) => { panelTick = fn; } }).filter(Boolean));
     panel.scrollTop = 0;
     startAnimation(s);
@@ -264,9 +287,13 @@ export async function mount(container, { store }) {
     care: () => care };
   if (view && currentStage(store.getState()) !== 'live') view.syncHome(store.getState());
   startAnimation(store.getState());
+  root.querySelectorAll('.life-explore-open').forEach((b) => { b.disabled = !exploreCtx?.ready(); });
+  if (getFlag('explore') != null && exploreCtx?.ready()) await exploreCtx.open();
   document.body.dataset.ready = '1';
   return () => {
     unsub();
+    mounted = false;
+    explorer?.close();
     stopAnimation();
     view?.dispose();
     delete window.__life;

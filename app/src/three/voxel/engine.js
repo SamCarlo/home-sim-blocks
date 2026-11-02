@@ -142,7 +142,7 @@ export async function createVoxelWorld(container, { volume, far = null, timeOfDa
   Object.assign(controls, { enableDamping: true, dampingFactor: 0.1, maxPolarAngle: Math.PI * 0.49, minDistance: 4,
     maxDistance: Math.max(X, Z) * 2.5 });
 
-  let disposed = false, pending = 0;
+  let disposed = false, pending = 0, host = container, active = camera;
   const api = {
     scene, camera, renderer, controls, volume, info: { calls: 0, triangles: 0, chunks: chunks.length },
     requestRender, setTimeOfDay, materials: mats, lights: { hemi, sun },
@@ -150,6 +150,12 @@ export async function createVoxelWorld(container, { volume, far = null, timeOfDa
     setGlow(f) { mats[3].emissiveIntensity = f; requestRender(); },
     /** Remesh every chunk on the next render (after the volume's data was replaced in place, e.g. a season change). */
     invalidate() { chunks.forEach((ch) => { ch.dirty = true; }); requestRender(); },
+    /** Render through `cam` instead of the orbit camera (Explore, 13 §8; orbit controls off); null restores the orbit camera. */
+    useCamera(cam) { active = cam ?? camera; controls.enabled = !cam; resize(); },
+    /** Move the canvas into `el` and size it to el (Explore's overlay); null puts it back in the original container. */
+    attach(el) { host = el ?? container; host.append(canvas); ro.disconnect(); ro.observe(host); resize(); },
+    /** Remesh dirty chunks and render one frame now through the active camera (Explore's own frame loop). */
+    renderNow: () => renderNow(),
     /** Block id at a cell (air outside the volume). */
     getBlock: (x, y, z) => getCell(volume, x, y, z),
     /** Set a cell and remesh its chunk (and the neighbor chunk on a chunk edge). Returns false outside the volume. */
@@ -206,7 +212,7 @@ export async function createVoxelWorld(container, { volume, far = null, timeOfDa
     if (disposed) return;
     rebuildDirty();
     controls.update(); // damping keeps firing 'change' until it settles
-    renderer.render(scene, camera);
+    renderer.render(scene, active);
     api.info = { calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, chunks: chunks.length };
   }
   /** Render on the next frame (coalesced). */
@@ -225,10 +231,10 @@ export async function createVoxelWorld(container, { volume, far = null, timeOfDa
   controls.addEventListener('change', requestRender);
 
   function resize() {
-    const w = container.clientWidth || 1, h = container.clientHeight || 1;
+    const w = host.clientWidth || 1, h = host.clientHeight || 1;
     renderer.setSize(w, h, false);
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
+    active.aspect = w / h;
+    active.updateProjectionMatrix();
     requestRender();
   }
   const ro = new ResizeObserver(resize);

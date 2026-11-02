@@ -964,3 +964,17 @@ rename). History: `docs/PROGRESS.md`. Before shipping a change run `bash tools/c
   `tests/e2e/blocks-live-month.json` runs on `life-live-house` or `life-plan-filled` at `speed=20`.
 - `life/homeDescription.js` `describeSurroundings(state)`: one sentence (settlement + landmark), appended to the sr-only description.
 
+
+## Explore mode (13 §8–§9, blocks task 16; `app/src/phases/life/explore.js` browser only, `world/firstPerson.js` pure)
+- `openExplore({view, contract, state, onClose(pose), onSettings?(patch), reduced?})` → `{el, pose(), move(keys, ms), look(dx, dy), close()}` (also
+  `window.__explore`). Full-screen `.life-explore` over the app (the rest is `inert`), reusing the life view's renderer: engine `world.attach(el|null)`
+  moves the canvas, `world.useCamera(cam|null)` swaps to the first-person camera (orbit controls off), `world.renderNow()` renders one frame. Its own
+  rAF loop runs only while open; close() removes every listener and restores canvas, camera, character and focus. Starts at `state.world?.pose ??
+  contract.spawn` (blockView's `view.contract`).
+- Controls 13 §9 minus building: WASD/arrows, Space, mouse look with pointer lock or drag (pointer lock failing → drag), Q/E R/F, Esc/Done. Controls
+  card `.life-explore-card` ("Got it" saves `settings.exploreCardDismissed`; "Controls" reopens). Reduced motion turns off head bob.
+- Pure `world/firstPerson.js`: `collides(v, x, y, z)`, `createPlayer(spawn | pose)`, `stepPlayer(v, p, input, dt)`, `turn`, `poseOf`; numbers in
+  `config.EXPLORE` (vendored Player body/speeds, our collision: DEVIATIONS). Feet in block space, yaw 0 looks −z.
+- lifeScreen: "Explore & build" (`.life-explore-open`) on welcome, plan and summary (never live; disabled until the view is ready, hidden with
+  `?view=classic`); Done saves checkpoint 'explore'. Dev flag `&explore=1` opens it on load (smoke `life-explore`). e2e `tests/e2e/blocks-explore.json`
+  on `?seed=life-month1-house&theme=light` (walks out the front door). Shot steps `tools/shots/b16/steps-{house,hilo}.json`.

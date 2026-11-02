@@ -2510,3 +2510,35 @@ each logs here under `## Blocks NN: <title>`.
   once and the month holds until they close (classic behaved the same; buttons now stack instead of overlapping). A paused `seek` never
   advances walks, so a seek straight from 'yard'/'out' to another daytime place leaves the character where it was; real play always
   passes through 'inside' overnight. Wilting is only visible on `syncHome` after the month, as 13 §8 says (misses don't wilt mid-month).
+
+## Blocks 16: Explore mode (first person)
+- attempt started 2026-11-02T11:06:37-10:00
+- done 2026-11-02T11:17:24-10:00
+- Files added: app/src/phases/life/explore.js (`openExplore`), app/src/world/firstPerson.js (pure body physics: `collides`, `createPlayer`,
+  `stepPlayer`, `turn`, `poseOf`), tests/unit/firstPerson.test.js (5 tests), tests/e2e/blocks-explore.json, tools/shots/b16/steps-{house,hilo}.json.
+  Changed: app/src/three/voxel/engine.js (`useCamera(cam|null)`, `attach(el|null)`, `renderNow()`), app/src/phases/life/blockView.js
+  (`contract` getter = the voxHome contract), app/src/phases/life/lifeScreen.js ("Explore & build" on welcome/plan/summary, `?explore=1` dev flag
+  opens it on load, Done/Esc saves checkpoint 'explore'), app/src/config.js (`EXPLORE`), app/styles/life.css (`.life-explore*`), tools/smoke.txt
+  (`life-explore`), CLAUDE.md.
+- Verified: `bash tools/check.sh` OK (syntax 262 · tests · data · contrast · copy · smoke 92/92 · lazy-plan). `node tools/shoot.mjs --path
+  '/index.html?seed=life-month1-house&theme=light' --wait-ready --steps tests/e2e/blocks-explore.json` ✓: clicks "Explore & build", focus inside
+  the overlay and the app inert, walks spawn → door → 9 blocks out the front with `__explore.move`, turns back, Done; overlay, `__explore` and
+  inert all gone, canvas back in .life-stage, no console errors. Shots → tools/shots/b16/ (steps-house.json, steps-hilo.json):
+  - 4-controls-card.png: first open in the Katy house, crosshair centered, title pill + Controls + Done top right, the controls card bottom
+    left (Move, Jump, Look, Look with keys, Leave, "Got it"), window to the yard ahead.
+  - 1-katy-inside.png: card dismissed, Katy bedroom up close: bed, dark wood dresser, window onto the yard, doorway through to the next room.
+  - 2-katy-outside.png: out on the front path looking back: tan two-story house, door, windows, stepped brown roof, chicken by the door,
+    neighbor house left, water tower and trees behind, sidewalk underfoot.
+  - 3-hilo-inside.png: Hilo apartment unit (floor 9 of the walk-up) turned to its two windows, trees and grass outside.
+  - e2e-house.png: after Done the Welcome panel and orbit view are back unchanged, with the "Explore & build" button beside "Plan my month".
+  Explore at spawn renders 22 calls / 58k triangles (one camera, fog cuts nothing; well under 150 / 400k).
+- Deviations: Explore uses the vendored Player's body (0.5 × 1.8), speed (Speed.walking × 2/π as its Control moves), gravity 25 and jump 8, but
+  our own collision (world/firstPerson.js), because the vendored Control raycasts its own InstancedMesh terrain and binds document.body with no
+  dispose. Recorded in DEVIATIONS. Added a one-block auto-step (`EXPLORE.autoStep`) so door sills and front steps don't need a jump.
+- Notes for later tasks: Explore reuses the life view's renderer and meshes (`world.attach(stage)` + `world.useCamera(cam)`; close puts both
+  back), so edits made in Explore show in the orbit view with no rebuild. The overlay's `.life-explore-stage` (role=application, tabindex 0) owns
+  the keys; task 17 adds break/place in the same `onKey`/pointer handlers (`world.pick(0, 0)` from the Explore camera is the crosshair block, since
+  pick uses the orbit camera: pass ray from `camera` or switch pick to the active camera). onClose(pose) gets `{x, y, z, yaw, pitch}`; task 18
+  should write it to `state.world.pose` in lifeScreen's onClose (openExplore already starts from `state.world?.pose`). Settings key
+  `exploreCardDismissed` (not in the schema defaults; absent = show the card). Pointer lock: Esc first frees the mouse (browser rule), a second
+  Esc leaves. The e2e walk is generic (door.x, then exit.z) but upstairs units have a landing, so it runs on the Katy house only.

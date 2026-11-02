@@ -408,3 +408,12 @@ and where in the code. Keep entries short. The teacher's intent in `99-original-
   includes the single door-step cell outside the student's door (13 §9 says the unit box) so the contract's door is on the property; the
   shared renter's `spawn` is just inside their own room's door rather than the front door, so it stays on their property. Why: the task asks
   for couches and bath fixtures, and its tests ask that property hold spawn and door. Where: app/src/world/blocks.js, voxHome.js.
+
+## 2026-11-02, blocks task 16: Explore collision is ours, not the vendored Control's
+- **What:** Explore (`phases/life/explore.js`) uses the vendored `Player` numbers (body 0.5 × 1.8, walk speed, gravity, jump, max fall) through
+  `config.EXPLORE`, but movement and collision run in our pure `world/firstPerson.js` (axis-by-axis box sweep against `isSolid` cells, quarter-block
+  sub-steps, one-block auto-step). Look is our own (pointer lock or drag, Q/E R/F).
+- **Why:** the vendored `Control` collides by raycasting its own `Terrain` InstancedMesh, which this game never builds (task 05), binds listeners on
+  `document`/`document.body` with no dispose, and calls pointer lock on the body. Our world is a dense volume, so a pure volume test is simpler,
+  testable in Node and disposable.
+- **Where:** `app/src/world/firstPerson.js`, `app/src/phases/life/explore.js`, `config.EXPLORE`, `tests/unit/firstPerson.test.js`.

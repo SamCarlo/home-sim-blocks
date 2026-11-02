@@ -183,6 +183,8 @@ export async function createBlockView(container, { state }) {
     scene: sc,
     get home() { return home; },
     get info() { return world.info; },
+    /** The 13 §6 voxHome contract now shown (spawn, property, door …); Explore starts from it. */
+    get contract() { return vh; },
     /** Voxel stats for tests and the dev panel. */
     get vox() { return vh.info; },
     /**

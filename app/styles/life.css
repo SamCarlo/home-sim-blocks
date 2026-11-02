@@ -344,3 +344,35 @@
 .inv-err:empty, .inv-ok:empty { display: none; }
 .inv-paused { font-style: italic; }
 .inv-words { margin: var(--sp-2) 0; }
+
+/* Explore mode (13 §8–§9, blocks task 16): full-screen first person over the whole app. */
+body.has-explore { overflow: hidden; }
+.life-explore { position: fixed; inset: 0; z-index: 900; background: #000; }
+.life-explore-stage { position: absolute; inset: 0; outline: none; }
+.life-explore-stage canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+.life-explore-stage:focus-visible { box-shadow: inset 0 0 0 3px var(--accent); }
+.life-explore-crosshair {
+  position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; pointer-events: none; z-index: 1;
+  background: linear-gradient(#fff, #fff) center / 2px 100% no-repeat, linear-gradient(#fff, #fff) center / 100% 2px no-repeat;
+  filter: drop-shadow(0 0 1px #000) drop-shadow(0 0 1px #000);
+}
+.life-explore-bar {
+  position: absolute; top: var(--sp-3); left: var(--sp-3); right: var(--sp-3); display: flex; align-items: center; gap: var(--sp-2);
+  pointer-events: none;
+}
+.life-explore-bar > * { pointer-events: auto; }
+.life-explore-title {
+  margin: 0 auto 0 0; padding: 4px 14px; border-radius: var(--r-pill); background: var(--surface); color: var(--ink);
+  font-size: 1rem; box-shadow: var(--shadow);
+}
+.life-explore-help { background: var(--surface); box-shadow: var(--shadow); }
+.life-explore-card {
+  position: absolute; left: var(--sp-3); bottom: var(--sp-3); width: min(340px, calc(100% - 2 * var(--sp-3)));
+  padding: var(--sp-3) var(--sp-4); border-radius: var(--r-lg); background: var(--surface); color: var(--ink); box-shadow: var(--shadow-lg);
+}
+.life-explore-card[hidden] { display: none; }
+.life-explore-card h2 { margin: 0 0 var(--sp-2); font-size: 1.05rem; }
+.life-explore-card dl { margin: 0 0 var(--sp-3); display: grid; grid-template-columns: auto 1fr; gap: 4px var(--sp-3); font-size: .9rem; }
+.life-explore-card dt { font-weight: 700; }
+.life-explore-card dd { margin: 0; color: var(--ink-2); }
+.life-explore-open { white-space: nowrap; }
