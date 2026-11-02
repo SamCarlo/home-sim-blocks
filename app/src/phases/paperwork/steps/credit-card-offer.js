@@ -6,7 +6,7 @@
 import { CREDIT } from '../../../config.js';
 import { formatMoney } from '../../../finance/money.js';
 import { offerFor, payoffExample, durationText } from '../../../finance/creditCard.js';
-import { addAgreement, addApplication, PAPERWORK_MONTH } from '../../../finance/ledger.js';
+import { addAgreement, addApplication, inquiryMonth } from '../../../finance/ledger.js';
 import { recordInquiry } from '../../../finance/creditScore.js';
 import { businessFor } from '../../../content/names.js';
 import { setStep } from '../flow.js';
@@ -145,7 +145,7 @@ export default {
     const accepted = values.decision === 'accept';
     const autopay = accepted ? (values.autopay ?? 'full') : null;
     if (accepted) {
-      recordInquiry(state, 'credit-card', PAPERWORK_MONTH);
+      recordInquiry(state, 'credit-card', inquiryMonth(state));
       addApplication(state, { kind: 'credit-card', target: terms.kind, feeCents: 0, at: now });
     }
     addAgreement(state, { type: 'credit-card', docType: id, status: accepted ? 'pending' : 'void',

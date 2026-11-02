@@ -6,7 +6,7 @@ import { h } from '../ui/dom.js';
 import { FORMS } from '../config.js';
 import { dollarsToCents, formatMoney } from '../finance/money.js';
 import { monthLabel } from '../util/dates.js';
-import { characterName, computeField, deriveInitials, displayValue, formatValue, optionList, tableRows } from './validate.js';
+import { characterName, signDateLabel, computeField, deriveInitials, displayValue, formatValue, optionList, tableRows } from './validate.js';
 
 const text = (v) => h('span', { class: 'fm-value-text' }, v);
 
@@ -119,11 +119,11 @@ export const VALUE_FIELDS = {
       input.addEventListener('input', () => io.set(input.value));
       input.addEventListener('blur', io.blur);
       const node = h('div', { class: 'fm-sig' }, input,
-        h('div', { class: 'fm-sig-meta' }, h('span', null, 'Signature'), h('span', null, `Date: ${FORMS.signDate}`)));
+        h('div', { class: 'fm-sig-meta' }, h('span', null, 'Signature'), h('span', null, `Date: ${signDateLabel(io.state)}`)));
       return { node, focus: input, label: 'for' };
     },
-    view: (f, v) => h('div', { class: 'fm-sig is-signed' }, h('span', { class: 'fm-sig-ink' }, v || '—'),
-      h('div', { class: 'fm-sig-meta' }, h('span', null, 'Signature'), h('span', null, `Date: ${FORMS.signDate}`))),
+    view: (f, v, ctx) => h('div', { class: 'fm-sig is-signed' }, h('span', { class: 'fm-sig-ink' }, v || '—'),
+      h('div', { class: 'fm-sig-meta' }, h('span', null, 'Signature'), h('span', null, `Date: ${signDateLabel(ctx?.state)}`))),
   },
   initials: {
     render(f, io) {

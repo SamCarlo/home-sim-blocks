@@ -36,16 +36,30 @@ test('every seed validates', () => {
   assert.throws(() => buildSeed('nope'), /Unknown seed/);
 });
 
-test('migrate: v1 passes through, future refused, steps run in order', () => {
+test('migrate: current passes through, future refused, steps run in order', () => {
   const s = init();
   assert.equal(migrate(s), s);
   assert.throws(() => migrate({ ...s, version: 99 }), (e) => e instanceof MigrationError && e.code === 'future');
   assert.throws(() => migrate({}), MigrationError);
   const steps = { 1: (x) => { x.added = 'v2'; }, 2: (x) => { x.added += '+v3'; } };
-  const out = migrate(s, steps, 3);
+  const v1 = { ...s, version: 1 };
+  const out = migrate(v1, steps, 3);
   assert.equal(out.version, 3);
   assert.equal(out.added, 'v2+v3');
-  assert.equal(s.version, 1); // input untouched
+  assert.equal(v1.version, 1); // input untouched
+});
+
+test('migrate v1 → v2 adds the relocation slot', () => {
+  const v1 = init();
+  delete v1.relocation;
+  v1.version = 1;
+  v1.life.monthIndex = 4;
+  const out = migrate(v1);
+  assert.equal(out.version, 2);
+  assert.equal(out.relocation, null);
+  assert.equal(out.life.monthIndex, 4);
+  assert.deepEqual(validateState(out), []);
+  assert.equal('relocation' in v1, false);
 });
 
 test('summary computes cash and net worth defensively', () => {

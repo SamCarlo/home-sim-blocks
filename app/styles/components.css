@@ -180,3 +180,13 @@ body.has-modal { overflow: hidden; }
 .term-tip .term-ex { display: block; margin-top: var(--sp-1); color: var(--ink-2); }
 .words { font-size: 0.95rem; color: var(--ink-2); }
 .words-k { font-weight: 600; color: var(--ink); }
+
+/* Looking for a new place (task 58, ui/relocationBar.js) */
+.reloc-bar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-2) var(--sp-4);
+  margin: var(--sp-3) var(--sp-5) 0; padding: var(--sp-2) var(--sp-4); border-radius: var(--r-sm);
+  background: var(--accent-wash); border: 1px solid var(--accent-line); color: var(--ink);
+}
+.reloc-text { margin: 0; font-size: .93rem; }
+.reloc-cancel { min-height: 40px; }
+.header-save { min-height: 40px; }

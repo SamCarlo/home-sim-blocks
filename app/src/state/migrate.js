@@ -11,7 +11,8 @@ export class MigrationError extends Error {
  * Add one per version bump, each with a unit test using a fixture of the old shape.
  */
 export const STEPS = {
-  // 1: (s) => { …; s.version = 2; return s; },
+  // v2 (Phase 4 moves, 2026-10-03): the relocation slot (life/relocation.js); 'autopilot' joined LIFE_STAGES.
+  1: (s) => { s.relocation = null; },
 };
 
 /** Bring any older save up to STATE_VERSION. Refuses future or unknown versions so nothing gets overwritten. */

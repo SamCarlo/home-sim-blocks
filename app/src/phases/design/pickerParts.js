@@ -58,3 +58,19 @@ export function rerender(panel, fill) {
   fill();
   if (active) panel.querySelector(`[data-focus-key="${active}"]`)?.focus();
 }
+
+/**
+ * The saved picker selection (`home.pickDraft`, task 58) over `defaults`, when `valid(draft)` says it still fits;
+ * otherwise a copy of `defaults`. Lets a reload (or the Save button) reopen the picker where the student left it.
+ */
+export function savedPick(state, defaults, valid) {
+  const d = state.home?.pickDraft;
+  return d && typeof d === 'object' && valid(d) ? { ...defaults, ...d } : { ...defaults };
+}
+
+/** Store the selection as `home.pickDraft` when it changed (no checkpoint: drafts save on the draft timer). */
+export function rememberPick(store, sel) {
+  const next = { ...sel };
+  if (JSON.stringify(store.getState().home?.pickDraft ?? null) === JSON.stringify(next)) return;
+  store.update((s) => { if (s.home) s.home.pickDraft = next; });
+}

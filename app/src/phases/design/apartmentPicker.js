@@ -9,6 +9,8 @@ import { formatMoney } from '../../util/format.js';
 import {
   buildingOptions, unitTraits, traitNotes, unitLabel, addressLabel, plantsCost, moveIn, AMENITY_LABELS,
 } from './apartmentModel.js';
+import { unitCell } from './buildingPlan.js';
+import { savedPick, rememberPick } from './pickerParts.js';
 
 /** Mount the picker; returns unmount. */
 export async function mount(container, { store }) {
@@ -17,7 +19,14 @@ export async function mount(container, { store }) {
   const kind = state.home.kind === 'condo' ? 'condo' : 'apartment';
   const options = buildingOptions(state);
   const narrow = window.matchMedia('(max-width: 899px)').matches;
-  const sel = { index: narrow ? 0 : null, floor: null, unit: null, plants: 0 };
+  // A saved selection (home.pickDraft, task 58) reopens where the student left off.
+  const sel = savedPick(state, { index: narrow ? 0 : null, floor: null, unit: null, plants: 0 }, (d) => {
+    const o = Number.isInteger(d.index) ? options[d.index] : null;
+    if (d.index === null) return d.floor === null && d.unit === null;
+    if (!o) return false;
+    if (d.floor === null) return d.unit === null;
+    return o.floors.includes(d.floor) && (d.unit === null || !!unitCell(o.plan, d.unit));
+  });
   const balcony = loc.region === 'hawaii' ? 'lānai' : 'balcony';
 
   const stage = h('div', { class: 'dz-stage' });
@@ -52,6 +61,7 @@ export async function mount(container, { store }) {
 
   let depth = 0;
   function update() {
+    rememberPick(store, sel);
     if (view) {
       view.focus(sel.index, sel.floor); // no-op unless the framing changes
       view.highlight(sel.index, sel.floor, sel.unit);
@@ -113,7 +123,7 @@ export async function mount(container, { store }) {
   function plantsBlock() {
     const have = cash(store.getState());
     const canAdd = sel.plants < DESIGN.maxPlants && plantsCost(sel.plants + 1) <= have;
-    const set = (n) => { sel.plants = n; renderPanel(); };
+    const set = (n) => { sel.plants = n; rememberPick(store, sel); renderPanel(); };
     return section('Extras', h('div', { class: 'dz-plants' },
       h('span', null, `Potted plants for your ${balcony}, ${formatMoney(DESIGN.plantCents)} each (up to ${DESIGN.maxPlants})`),
       h('span', { class: 'dz-stepper' },

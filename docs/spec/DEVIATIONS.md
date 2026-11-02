@@ -347,3 +347,23 @@ and where in the code. Keep entries short. The teacher's intent in `99-original-
 - **CSV**: money columns in dollars (numbers), last active as ISO time, plus a Status column (active/paused/transferred);
   text cells starting with = + - @ get a leading apostrophe so spreadsheets don't run them. Where: `admin/csv.js`.
 - **Admin e2e** runs from `tests/firebase/admin.test.js` under `npm run test:firebase` (still no separate `test:e2e:emulator`).
+
+## 2026-10-03, task 58: Moving and the year fast-forward (teacher request after the build)
+- **New in Phase 4** (not in 09): "Live like this for a year" lives up to 12 months at once on the plan's answers with
+  care at 100%, stops after any month with a missed housing payment, skips the December year-in-review (its recap
+  replaces it) and adds a free black stray cat each run (no adoption fee, no food line). "Find a new place to live"
+  returns to Plan without resetting life; Cancel works until approval; on approval the old home ends (renters: deposit
+  back, 2 months' rent inside the first lease term; owners: sold at the purchase price, 7% selling costs, loan paid off).
+  Teacher's choices, asked 2026-10-03. Where: app/src/life/{autopilot,relocation}.js, phases/life/{lifeScreen,autopilotRecap}.js,
+  ui/relocationBar.js, phases/paperwork/commit.js, finance/grid.js.
+- **Move-ins keep the calendar.** 07 §1 said Move in starts life at January 2033; every move-in now calls `startLife`, which
+  keeps `life.monthIndex` (0 for a first home). This also fixes re-homing after an eviction, which used to restart the
+  calendar at January 2033 with the old history still attached.
+- **Paperwork for a later home is dated by the game month**: signatures are dated the month before the new home starts and
+  leases start on the 1st of that month (`moveDates`); a first home still reads December 2032 / January 1, 2033. Moving
+  money (sale, fees, deposit) is posted in the paperwork month (−1) like other paperwork money, so the portfolio lists it
+  under "Paperwork" rather than a calendar month.
+- **Home value doesn't change**: a sale uses `home.purchasePriceCents` (no appreciation model). Underwriting's other debts
+  now skip closed loans (a foreclosed or sold loan used to count).
+- **Save state**: STATE_VERSION 2 (`relocation`, stage 'autopilot'); `paperwork.activeStep` and `home.pickDraft` are
+  optional fields so a reload reopens the same paperwork step and design selection; the header has a Save button.

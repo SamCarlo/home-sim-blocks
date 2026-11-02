@@ -38,3 +38,12 @@ export function weekday(i, day) {
 export function dayLabel(i, day) {
   return `${WEEKDAYS[weekday(i, day)]}, ${MONTHS[yearMonth(i).month]} ${day}`;
 }
+
+/**
+ * Paperwork dates for a home that starts in month i (task 58): documents are signed the month before and the move-in
+ * is the 1st of month i. i = 0 → {signLabel: "December 2032", moveInLabel: "January 1, 2033"}.
+ */
+export function moveDates(i) {
+  const { year } = yearMonth(i);
+  return { signLabel: monthLabel(i - 1), moveInLabel: `${MONTHS[yearMonth(i).month]} 1, ${year}` };
+}

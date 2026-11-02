@@ -201,6 +201,18 @@ export const LIFE = {
   housingCategories: ['housing'],        // 09 §6 payment order groups, by recurring category
   utilityCategories: ['utilities', 'insurance'],
   solarSeasonalCut: 0.40,                // solar trims the seasonal heat/cool extra (the base line already has it)
+  autopilot: {                           // "Live like this for a year" (task 58, life/autopilot.js)
+    months: 12,                          // months lived without the animation (stops early after a missed housing payment)
+    blackCatColor: '#1d1d22',            // the Easter egg: every run adds a free black stray cat
+    blackCatNames: ['ʻEleʻele', 'Midnight', 'Inky', 'Shadow', 'Licorice', 'Pepper', 'Onyx', 'Poe'],
+  },
+};
+
+/** Moving out from Phase 4 to a new home (task 58, life/relocation.js). Renters pay LEASE.breakMonths' rent inside
+ *  their first lease term and get the deposit back; owners sell at the purchase price. */
+export const RELOCATION = {
+  sellingCostPct: 0.07,                  // agent commission + seller closing costs, a share of the sale price
+  carriedPets: ['cat', 'dog'],           // these move with you; chickens and garden beds stay with the old home
 };
 
 /** Life events (09 §7): chance per month, cost/income ranges in cents, wellbeing effects. Text and conditions live

@@ -16,8 +16,10 @@ changing rules, adding a location). Keep their commands, labels and paths true w
 - Contrast: `node tools/contrast.mjs [--quiet]` checks every text/background token pair in tokens.css (+ life.css time-budget
   ink) in both themes against WCAG AA. Add a pair to its `PAIRS` when you add a text or surface token.
 - Shoot: `node tools/shoot.mjs --path /index.html --out tools/shots/x.png --wait-ready` (see Verification below)
-- Playthroughs: `npm run test:e2e` (~80 s) runs `tests/e2e/play-{apartment-hilo,shared-honolulu,condo-miami,house-katy,build-pahoa}.json`
-  (register → intake → cell → every paperwork step → results → design → 3 months at `?speed=20&care=hit` → summary), two
+- Playthroughs: `npm run test:e2e` (~2 min) runs `tests/e2e/play-{apartment-hilo,shared-honolulu,condo-miami,house-katy,build-pahoa}.json`
+  (register → intake → cell → every paperwork step → results → design → 3 months at `?speed=20&care=hit` → summary)
+  plus `play-relocate-hilo.json` (task 58: apartment → 2 months → Save → *Find a new place* → reloads mid-search and
+  mid-paperwork → shared room → March; `buildRelocate` in the generator), two
   browsers at a time; `--only <name>` runs one. The JSON is generated: edit `tools/e2e/genPlaythroughs.mjs` and rerun
   `node tools/e2e/genPlaythroughs.mjs`. Each play fixes `meta.seed` right after intake, so draws are stable; the apartment
   sends a weak cover letter first (seed 7 → denied), then retries with `SAMPLE_LETTERS`. Forms are filled by
@@ -104,7 +106,7 @@ app/src/letters/               types.js send.js score.js text.js allowlist.js sp
 app/src/data/                  enums.js sanity.js (03 §5 bands) validate.js homeTypes.js metrics.js styleFamilies.js ·
                                locations/{hawaii,cities,towns,index}.js (pure)
 app/src/life/                  monthFlow.js homeDescription.js timeBudget.js events.js wellbeing.js market.js planMonth.js
-                               finalizeMonth.js (pure; Phase 4 rules)
+                               finalizeMonth.js autopilot.js relocation.js (pure; Phase 4 rules; task 58: year fast-forward, moving)
 app/src/admin/                 adminMain.js (sign-in by mode, console) · adminModel.js (pure: COLUMNS, rowFor, filter/sort, planReset/planTransfer)
                                dataSource.js (Firestore + local sources) · actions.js · classCodes.js · studentTable.js · studentDetail.js · csv.js
 tests/unit/                    node --test files importing ../../app/src/…
@@ -210,7 +212,8 @@ and returns a result, never a new state. Accounts `'checking' | 'savings' | 'car
 
 ## State and seeds (02)
 - New save: `createInitialState({uid, username, classCode, now})`; check with `validateState(s) → string[]`.
-  A shape change bumps `STATE_VERSION` and adds `STEPS[oldVersion]` in `state/migrate.js` plus a test.
+  A shape change bumps `STATE_VERSION` and adds `STEPS[oldVersion]` in `state/migrate.js` plus a test. Version 2
+  (task 58) added `state.relocation` (null) and the `'autopilot'` life stage.
 - Seeds: `dev/seeds.js` `seeds[name] = { phase, description, build(now) → state }` (or `addSeed`). Start from
   `baseState(now)`; `afterIntake(s, {netMonthlyIncomeCents, startingSavingsCents})` gives a plan-phase player.
   `tests/unit/state.test.js` validates every registered seed automatically. Current: `fresh`, `plan-comfortable`,
@@ -722,7 +725,45 @@ shows "3 of 8 required done". `readOnly` renders values as text (the portfolio's
   merge static parts into the main build.
 - The OS on this machine prefers dark, so plain headless shots come out dark; pass `?theme=light` for light.
 
+## Moving and the year fast-forward (task 58, after the 57 build tasks)
+- **Live a year**: pure `life/autopilot.js` `liveYear(s, {months?})` (plan stage + `canLive`, else null) runs
+  `LIFE.autopilot.months` months through monthFlow (startPlan → choices copied, homeGarden 'none' after month 1 → startLive →
+  care = count/count → finishLive → nextMonth; December's 'review' closed by `finishReview(s, '')`). Stops after a month
+  with a missed housing payment (`stoppedReason 'missed-housing'`) or on eviction ('evicted', save already in Plan). Ends at
+  stage `'autopilot'` with `life.current.autopilot = {fromMonth, toMonth, monthsLived, stoppedReason, cat}`;
+  `finishAutopilot(s, text, now)` → welcome (+ `life.reflections` `{kind: 'autopilot', …}`). Every run calls `addBlackCat`
+  (stray: `monthBills` skips strays' food; homeRender passes `a.color`). UI: `.life-year` in the plan foot's
+  `.life-go-row`, recap `phases/life/autopilotRecap.js` (`rangeReview(history, from, to)` in monthReport.js; `yearReview`
+  wraps it; `spark` exported from yearReview.js). Seed `life-autopilot-done`; e2e `tests/e2e/life-autopilot.json`
+  (`?seed=life-plan-filled&theme=light`).
+- **Moving**: pure `life/relocation.js`. `canRelocate` (Live, welcome/plan stage) → `startRelocation(s)` sets
+  `state.relocation = {startedMonth, stage, from {kind, locationId, label}}` and phase 'plan'; **`state.home` stays the old
+  home** until approval. `moveOutQuote(state)` → `{kind sell|break-lease|end-lease, lines, netCents}` (owners: price −
+  `RELOCATION.sellingCostPct` − `homeLoans` payoff; renters: `activeLease` deposit back − `LEASE.breakMonths` × rent inside
+  `terms.startMonth + termMonths`). `finance/grid.js` `cashOf` adds `pendingMoveOutCents` (so the plan table,
+  loanOptions, underwriting and Results all see it); underwriting's other debts skip closed loans and, while moving, the
+  home loan. `canCancelRelocation`/`cancelRelocation(s, now)` (plan/paperwork only; `withdraw`s any attempt, phase 'life',
+  life.current untouched). `commitPaperwork` calls `moveOut(s)` before `chargeUpfront` on approval (posts the quote at
+  month −1, `closeLoan(…, 'sold')`, removes all recurring, non-card agreements → `'ended'`, cats/dogs → `relocation.pets`,
+  `movedOut: true`). New bills/loans start at `baseMonth(state)` = `life.monthIndex` (commit.js; resultsModel's
+  `monthly.baseMonth`). Every move-in ends with `startLife(s)`: **keeps `life.monthIndex`** (also fixes re-homing after an
+  eviction), welcome stage, carried pets re-id'd, `home.pickDraft` and `relocation` cleared.
+- Dates: `util/dates.js` `moveDates(mi)` → `{signLabel, moveInLabel}`; `forms/validate.js` `signDateLabel(state)` (signature
+  fields, closing disclosure, paperwork sub-title); `renterTerms` has `startMonth` + matching `startLabel`; `addAgreement`
+  stamps `signedMonth` when monthIndex > 0 and the portfolio renders documents with that month. Credit inquiries use
+  `ledger.inquiryMonth(state)`.
+- UI: `ui/relocationBar.js` `renderRelocationBar(store)` (main.js puts it between header and screen in plan/paperwork;
+  `.reloc-cancel` → confirm → `cancelRelocation`, checkpoint 'relocation-cancelled'); lifeScreen `.life-move` (welcome and
+  plan panels, confirm lists the quote, checkpoint 'relocation-started'); planScreen labels cash "Cash after moving out".
+  Results shows a "Moving out of / Selling your old home" table. Seeds `life-relocating` (Hilo, April), `life-relocating-house`
+  (Katy sale). e2e `tests/e2e/life-relocate-cancel.json` (`?seed=life-plan-filled&theme=light`) and `play-relocate-hilo`.
+- **Save and resume**: header `onSave` → `.header-save` (`persistence.saveNow('manual-save')`, shows "Saved" for 1.5 s).
+  Paperwork remembers `paperwork.activeStep` (reopened unless locked); the apartment/house/shared pickers keep their
+  selection in `home.pickDraft` via `pickerParts.js` `savedPick(state, defaults, valid)` / `rememberPick(store, sel)`.
+- Older e2e scripts `design-{apartment,house,shared}.json` and `renter-apartment.json` already failed before task 58 (they
+  wait for placeholders that later tasks replaced: `.placeholder .phase-tag`, `.pw-dev-done`).
+
 ## Current status
-All 57 build tasks are done (2026-10-03). Every requirement R1–R40 in `docs/spec/99-original-request.md` §3 is verified
+All 57 build tasks are done (2026-10-03), plus task 58 (moving and the year fast-forward, same day). Every requirement R1–R40 in `docs/spec/99-original-request.md` §3 is verified
 there with its evidence. What's left is in `docs/OPEN_ITEMS.md` (only the teacher's Firebase setup and an optional
 rename). History: `docs/PROGRESS.md`. Before shipping a change run `bash tools/check.sh` and `npm run test:e2e`.

@@ -5,7 +5,9 @@
 // runs finishLive when it ends, with the water-and-feed button's counts (careButton.js, task 46); the summary and, after
 // each December, the year in review come from summary.js and yearReview.js (task 47). The investment block
 // (investPanel.js, task 48) sits in the plan, live and summary panels once unlocked; while the month plays, the money
-// strip's Investments and Net worth figures and the block's totals tick along the month's market path.
+// strip's Investments and Net worth figures and the block's totals tick along the month's market path. Task 58 adds
+// "Live like this for a year" (life/autopilot.js, recap in autopilotRecap.js) beside "Live this month", and "Find a new
+// place to live" (life/relocation.js) on the welcome and plan stages.
 import { h } from '../../ui/dom.js';
 import { byId } from '../../data/locations/index.js';
 import { monthLabel, monthName } from '../../util/dates.js';
@@ -26,6 +28,11 @@ import { renderInvestPanel } from './investPanel.js';
 import { buy, sell, valueAt, monthSeries, totalInvested } from '../../life/investments.js';
 import { netWorth } from '../../finance/ledger.js';
 import { getFlag } from '../../dev/flags.js';
+import { confirmDialog } from '../../ui/modal.js';
+import { formatMoney } from '../../finance/money.js';
+import { liveYear, finishAutopilot } from '../../life/autopilot.js';
+import { canRelocate, startRelocation, moveOutQuote, quoteText } from '../../life/relocation.js';
+import { renderAutopilotRecap } from './autopilotRecap.js';
 
 /**
  * The panel for each stage: `(ctx) → Node[]`. ctx = {state, go(fn, checkpoint), store, onUpdate(fn), onTick(fn)}. A panel
@@ -39,6 +46,39 @@ function investBlock(state, go, mode, day = 1) {
     onSell: (key, cents) => go((s) => { sell(s, key, cents, { day }); }, 'invest') });
 }
 
+/** "Find a new place to live" (task 58): confirms with what moving out costs, then opens Plan. null when not allowed. */
+function moveButton(state, go) {
+  if (!canRelocate(state)) return null;
+  return h('button', { class: 'btn btn-ghost life-move', type: 'button', onClick: async () => {
+    const q = moveOutQuote(state);
+    const lines = q.lines.map((l) => `${l.label}: ${l.cents >= 0 ? '+' : '−'}${formatMoney(Math.abs(l.cents))}.`).join(' ');
+    const ok = await confirmDialog({
+      title: 'Find a new place to live?',
+      message: 'You keep your job, your money, your credit and your wellbeing. You stay in your home while you look, and '
+        + 'you can cancel until a new home says yes. '
+        + (q.lines.length ? `When you move out of ${state.home.label}: ${lines} In all: ${quoteText(q.netCents)}.` : ''),
+      confirmLabel: 'Start looking',
+      cancelLabel: 'Stay here',
+    });
+    if (ok) go(startRelocation, 'relocation-started');
+  } }, 'Find a new place to live');
+}
+
+/** "Live like this for a year" (task 58): confirms, then lives up to 12 months at once (life/autopilot.js). */
+function yearButton(choices, go) {
+  return h('button', { class: 'btn btn-secondary btn-lg life-year', type: 'button', disabled: !canLive(choices),
+    onClick: async () => {
+      const ok = await confirmDialog({
+        title: 'Live like this for a year?',
+        message: 'You will live the next 12 months with these answers, all at once. There is no day-by-day view. Your '
+          + 'plants and animals get fed every day. It stops early if you miss a rent or mortgage payment.',
+        confirmLabel: 'Live the year',
+        cancelLabel: 'Not yet',
+      });
+      if (ok) go((s) => { liveYear(s); }, 'life-autopilot');
+    } }, 'Live like this for a year');
+}
+
 const PANELS = {
   welcome({ state, go }) {
     const mi = state.life.monthIndex;
@@ -50,7 +90,9 @@ const PANELS = {
       warnings.length ? h('ul', { class: 'life-warnings', role: 'list' }, ...warnings.map((w) => h('li', null, w))) : null,
       h('p', { class: 'muted life-note' }, 'Each month you decide how to spend your time, then live it one day at a time. '
         + 'Your choices change your money and your wellbeing.'),
-      h('button', { class: 'btn btn-primary btn-lg life-go', type: 'button', onClick: () => go(startPlan, 'life-plan') }, 'Plan my month'),
+      h('div', { class: 'life-go-row' },
+        h('button', { class: 'btn btn-primary btn-lg life-go', type: 'button', onClick: () => go(startPlan, 'life-plan') }, 'Plan my month'),
+        moveButton(state, go)),
     ];
   },
   plan({ state, go, store, onUpdate }) {
@@ -61,12 +103,14 @@ const PANELS = {
     const budget = renderTimeBudget(timeBudget(state, choices));
     const live = h('button', { class: 'btn btn-primary btn-lg life-go', type: 'button', disabled: !canLive(choices),
       onClick: () => go(startLive, 'life-live') }, 'Live this month');
+    const year = yearButton(choices, go);
     const invest = investBlock(state, go, 'plan');
     onUpdate((s) => {
       const c = s.life.current?.choices ?? {};
       questions.update(c);
       budget.update(timeBudget(s, c));
       live.disabled = !canLive(c);
+      year.disabled = !canLive(c);
       invest?.update(s);
     });
     return [
@@ -74,8 +118,9 @@ const PANELS = {
       h('h1', { class: 'life-title' }, welcomeTitle(mi)),
       questions.el,
       invest?.el,
-      // The bar and the button stay pinned at the bottom of the panel so the bar is in view while answering.
-      h('div', { class: 'life-plan-foot' }, budget.el, live),
+      moveButton(state, go),
+      // The bar and the buttons stay pinned at the bottom of the panel so the bar is in view while answering.
+      h('div', { class: 'life-plan-foot' }, budget.el, h('div', { class: 'life-go-row' }, live, year)),
     ];
   },
   live({ state, go, onTick }) {
@@ -107,6 +152,9 @@ const PANELS = {
   },
   review({ state, go }) {
     return renderYearReview(state, { onContinue: (text) => go((s) => finishReview(s, text, Date.now()), 'life-month') });
+  },
+  autopilot({ state, go }) {
+    return renderAutopilotRecap(state, { onContinue: (text) => go((s) => finishAutopilot(s, text, Date.now()), 'life-month') });
   },
 };
 

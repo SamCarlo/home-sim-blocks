@@ -3,8 +3,7 @@
 // fixes it. Signing without catching it keeps the higher rate (paperwork.options.closing, for the results screen).
 import { h } from '../../../ui/dom.js';
 import { formatMoney } from '../../../finance/money.js';
-import { sameName } from '../../../forms/validate.js';
-import { FORMS } from '../../../config.js';
+import { sameName, signDateLabel } from '../../../forms/validate.js';
 import { loanOptions, findOption, optionLabel } from '../../../finance/loanOptions.js';
 import { closingDisclosure, flagRow, closingOutcome } from '../../../finance/buying.js';
 import { businessFor } from '../../../content/names.js';
@@ -88,7 +87,7 @@ export default {
           + 'you sign, you are stuck with them. Compare every number with the loan you chose.'),
         h('div', { class: 'fm-info fm-info-teach pw-cd-agreed' }, h('h4', null, 'The loan you agreed to'),
           h('p', null, `${optionLabel(option)} at ${pct(cd.agreedRate)} fixed, on a ${money(option.loanCents)} loan.`)),
-        h('table', { class: 'fm-table pw-cd-table' }, h('caption', null, `Closing Disclosure · ${lender} · ${FORMS.signDate}`),
+        h('table', { class: 'fm-table pw-cd-table' }, h('caption', null, `Closing Disclosure · ${lender} · ${signDateLabel(s)}`),
           h('tbody', null, ...list)),
         note ? h('p', { class: `pw-cd-note ${note.correct ? 'pw-good' : 'pw-bad'}`, role: 'status' }, note.message) : null,
       ];
@@ -101,7 +100,7 @@ export default {
           : `You signed without catching the error, so your rate is ${pct(done?.finalRate ?? cd.rate)}.`));
       } else {
         parts.push(h('div', { class: 'fm-field pw-cd-sign' },
-          h('label', { class: 'fm-label', for: 'cd-signature' }, `Signature (dated ${FORMS.signDate})`),
+          h('label', { class: 'fm-label', for: 'cd-signature' }, `Signature (dated ${signDateLabel(s)})`),
           sig, sigErr,
           h('button', { type: 'button', class: 'btn btn-primary', dataset: { act: 'sign' }, onClick: sign }, 'Sign closing disclosure')));
       }

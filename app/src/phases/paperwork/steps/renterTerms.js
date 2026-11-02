@@ -2,6 +2,7 @@
 // money. Pure. The terms object is also stored on the signed agreement, so the portfolio can rebuild the document
 // later from the agreement alone (no choice snapshot needed).
 import { LEASE } from '../../../config.js';
+import { moveDates } from '../../../util/dates.js';
 import { byId } from '../../../data/locations/index.js';
 import { businessFor, peopleFor, phoneFor } from '../../../content/names.js';
 import { upfrontLine, rentOf } from '../flow.js';
@@ -11,7 +12,8 @@ export const variantOf = (state) => (state.choice?.homeTypeId === 'shared' ? 'ro
 
 /**
  * Renter terms for this attempt: {variant, place, landlord, landlordContact, landlordPhone, unit, rentCents,
- * depositCents, firstMonthCents, applicationFeeCents, termMonths, startLabel, roommates}. Seeded, so stable on reload.
+ * depositCents, firstMonthCents, applicationFeeCents, termMonths, startLabel, startMonth, roommates}. Seeded, so stable on
+ * reload. The lease starts in the current life month (0 for a first home; later after a move, task 58).
  */
 export function renterTerms(state) {
   const variant = variantOf(state);
@@ -19,6 +21,7 @@ export function renterTerms(state) {
   const [owner, ...roommates] = peopleFor(state, 'household', 4);
   const company = businessFor(state, 'landlords', 'landlord');
   const contact = peopleFor(state, 'landlord-contact', 1)[0];
+  const startMonth = state.life?.monthIndex ?? 0;
   return {
     variant,
     place: loc?.fullName ?? '',
@@ -32,7 +35,8 @@ export function renterTerms(state) {
     firstMonthCents: upfrontLine(state, 'first-month')?.cents ?? 0,
     applicationFeeCents: upfrontLine(state, 'application')?.cents ?? 0,
     termMonths: LEASE.termMonths,
-    startLabel: LEASE.startLabel,
+    startLabel: startMonth > 0 ? moveDates(startMonth).moveInLabel : LEASE.startLabel,
+    startMonth,
     roommates: variant === 'room' ? roommates.slice(0, 2).concat(owner) : [],
   };
 }

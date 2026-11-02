@@ -54,7 +54,7 @@ Dev shortcuts (they work in local mode and on localhost only; the deployed site 
 npm install            # once: Firebase SDK + CLI for the emulator tests (nothing global)
 npm test               # unit tests (node --test)
 bash tools/check.sh    # the full check: syntax, unit tests, data imports, smoke screenshots of every screen
-npm run test:e2e       # five full playthroughs, one per home type (~80 s)
+npm run test:e2e       # six full playthroughs: one per home type, plus moving house from Live (~2 min)
 ```
 
 `tools/check.sh` must end with `check: OK` before every commit. The smoke step drives headless Chromium through

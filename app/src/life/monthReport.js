@@ -94,12 +94,13 @@ export function isHousingWarning(text) {
 }
 
 /**
- * The year in review (09 §11) for the calendar year that ends at `history`'s last December: `{year, months, incomeCents,
- * expenseCents, netCents, netWorthStartCents, netWorthEndCents, best {label, netCents}, worst, trends {domain: number[]}}`.
- * Trends start with January's "before" value, then each month's "after" (13 points for a full year).
+ * Totals for the lived months with `fromMonth ≤ monthIndex ≤ toMonth` (the year in review and the year fast-forward's
+ * recap, task 58): `{months, incomeCents, expenseCents, netCents, netWorthStartCents, netWorthEndCents, best {label,
+ * netCents}, worst, trends {domain: number[]}}`. Trends start with the first month's "before" value, then each month's
+ * "after" (13 points for 12 months).
  */
-export function yearReview(history, year) {
-  const months = (history ?? []).filter((m) => m.result && yearMonth(m.monthIndex).year === year)
+export function rangeReview(history, fromMonth, toMonth) {
+  const months = (history ?? []).filter((m) => m.result && m.monthIndex >= fromMonth && m.monthIndex <= toMonth)
     .sort((a, b) => a.monthIndex - b.monthIndex);
   const res = months.map((m) => m.result);
   const sum = (k) => res.reduce((t, r) => t + (r[k] ?? 0), 0);
@@ -113,8 +114,16 @@ export function yearReview(history, year) {
     ?? first.netWorthCents - (first.incomeCents - first.expenseCents)) : 0;
   const trends = Object.fromEntries(WELLBEING_DOMAINS.map(({ key }) => [key,
     res.length ? [first.wellbeingBefore?.[key] ?? 0, ...res.map((r) => r.wellbeingAfter?.[key] ?? 0)].map(Math.round) : []]));
-  return { year, months: months.length, incomeCents, expenseCents, netCents: incomeCents - expenseCents,
+  return { months: months.length, incomeCents, expenseCents, netCents: incomeCents - expenseCents,
     netWorthStartCents, netWorthEndCents: last?.netWorthCents ?? 0, best, worst, trends };
+}
+
+/**
+ * The year in review (09 §11) for one calendar year: `rangeReview` over its January–December plus `year`.
+ */
+export function yearReview(history, year) {
+  const from = (year - yearMonth(0).year) * 12;
+  return { year, ...rangeReview(history, from, from + 11) };
 }
 
 /** SVG polyline points for a 0–100 series in a `w`×`h` box with `pad` px inside. */

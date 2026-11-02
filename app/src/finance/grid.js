@@ -6,10 +6,14 @@ import { HOME_TYPE_LIST } from '../data/homeTypes.js';
 import { cellMetrics } from '../data/metrics.js';
 import { cellCost, tableAssumptions } from './costs.js';
 import { classify } from './affordability.js';
+import { pendingMoveOutCents } from '../life/relocation.js';
 
-/** Current cash (02 §2): checking + savings, in cents. */
+/**
+ * Cash for planning (02 §2): checking + savings, in cents. While a Phase 4 student looks for a new place (task 58) it
+ * also counts what moving out will bring or cost (the sale or deposit, minus fees), since that settles on approval.
+ */
 export function cashOf(state) {
-  return (state.finances.checkingCents || 0) + (state.finances.savingsCents || 0);
+  return (state.finances.checkingCents || 0) + (state.finances.savingsCents || 0) + pendingMoveOutCents(state);
 }
 
 // Costs and metrics never depend on the player, so they're built once per data version; only colors are per player.

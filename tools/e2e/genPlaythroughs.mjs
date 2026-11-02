@@ -1,6 +1,8 @@
 // Writes tests/e2e/play-<type>-<place>.json (task 56): one full playthrough per home type, in local mode.
 // register → intake → choose the cell → every paperwork step (letters typed for real) → results (retry with a stronger
 // letter when the draw denies) → design → 3 months of life at ?speed=20&care=hit → summary.
+// Task 58 adds play-relocate-hilo: a Hilo apartment, two months, "Find a new place to live" (with reloads in the middle),
+// a shared room, and life carrying on in March.
 // Run: node tools/e2e/genPlaythroughs.mjs   (then npm run test:e2e). Edit this file, not the JSON it writes.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -125,16 +127,17 @@ function recipe(id, strong) {
   }
 }
 
+/** One paperwork step: wait until it's active, do it, check it's done. */
+const doStep = (id, strong, shot = null) => [
+  { assert: `window.__play.waitStep('${id}')` }, { wait: 150 },
+  ...(shot ? [{ shot }] : []),
+  ...recipe(id, strong),
+  { wait: 250 }, { assert: `['done', 'skipped'].includes(${S(`.paperwork.steps['${id}']?.status`)})` },
+];
+
 /** Every step before Results, in checklist order; each waits until it's active and ends with it done. */
 function paperwork(p, strong, shotDir) {
-  const out = [];
-  for (const id of STEP_LIST[p.type]) {
-    out.push({ assert: `window.__play.waitStep('${id}')` }, { wait: 150 });
-    if (shotDir && id === STEP_LIST[p.type][0]) out.push({ shot: `${shotDir}-3-paperwork.png` });
-    out.push(...recipe(id, strong));
-    out.push({ wait: 250 }, { assert: `['done', 'skipped'].includes(${S(`.paperwork.steps['${id}']?.status`)})` });
-  }
-  return out;
+  return STEP_LIST[p.type].flatMap((id, i) => doStep(id, strong, shotDir && i === 0 ? `${shotDir}-3-paperwork.png` : null));
 }
 
 /** Checklists with these intakes (income ≥ 2.5 × rent, score ≥ 660): no co-signer or credit letters. */
@@ -187,7 +190,7 @@ const DESIGN = {
   ],
 };
 
-const design = (p, shot) => [
+const design = (p, shot, monthIndex = 0) => [
   { waitReady: true },
   { assert: `${S('.phase')} === 'design'` },
   ...DESIGN[p.type],
@@ -197,7 +200,7 @@ const design = (p, shot) => [
   { click: '.dz-movein' },
   { waitFor: '[data-stage]' },
   { waitReady: true },
-  { assert: `${S('.phase')} === 'life' && ${S('.life.monthIndex')} === 0` },
+  { assert: `${S('.phase')} === 'life' && ${S('.life.monthIndex')} === ${monthIndex}` },
 ];
 
 /** One month at ?speed=20&care=hit: welcome → plan → live (the care button hits itself) → summary. */
@@ -241,10 +244,68 @@ export function build(p) {
   return steps;
 }
 
+/** Task 58: move house from Live. A Hilo apartment with a cat → two months → a shared room in Hilo → March. */
+export const RELOCATE = { file: 'play-relocate-hilo', user: 'playmove', loc: 'hilo', type: 'apartment', income: '4,200',
+  savings: '12,000', seed: 5, move: { loc: 'hilo', type: 'shared' }, shots: 'tools/shots/t58/move' };
+const RELOAD = [{ goto: '/index.html?speed=20&care=hit' }, { waitReady: true }, { eval: HELPER }];
+
+export function buildRelocate(p) {
+  const d = p.shots;
+  const steps = [...register(p.user), ...intake(p), ...choose(p), ...paperwork(p, true, null), ...results(true, null),
+    ...design(p, null)];
+  // January: adopt a cat from the plan's home & garden question, so there's a pet to move.
+  steps.push({ waitFor: '[data-stage=welcome]' }, { click: '.life-go' }, { waitFor: '[data-stage=plan]' },
+    { click: '.lq[data-question=homeGarden] .lq-opt[data-value=cat]' },
+    { click: '.life-plan-foot .life-go' }, { waitFor: '[data-stage=summary]' },
+    { click: '.life-plan-foot .life-go' }, { waitFor: '[data-stage=welcome]' },
+    { assert: `${S('.home.animals')}.some((a) => a.kind === 'cat' && a.present !== false)` });
+  steps.push(...month(1, null)); // February → March welcome
+  // The Save button, then "Find a new place to live".
+  steps.push({ click: '.header-save' }, { wait: 300 }, { waitFor: '.save-indicator[data-status=saved]' },
+    { click: '.life-move' }, { waitFor: '.modal-confirm' }, { click: '.modal-confirm' },
+    { waitFor: '.reloc-bar' }, { waitReady: true },
+    { assert: `${S('.phase')} === 'plan' && ${S('.relocation.startedMonth')} === 2 && ${S('.home.kind')} === 'apartment'` },
+    { assert: `/Cash after moving out/.test(document.querySelector('.plan-bar').textContent)` },
+    ...(d ? [{ shot: `${d}-1-plan-bar.png` }] : []),
+    // A reload keeps the search going.
+    ...RELOAD, { waitFor: '.reloc-bar' }, { assert: `${S('.phase')} === 'plan'` });
+  // A shared room: reload in the middle of the paperwork while looking back at a finished step.
+  steps.push(...choose(p.move));
+  const ids = STEP_LIST[p.move.type];
+  ids.forEach((id, i) => {
+    steps.push(...doStep(id, true));
+    if (i !== 1) return;
+    steps.push({ click: `.pw-item[data-step=${ids[0]}]` }, { wait: 300 },
+      { assert: `${S('.paperwork.activeStep')} === '${ids[0]}'` },
+      ...RELOAD, { waitFor: '.pw-item.is-active' },
+      { assert: `document.querySelector('.pw-item.is-active').dataset.step === '${ids[0]}'` },
+      { assert: `!!document.querySelector('.reloc-bar') && /Moving out/.test(document.querySelector('.reloc-bar').textContent)` },
+      { click: `.pw-item[data-step=${ids[2]}]` });
+  });
+  steps.push(...results(true, d && `${d}-2-results.png`));
+  steps.push({ assert: `${S('.relocation.movedOut')} === true && !document.querySelector('.reloc-bar')` },
+    ...design(p.move, null, 2),
+    { assert: `${S('.life.history.length')} === 2 && ${S('.relocation')} === null && ${S('.home.kind')} === 'shared'` },
+    { assert: `${S('.home.animals')}.some((a) => a.kind === 'cat')` },
+    { assert: `${S('.finances.agreements')}.some((a) => a.status === 'ended' && a.docType === 'lease')` },
+    { assert: `${S('.finances.recurring')}.every((r) => r.startsMonth === 2)` },
+    ...(d ? [{ shot: `${d}-3-new-home.png` }] : []));
+  // Life goes on in March.
+  steps.push({ waitFor: '[data-stage=welcome]' },
+    { assert: `document.querySelector('.life-title').textContent === 'Welcome to March, 2033.'` },
+    { click: '.life-go' }, { waitFor: '[data-stage=plan]' }, { click: '.life-plan-foot .life-go' },
+    { waitFor: '[data-stage=summary]' },
+    { assert: `document.querySelector('.life-title').textContent === 'March 2033 — how it went'` },
+    { click: '.life-plan-foot .life-go' }, { waitFor: '[data-stage=welcome]' },
+    { assert: `${S('.life.monthIndex')} === 3 && ${S('.life.history.length')} === 3` },
+    { eval: `(s => ({ home: s.home.label, cash: s.finances.checkingCents + s.finances.savingsCents, score: s.finances.credit.score, months: s.life.history.length }))(${S('')})` });
+  return steps;
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  for (const p of PLAYS) {
+  for (const [p, steps] of [...PLAYS.map((x) => [x, build(x)]), [RELOCATE, buildRelocate(RELOCATE)]]) {
     const file = path.join(HS, 'tests/e2e', `${p.file}.json`);
-    fs.writeFileSync(file, JSON.stringify(build(p), null, 1) + '\n');
-    console.log(`wrote ${path.relative(HS, file)} (${build(p).length} steps)`);
+    fs.writeFileSync(file, JSON.stringify(steps, null, 1) + '\n');
+    console.log(`wrote ${path.relative(HS, file)} (${steps.length} steps)`);
   }
 }

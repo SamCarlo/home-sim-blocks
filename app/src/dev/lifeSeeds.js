@@ -8,6 +8,8 @@ import { moveInBuild } from '../phases/design/blueprint/moveIn.js';
 import { addYardItem } from '../phases/design/blueprint/yard.js';
 import { startPlan, setChoice, startLive, finishLive, nextMonth } from '../life/monthFlow.js';
 import { buy } from '../life/investments.js';
+import { startRelocation } from '../life/relocation.js';
+import { liveYear } from '../life/autopilot.js';
 
 /** Fail loudly when a seed's Move in refuses (a seed that silently stays in design would hide bugs). */
 function ok(result, name) {
@@ -129,4 +131,17 @@ export function addLifeSeeds(seeds) {
   seeds['life-invest-live'] = { phase: 'life',
     description: 'Katy house, February 2033 live stage with investments: the money strip and the block tick along the market path.',
     build: (now) => { const s = held(now); startLive(s); return s; } };
+  // Task 58: moving from Live, and the year on autopilot.
+  seeds['life-relocating'] = { phase: 'plan',
+    description: 'Hilo apartment after three months (April 2033): "Find a new place to live" pressed, so Plan shows the '
+      + 'moving bar (lease break fee, deposit back) with Cancel and go home.',
+    build: (now) => { const s = liveMonths(seeds['life-month1-apartment'].build(now), 3); nextMonth(s); startRelocation(s); return s; } };
+  seeds['life-relocating-house'] = { phase: 'plan',
+    description: 'Katy house after three months (April 2033), looking for a new place: the bar shows the sale (selling '
+      + 'costs, mortgage payoff) and Plan counts it as cash.',
+    build: (now) => { const s = liveMonths(seeds['life-month1-house'].build(now), 3); nextMonth(s); startRelocation(s); return s; } };
+  seeds['life-autopilot-done'] = { phase: 'life',
+    description: 'Hilo apartment after "Live like this for a year" from the January plan: the recap of 12 months and '
+      + 'the free black cat.',
+    build: (now) => { const s = seeds['life-plan-filled'].build(now); liveYear(s); return s; } };
 }

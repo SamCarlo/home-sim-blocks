@@ -14,6 +14,8 @@ export const ACCOUNTS = ['checking', 'savings', 'card'];
 export const TRANSFER = 'transfer';
 /** Month index for paperwork money (05 §8: "transactions in month −1"). */
 export const PAPERWORK_MONTH = -1;
+/** The month a paperwork credit inquiry counts from: −1 for a first home, the last lived month after a move (task 58). */
+export const inquiryMonth = (state) => Math.max(PAPERWORK_MONTH, (state.life?.monthIndex ?? 0) - 1);
 
 const num = (v) => (Number.isFinite(v) ? v : 0);
 const fin = (state) => state.finances;

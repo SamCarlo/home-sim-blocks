@@ -1,0 +1,815 @@
+[
+ {
+  "waitReady": true
+ },
+ {
+  "eval": "// Browser-side helper for the playthrough scripts (task 56). genPlaythroughs.mjs inlines this file into the first\n// {\"eval\"} step, so it defines window.__play in the page. It fills paperwork forms the way a student would: real values\n// in every field, and each quiz question answered by trying choices until \"Check answer\" says it's right.\n(() => {\n  const NAME = 'Kai Mana';\n  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));\n  const protoOf = (el) => (el.tagName === 'SELECT' ? HTMLSelectElement : el.tagName === 'TEXTAREA' ? HTMLTextAreaElement\n    : HTMLInputElement).prototype;\n  const setVal = (el, v) => {\n    Object.getOwnPropertyDescriptor(protoOf(el), 'value').set.call(el, v);\n    el.dispatchEvent(new Event('input', { bubbles: true }));\n    el.dispatchEvent(new Event('change', { bubbles: true }));\n    el.dispatchEvent(new Event('blur'));\n  };\n  const textFor = (key, el) => {\n    if (/signature/.test(key)) return NAME;\n    if (el.type === 'tel' || /phone/.test(key)) return '(808) 555-0142';\n    if (el.type === 'email' || /email/.test(key)) return 'kai.mana@example.com';\n    if (/name/.test(key)) return 'Lani Pereira';\n    if (el.type === 'number') return '1';\n    if (/employer|company/.test(key)) return 'Hilo Bay Dental';\n    return 'AC on above 85°F, set to 78°F';\n  };\n  const active = () => document.querySelector('.pw-item.is-active')?.dataset.step ?? null;\n  const field = (key) => document.querySelector(`.fm-form [data-field=\"${key}\"]`);\n\n  async function answer(key) {\n    for (let i = 0; i < 8; i++) {\n      const wrap = field(key);\n      if (!wrap || wrap.querySelector('.fm-q-feedback.is-right')) return true;\n      const r = [...wrap.querySelectorAll('input[type=radio]')].find((x) => !x.disabled);\n      if (!r) return false;\n      r.click();\n      wrap.querySelector('.fm-q-check').click();\n      await sleep(40);\n    }\n    return false;\n  }\n\n  /** Fill every empty field of the open form. prefs: field key → value (radio/select value or text). */\n  async function fill(prefs = {}) {\n    if (!document.querySelector('.fm-form')) return 'no form';\n    const filled = [];\n    for (const wrap of document.querySelectorAll('.fm-form [data-field]')) {\n      const key = wrap.dataset.field;\n      if (wrap.querySelector('.fm-q-check')) { if (await answer(key)) filled.push(key); continue; }\n      const inits = wrap.querySelectorAll('.fm-init-input');\n      if (inits.length) { inits.forEach((i) => { if (!i.value) setVal(i, 'KM'); }); filled.push(key); continue; }\n      const sel = wrap.querySelector('select');\n      if (sel) {\n        const want = prefs[key] ?? (sel.value ? null : [...sel.options].find((o) => o.value)?.value);\n        if (want != null) { setVal(sel, want); filled.push(key); }\n        continue;\n      }\n      const radios = [...wrap.querySelectorAll('input[type=radio]')];\n      if (radios.length) {\n        const r = prefs[key] != null ? radios.find((x) => x.value === String(prefs[key]))\n          : radios.some((x) => x.checked) ? null : radios.find((x) => !x.disabled);\n        if (r && !r.checked) { r.click(); filled.push(key); }\n        continue;\n      }\n      const boxes = wrap.querySelectorAll('input[type=checkbox]');\n      if (boxes.length) {\n        boxes.forEach((b) => { if (!b.checked && !b.disabled && prefs[key] !== false) b.click(); });\n        filled.push(key);\n        continue;\n      }\n      const t = wrap.querySelector('input:not([type=hidden]):not([readonly]):not([disabled]), textarea:not([readonly])');\n      if (t && !t.value) { setVal(t, prefs[key] ?? textFor(key, t)); filled.push(key); }\n    }\n    await sleep(60);\n    return filled;\n  }\n\n  /** Resolve true once step `id` is the active checklist item (false after `ms`). */\n  async function waitStep(id, ms = 8000) {\n    const end = Date.now() + ms;\n    while (Date.now() < end) { if (active() === id) return true; await sleep(50); }\n    return false;\n  }\n\n  /** What's blocking the open form, for the log when a submit doesn't advance. */\n  const errors = () => [...document.querySelectorAll('.fm-form .has-error, .fm-form [role=alert]')]\n    .map((e) => e.textContent.trim()).filter(Boolean);\n\n  /** Click `sel` if it exists and is enabled; true when clicked. */\n  const tap = (sel) => { const b = document.querySelector(sel); if (!b || b.disabled) return false; b.click(); return true; };\n\n  // Keep the stack of any uncaught error so a failing run says where it broke.\n  window.__errs = [];\n  addEventListener('error', (e) => window.__errs.push(e.error?.stack || e.message));\n  addEventListener('unhandledrejection', (e) => window.__errs.push(e.reason?.stack || String(e.reason)));\n\n  window.__play = { fill, answer, waitStep, active, errors, tap, sleep };\n  return 'play helper ready';\n})();\n"
+ },
+ {
+  "click": "#tab-register"
+ },
+ {
+  "type": [
+   "#panel-register input[name=username]",
+   "playmove"
+  ]
+ },
+ {
+  "type": [
+   "#panel-register input[name=classCode]",
+   "demo"
+  ]
+ },
+ {
+  "type": [
+   "#panel-register input[name=password]",
+   "password123"
+  ]
+ },
+ {
+  "type": [
+   "#panel-register input[name=confirm]",
+   "password123"
+  ]
+ },
+ {
+  "click": "#panel-register button[type=submit]"
+ },
+ {
+  "waitFor": ".intake-screen"
+ },
+ {
+  "waitReady": true
+ },
+ {
+  "assert": "window.__homesim.getState().phase === 'intake'"
+ },
+ {
+  "eval": "for (const n of ['characterName','jobTitle','income','hours','savings']) { const i = document.querySelector('input[name=' + n + ']'); i.value = ''; i.dispatchEvent(new Event('input')); } 'cleared'"
+ },
+ {
+  "type": [
+   "input[name=characterName]",
+   "Kai Mana"
+  ]
+ },
+ {
+  "type": [
+   "input[name=jobTitle]",
+   "Dental assistant"
+  ]
+ },
+ {
+  "type": [
+   "input[name=income]",
+   "4,200"
+  ]
+ },
+ {
+  "type": [
+   "input[name=hours]",
+   "40"
+  ]
+ },
+ {
+  "type": [
+   "input[name=savings]",
+   "12,000"
+  ]
+ },
+ {
+  "click": ".intake-continue"
+ },
+ {
+  "waitFor": ".plan-cell"
+ },
+ {
+  "waitReady": true
+ },
+ {
+  "assert": "window.__homesim.getState().phase === 'plan'"
+ },
+ {
+  "eval": "window.__homesim.update((s) => { s.meta.seed = 5; }) || window.__homesim.getState().meta.seed"
+ },
+ {
+  "assert": "!!document.querySelector('.plan-cell[data-loc=\"hilo\"][data-type=\"apartment\"]') && !document.querySelector('.plan-cell[data-loc=\"hilo\"][data-type=\"apartment\"]').classList.contains('st-gray')"
+ },
+ {
+  "eval": "document.querySelector('.plan-cell[data-loc=\"hilo\"][data-type=\"apartment\"]').click(); 'opened'"
+ },
+ {
+  "waitFor": ".plan-dt-choose"
+ },
+ {
+  "click": ".plan-dt-choose"
+ },
+ {
+  "waitFor": ".modal-confirm"
+ },
+ {
+  "click": ".modal-confirm"
+ },
+ {
+  "waitFor": ".pw-item.is-active"
+ },
+ {
+  "waitReady": true
+ },
+ {
+  "assert": "window.__homesim.getState().phase === 'paperwork' && window.__homesim.getState().choice.homeTypeId === 'apartment'"
+ },
+ {
+  "assert": "window.__play.waitStep('rental-application')"
+ },
+ {
+  "wait": 150
+ },
+ {
+  "eval": "window.__play.fill({})"
+ },
+ {
+  "eval": "window.__play.fill({})"
+ },
+ {
+  "eval": "window.__play.errors()"
+ },
+ {
+  "click": ".fm-form button[type=submit]"
+ },
+ {
+  "wait": 250
+ },
+ {
+  "assert": "['done', 'skipped'].includes(window.__homesim.getState().paperwork.steps['rental-application']?.status)"
+ },
+ {
+  "assert": "window.__play.waitStep('rental-cover')"
+ },
+ {
+  "wait": 150
+ },
+ {
+  "waitFor": ".pw-letter-text"
+ },
+ {
+  "type": [
+   ".pw-letter-text",
+   "Dear Ms. Kahale,\n\nMy name is Kai Mana, and I am a dental assistant at a clinic in town. I am applying for the apartment because it is close to my work and I love the quiet neighborhood.\n\nI earn a steady income and I have saved enough for the deposit and two months of rent. I use a monthly budget and I will set up autopay so rent is always on time. I am quiet, clean and respectful, and I will take care of the unit like it is my own.\n\nMy boss and my teacher are happy to be references. Thank you for considering my application.\n\nSincerely,\nKai Mana"
+  ]
+ },
+ {
+  "click": ".pw-letter-send"
+ },
+ {
+  "waitFor": ".modal-confirm"
+ },
+ {
+  "click": ".modal-confirm"
+ },
+ {
+  "waitFor": ".pw-letter-next"
+ },
+ {
+  "assert": "window.__homesim.getState().paperwork.steps['rental-cover'].status === 'done'"
+ },
+ {
+  "click": ".pw-letter-next"
+ },
+ {
+  "wait": 250
+ },
+ {
+  "assert": "['done', 'skipped'].includes(window.__homesim.getState().paperwork.steps['rental-cover']?.status)"
+ },
+ {
+  "assert": "window.__play.waitStep('renters-insurance')"
+ },
+ {
+  "wait": 150
+ },
+ {
+  "waitFor": ".pw-ins"
+ },
+ {
+  "wait": 300
+ },
+ {
+  "click": "[data-pick=basic]"
+ },
+ {
+  "click": ".pw-buy"
+ },
+ {
+  "wait": 250
+ },
+ {
+  "assert": "['done', 'skipped'].includes(window.__homesim.getState().paperwork.steps['renters-insurance']?.status)"
+ },
+ {
+  "assert": "window.__play.waitStep('lease')"
+ },
+ {
+  "wait": 150
+ },
+ {
+  "eval": "window.__play.fill({})"
+ },
+ {
+  "eval": "window.__play.fill({})"
+ },
+ {
+  "eval": "window.__play.errors()"
+ },
+ {
+  "click": ".fm-form button[type=submit]"
+ },
+ {
+  "wait": 250
+ },
+ {
+  "assert": "['done', 'skipped'].includes(window.__homesim.getState().paperwork.steps['lease']?.status)"
+ },
+ {
+  "assert": "window.__play.waitStep('move-in-payment')"
+ },
+ {
+  "wait": 150
+ },
+ {
+  "eval": "window.__play.fill({})"
+ },
+ {
+  "eval": "window.__play.fill({})"
+ },
+ {
+  "eval": "window.__play.errors()"
+ },
+ {
+  "click": ".fm-form button[type=submit]"
+ },
+ {
+  "wait": 250
+ },
+ {
+  "assert": "['done', 'skipped'].includes(window.__homesim.getState().paperwork.steps['move-in-payment']?.status)"
+ },
+ {
+  "assert": "window.__play.waitStep('credit-card-offer')"
+ },
+ {
+  "wait": 150
+ },
+ {
+  "eval": "window.__play.fill({\"decision\":\"accept\"})"
+ },
+ {
+  "eval": "window.__play.fill({\"decision\":\"accept\"})"
+ },
+ {
+  "eval": "window.__play.errors()"
+ },
+ {
+  "click": ".fm-form button[type=submit]"
+ },
+ {
+  "wait": 250
+ },
+ {
+  "assert": "['done', 'skipped'].includes(window.__homesim.getState().paperwork.steps['credit-card-offer']?.status)"
+ },
+ {
+  "assert": "window.__play.waitStep('results')"
+ },
+ {
+  "waitFor": ".pw-res-continue"
+ },
+ {
+  "wait": 300
+ },
+ {
+  "assert": "window.__homesim.getState().paperwork.decisions.length > 0 && window.__homesim.getState().paperwork.lettersRevealed === true"
+ },
+ {
+  "assert": "(d => d.filter(x => x.kind !== 'credit-card').every(x => x.approved) === true)(window.__homesim.getState().paperwork.decisions)"
+ },
+ {
+  "click": ".pw-res-continue"
+ },
+ {
+  "waitReady": true
+ },
+ {
+  "assert": "window.__homesim.getState().phase === 'design' && !!window.__homesim.getState().home"
+ },
+ {
+  "waitReady": true
+ },
+ {
+  "assert": "window.__homesim.getState().phase === 'design'"
+ },
+ {
+  "waitFor": ".dz-bcard"
+ },
+ {
+  "click": ".dz-bcard[data-index=\"1\"]"
+ },
+ {
+  "wait": 300
+ },
+ {
+  "eval": "(d => { const p = d.screenOf(1, 2); return d.clickAt(p.x, p.y); })(window.__design)"
+ },
+ {
+  "wait": 300
+ },
+ {
+  "click": ".dz-unit[data-unit=\"1\"]"
+ },
+ {
+  "click": ".dz-plant-add"
+ },
+ {
+  "click": ".dz-plant-add"
+ },
+ {
+  "wait": 400
+ },
+ {
+  "assert": "!document.querySelector('.dz-movein').disabled"
+ },
+ {
+  "click": ".dz-movein"
+ },
+ {
+  "waitFor": "[data-stage]"
+ },
+ {
+  "waitReady": true
+ },
+ {
+  "assert": "window.__homesim.getState().phase === 'life' && window.__homesim.getState().life.monthIndex === 0"
+ },
+ {
+  "waitFor": "[data-stage=welcome]"
+ },
+ {
+  "click": ".life-go"
+ },
+ {
+  "waitFor": "[data-stage=plan]"
+ },
+ {
+  "click": ".lq[data-question=homeGarden] .lq-opt[data-value=cat]"
+ },
+ {
+  "click": ".life-plan-foot .life-go"
+ },
+ {
+  "waitFor": "[data-stage=summary]"
+ },
+ {
+  "click": ".life-plan-foot .life-go"
+ },
+ {
+  "waitFor": "[data-stage=welcome]"
+ },
+ {
+  "assert": "window.__homesim.getState().home.animals.some((a) => a.kind === 'cat' && a.present !== false)"
+ },
+ {
+  "waitFor": "[data-stage=welcome]"
+ },
+ {
+  "click": ".life-go"
+ },
+ {
+  "waitFor": "[data-stage=plan]"
+ },
+ {
+  "click": ".life-plan-foot .life-go"
+ },
+ {
+  "waitFor": "[data-stage=live]"
+ },
+ {
+  "waitFor": "[data-stage=summary]"
+ },
+ {
+  "assert": "(r => r && (r.careRate === null || r.careRate === 1))(window.__homesim.getState().life.current.result)"
+ },
+ {
+  "click": ".life-plan-foot .life-go"
+ },
+ {
+  "waitFor": "[data-stage=welcome]"
+ },
+ {
+  "assert": "window.__homesim.getState().life.monthIndex === 2 && window.__homesim.getState().life.history.length === 2"
+ },
+ {
+  "click": ".header-save"
+ },
+ {
+  "wait": 300
+ },
+ {
+  "waitFor": ".save-indicator[data-status=saved]"
+ },
+ {
+  "click": ".life-move"
+ },
+ {
+  "waitFor": ".modal-confirm"
+ },
+ {
+  "click": ".modal-confirm"
+ },
+ {
+  "waitFor": ".reloc-bar"
+ },
+ {
+  "waitReady": true
+ },
+ {
+  "assert": "window.__homesim.getState().phase === 'plan' && window.__homesim.getState().relocation.startedMonth === 2 && window.__homesim.getState().home.kind === 'apartment'"
+ },
+ {
+  "assert": "/Cash after moving out/.test(document.querySelector('.plan-bar').textContent)"
+ },
+ {
+  "shot": "tools/shots/t58/move-1-plan-bar.png"
+ },
+ {
+  "goto": "/index.html?speed=20&care=hit"
+ },
+ {
+  "waitReady": true
+ },
+ {
+  "eval": "// Browser-side helper for the playthrough scripts (task 56). genPlaythroughs.mjs inlines this file into the first\n// {\"eval\"} step, so it defines window.__play in the page. It fills paperwork forms the way a student would: real values\n// in every field, and each quiz question answered by trying choices until \"Check answer\" says it's right.\n(() => {\n  const NAME = 'Kai Mana';\n  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));\n  const protoOf = (el) => (el.tagName === 'SELECT' ? HTMLSelectElement : el.tagName === 'TEXTAREA' ? HTMLTextAreaElement\n    : HTMLInputElement).prototype;\n  const setVal = (el, v) => {\n    Object.getOwnPropertyDescriptor(protoOf(el), 'value').set.call(el, v);\n    el.dispatchEvent(new Event('input', { bubbles: true }));\n    el.dispatchEvent(new Event('change', { bubbles: true }));\n    el.dispatchEvent(new Event('blur'));\n  };\n  const textFor = (key, el) => {\n    if (/signature/.test(key)) return NAME;\n    if (el.type === 'tel' || /phone/.test(key)) return '(808) 555-0142';\n    if (el.type === 'email' || /email/.test(key)) return 'kai.mana@example.com';\n    if (/name/.test(key)) return 'Lani Pereira';\n    if (el.type === 'number') return '1';\n    if (/employer|company/.test(key)) return 'Hilo Bay Dental';\n    return 'AC on above 85°F, set to 78°F';\n  };\n  const active = () => document.querySelector('.pw-item.is-active')?.dataset.step ?? null;\n  const field = (key) => document.querySelector(`.fm-form [data-field=\"${key}\"]`);\n\n  async function answer(key) {\n    for (let i = 0; i < 8; i++) {\n      const wrap = field(key);\n      if (!wrap || wrap.querySelector('.fm-q-feedback.is-right')) return true;\n      const r = [...wrap.querySelectorAll('input[type=radio]')].find((x) => !x.disabled);\n      if (!r) return false;\n      r.click();\n      wrap.querySelector('.fm-q-check').click();\n      await sleep(40);\n    }\n    return false;\n  }\n\n  /** Fill every empty field of the open form. prefs: field key → value (radio/select value or text). */\n  async function fill(prefs = {}) {\n    if (!document.querySelector('.fm-form')) return 'no form';\n    const filled = [];\n    for (const wrap of document.querySelectorAll('.fm-form [data-field]')) {\n      const key = wrap.dataset.field;\n      if (wrap.querySelector('.fm-q-check')) { if (await answer(key)) filled.push(key); continue; }\n      const inits = wrap.querySelectorAll('.fm-init-input');\n      if (inits.length) { inits.forEach((i) => { if (!i.value) setVal(i, 'KM'); }); filled.push(key); continue; }\n      const sel = wrap.querySelector('select');\n      if (sel) {\n        const want = prefs[key] ?? (sel.value ? null : [...sel.options].find((o) => o.value)?.value);\n        if (want != null) { setVal(sel, want); filled.push(key); }\n        continue;\n      }\n      const radios = [...wrap.querySelectorAll('input[type=radio]')];\n      if (radios.length) {\n        const r = prefs[key] != null ? radios.find((x) => x.value === String(prefs[key]))\n          : radios.some((x) => x.checked) ? null : radios.find((x) => !x.disabled);\n        if (r && !r.checked) { r.click(); filled.push(key); }\n        continue;\n      }\n      const boxes = wrap.querySelectorAll('input[type=checkbox]');\n      if (boxes.length) {\n        boxes.forEach((b) => { if (!b.checked && !b.disabled && prefs[key] !== false) b.click(); });\n        filled.push(key);\n        continue;\n      }\n      const t = wrap.querySelector('input:not([type=hidden]):not([readonly]):not([disabled]), textarea:not([readonly])');\n      if (t && !t.value) { setVal(t, prefs[key] ?? textFor(key, t)); filled.push(key); }\n    }\n    await sleep(60);\n    return filled;\n  }\n\n  /** Resolve true once step `id` is the active checklist item (false after `ms`). */\n  async function waitStep(id, ms = 8000) {\n    const end = Date.now() + ms;\n    while (Date.now() < end) { if (active() === id) return true; await sleep(50); }\n    return false;\n  }\n\n  /** What's blocking the open form, for the log when a submit doesn't advance. */\n  const errors = () => [...document.querySelectorAll('.fm-form .has-error, .fm-form [role=alert]')]\n    .map((e) => e.textContent.trim()).filter(Boolean);\n\n  /** Click `sel` if it exists and is enabled; true when clicked. */\n  const tap = (sel) => { const b = document.querySelector(sel); if (!b || b.disabled) return false; b.click(); return true; };\n\n  // Keep the stack of any uncaught error so a failing run says where it broke.\n  window.__errs = [];\n  addEventListener('error', (e) => window.__errs.push(e.error?.stack || e.message));\n  addEventListener('unhandledrejection', (e) => window.__errs.push(e.reason?.stack || String(e.reason)));\n\n  window.__play = { fill, answer, waitStep, active, errors, tap, sleep };\n  return 'play helper ready';\n})();\n"
+ },
+ {
+  "waitFor": ".reloc-bar"
+ },
+ {
+  "assert": "window.__homesim.getState().phase === 'plan'"
+ },
+ {
+  "assert": "!!document.querySelector('.plan-cell[data-loc=\"hilo\"][data-type=\"shared\"]') && !document.querySelector('.plan-cell[data-loc=\"hilo\"][data-type=\"shared\"]').classList.contains('st-gray')"
+ },
+ {
+  "eval": "document.querySelector('.plan-cell[data-loc=\"hilo\"][data-type=\"shared\"]').click(); 'opened'"
+ },
+ {
+  "waitFor": ".plan-dt-choose"
+ },
+ {
+  "click": ".plan-dt-choose"
+ },
+ {
+  "waitFor": ".modal-confirm"
+ },
+ {
+  "click": ".modal-confirm"
+ },
+ {
+  "waitFor": ".pw-item.is-active"
+ },
+ {
+  "waitReady": true
+ },
+ {
+  "assert": "window.__homesim.getState().phase === 'paperwork' && window.__homesim.getState().choice.homeTypeId === 'shared'"
+ },
+ {
+  "assert": "window.__play.waitStep('room-application')"
+ },
+ {
+  "wait": 150
+ },
+ {
+  "eval": "window.__play.fill({})"
+ },
+ {
+  "eval": "window.__play.fill({})"
+ },
+ {
+  "eval": "window.__play.errors()"
+ },
+ {
+  "click": ".fm-form button[type=submit]"
+ },
+ {
+  "wait": 250
+ },
+ {
+  "assert": "['done', 'skipped'].includes(window.__homesim.getState().paperwork.steps['room-application']?.status)"
+ },
+ {
+  "assert": "window.__play.waitStep('roommate-intro')"
+ },
+ {
+  "wait": 150
+ },
+ {
+  "waitFor": ".pw-letter-text"
+ },
+ {
+  "type": [
+   ".pw-letter-text",
+   "Hi everyone,\n\nI am Kai, and I work mornings at a coffee shop, so I am usually home by three. I enjoy hiking on weekends and cooking simple dinners.\n\nI like a clean kitchen, so I wash my dishes right away and I am happy to take turns with the bathroom and trash. I keep quiet hours after ten and I use headphones for music. If I have friends over, I will ask first.\n\nIf we ever disagree, I would rather talk it out calmly and listen. I will always pay my share of the rent and bills on time.\n\nI am excited to meet you all. Thanks!\n\nKai"
+  ]
+ },
+ {
+  "click": ".pw-letter-send"
+ },
+ {
+  "waitFor": ".modal-confirm"
+ },
+ {
+  "click": ".modal-confirm"
+ },
+ {
+  "waitFor": ".pw-letter-next"
+ },
+ {
+  "assert": "window.__homesim.getState().paperwork.steps['roommate-intro'].status === 'done'"
+ },
+ {
+  "click": ".pw-letter-next"
+ },
+ {
+  "wait": 250
+ },
+ {
+  "assert": "['done', 'skipped'].includes(window.__homesim.getState().paperwork.steps['roommate-intro']?.status)"
+ },
+ {
+  "click": ".pw-item[data-step=room-application]"
+ },
+ {
+  "wait": 300
+ },
+ {
+  "assert": "window.__homesim.getState().paperwork.activeStep === 'room-application'"
+ },
+ {
+  "goto": "/index.html?speed=20&care=hit"
+ },
+ {
+  "waitReady": true
+ },
+ {
+  "eval": "// Browser-side helper for the playthrough scripts (task 56). genPlaythroughs.mjs inlines this file into the first\n// {\"eval\"} step, so it defines window.__play in the page. It fills paperwork forms the way a student would: real values\n// in every field, and each quiz question answered by trying choices until \"Check answer\" says it's right.\n(() => {\n  const NAME = 'Kai Mana';\n  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));\n  const protoOf = (el) => (el.tagName === 'SELECT' ? HTMLSelectElement : el.tagName === 'TEXTAREA' ? HTMLTextAreaElement\n    : HTMLInputElement).prototype;\n  const setVal = (el, v) => {\n    Object.getOwnPropertyDescriptor(protoOf(el), 'value').set.call(el, v);\n    el.dispatchEvent(new Event('input', { bubbles: true }));\n    el.dispatchEvent(new Event('change', { bubbles: true }));\n    el.dispatchEvent(new Event('blur'));\n  };\n  const textFor = (key, el) => {\n    if (/signature/.test(key)) return NAME;\n    if (el.type === 'tel' || /phone/.test(key)) return '(808) 555-0142';\n    if (el.type === 'email' || /email/.test(key)) return 'kai.mana@example.com';\n    if (/name/.test(key)) return 'Lani Pereira';\n    if (el.type === 'number') return '1';\n    if (/employer|company/.test(key)) return 'Hilo Bay Dental';\n    return 'AC on above 85°F, set to 78°F';\n  };\n  const active = () => document.querySelector('.pw-item.is-active')?.dataset.step ?? null;\n  const field = (key) => document.querySelector(`.fm-form [data-field=\"${key}\"]`);\n\n  async function answer(key) {\n    for (let i = 0; i < 8; i++) {\n      const wrap = field(key);\n      if (!wrap || wrap.querySelector('.fm-q-feedback.is-right')) return true;\n      const r = [...wrap.querySelectorAll('input[type=radio]')].find((x) => !x.disabled);\n      if (!r) return false;\n      r.click();\n      wrap.querySelector('.fm-q-check').click();\n      await sleep(40);\n    }\n    return false;\n  }\n\n  /** Fill every empty field of the open form. prefs: field key → value (radio/select value or text). */\n  async function fill(prefs = {}) {\n    if (!document.querySelector('.fm-form')) return 'no form';\n    const filled = [];\n    for (const wrap of document.querySelectorAll('.fm-form [data-field]')) {\n      const key = wrap.dataset.field;\n      if (wrap.querySelector('.fm-q-check')) { if (await answer(key)) filled.push(key); continue; }\n      const inits = wrap.querySelectorAll('.fm-init-input');\n      if (inits.length) { inits.forEach((i) => { if (!i.value) setVal(i, 'KM'); }); filled.push(key); continue; }\n      const sel = wrap.querySelector('select');\n      if (sel) {\n        const want = prefs[key] ?? (sel.value ? null : [...sel.options].find((o) => o.value)?.value);\n        if (want != null) { setVal(sel, want); filled.push(key); }\n        continue;\n      }\n      const radios = [...wrap.querySelectorAll('input[type=radio]')];\n      if (radios.length) {\n        const r = prefs[key] != null ? radios.find((x) => x.value === String(prefs[key]))\n          : radios.some((x) => x.checked) ? null : radios.find((x) => !x.disabled);\n        if (r && !r.checked) { r.click(); filled.push(key); }\n        continue;\n      }\n      const boxes = wrap.querySelectorAll('input[type=checkbox]');\n      if (boxes.length) {\n        boxes.forEach((b) => { if (!b.checked && !b.disabled && prefs[key] !== false) b.click(); });\n        filled.push(key);\n        continue;\n      }\n      const t = wrap.querySelector('input:not([type=hidden]):not([readonly]):not([disabled]), textarea:not([readonly])');\n      if (t && !t.value) { setVal(t, prefs[key] ?? textFor(key, t)); filled.push(key); }\n    }\n    await sleep(60);\n    return filled;\n  }\n\n  /** Resolve true once step `id` is the active checklist item (false after `ms`). */\n  async function waitStep(id, ms = 8000) {\n    const end = Date.now() + ms;\n    while (Date.now() < end) { if (active() === id) return true; await sleep(50); }\n    return false;\n  }\n\n  /** What's blocking the open form, for the log when a submit doesn't advance. */\n  const errors = () => [...document.querySelectorAll('.fm-form .has-error, .fm-form [role=alert]')]\n    .map((e) => e.textContent.trim()).filter(Boolean);\n\n  /** Click `sel` if it exists and is enabled; true when clicked. */\n  const tap = (sel) => { const b = document.querySelector(sel); if (!b || b.disabled) return false; b.click(); return true; };\n\n  // Keep the stack of any uncaught error so a failing run says where it broke.\n  window.__errs = [];\n  addEventListener('error', (e) => window.__errs.push(e.error?.stack || e.message));\n  addEventListener('unhandledrejection', (e) => window.__errs.push(e.reason?.stack || String(e.reason)));\n\n  window.__play = { fill, answer, waitStep, active, errors, tap, sleep };\n  return 'play helper ready';\n})();\n"
+ },
+ {
+  "waitFor": ".pw-item.is-active"
+ },
+ {
+  "assert": "document.querySelector('.pw-item.is-active').dataset.step === 'room-application'"
+ },
+ {
+  "assert": "!!document.querySelector('.reloc-bar') && /Moving out/.test(document.querySelector('.reloc-bar').textContent)"
+ },
+ {
+  "click": ".pw-item[data-step=renters-insurance]"
+ },
+ {
+  "assert": "window.__play.waitStep('renters-insurance')"
+ },
+ {
+  "wait": 150
+ },
+ {
+  "waitFor": ".pw-ins"
+ },
+ {
+  "wait": 300
+ },
+ {
+  "click": "[data-pick=basic]"
+ },
+ {
+  "click": ".pw-buy"
+ },
+ {
+  "wait": 250
+ },
+ {
+  "assert": "['done', 'skipped'].includes(window.__homesim.getState().paperwork.steps['renters-insurance']?.status)"
+ },
+ {
+  "assert": "window.__play.waitStep('roommate-agreement')"
+ },
+ {
+  "wait": 150
+ },
+ {
+  "eval": "window.__play.fill({})"
+ },
+ {
+  "eval": "window.__play.fill({})"
+ },
+ {
+  "eval": "window.__play.errors()"
+ },
+ {
+  "click": ".fm-form button[type=submit]"
+ },
+ {
+  "wait": 250
+ },
+ {
+  "assert": "['done', 'skipped'].includes(window.__homesim.getState().paperwork.steps['roommate-agreement']?.status)"
+ },
+ {
+  "assert": "window.__play.waitStep('lease')"
+ },
+ {
+  "wait": 150
+ },
+ {
+  "eval": "window.__play.fill({})"
+ },
+ {
+  "eval": "window.__play.fill({})"
+ },
+ {
+  "eval": "window.__play.errors()"
+ },
+ {
+  "click": ".fm-form button[type=submit]"
+ },
+ {
+  "wait": 250
+ },
+ {
+  "assert": "['done', 'skipped'].includes(window.__homesim.getState().paperwork.steps['lease']?.status)"
+ },
+ {
+  "assert": "window.__play.waitStep('move-in-payment')"
+ },
+ {
+  "wait": 150
+ },
+ {
+  "eval": "window.__play.fill({})"
+ },
+ {
+  "eval": "window.__play.fill({})"
+ },
+ {
+  "eval": "window.__play.errors()"
+ },
+ {
+  "click": ".fm-form button[type=submit]"
+ },
+ {
+  "wait": 250
+ },
+ {
+  "assert": "['done', 'skipped'].includes(window.__homesim.getState().paperwork.steps['move-in-payment']?.status)"
+ },
+ {
+  "assert": "window.__play.waitStep('credit-card-offer')"
+ },
+ {
+  "wait": 150
+ },
+ {
+  "eval": "window.__play.fill({\"decision\":\"accept\"})"
+ },
+ {
+  "eval": "window.__play.fill({\"decision\":\"accept\"})"
+ },
+ {
+  "eval": "window.__play.errors()"
+ },
+ {
+  "click": ".fm-form button[type=submit]"
+ },
+ {
+  "wait": 250
+ },
+ {
+  "assert": "['done', 'skipped'].includes(window.__homesim.getState().paperwork.steps['credit-card-offer']?.status)"
+ },
+ {
+  "assert": "window.__play.waitStep('results')"
+ },
+ {
+  "waitFor": ".pw-res-continue"
+ },
+ {
+  "wait": 300
+ },
+ {
+  "assert": "window.__homesim.getState().paperwork.decisions.length > 0 && window.__homesim.getState().paperwork.lettersRevealed === true"
+ },
+ {
+  "assert": "(d => d.filter(x => x.kind !== 'credit-card').every(x => x.approved) === true)(window.__homesim.getState().paperwork.decisions)"
+ },
+ {
+  "shot": "tools/shots/t58/move-2-results.png"
+ },
+ {
+  "click": ".pw-res-continue"
+ },
+ {
+  "waitReady": true
+ },
+ {
+  "assert": "window.__homesim.getState().phase === 'design' && !!window.__homesim.getState().home"
+ },
+ {
+  "assert": "window.__homesim.getState().relocation.movedOut === true && !document.querySelector('.reloc-bar')"
+ },
+ {
+  "waitReady": true
+ },
+ {
+  "assert": "window.__homesim.getState().phase === 'design'"
+ },
+ {
+  "waitFor": ".dz-bcard"
+ },
+ {
+  "click": ".dz-bcard[data-index=\"1\"]"
+ },
+ {
+  "wait": 400
+ },
+ {
+  "click": ".dz-unit[data-room]"
+ },
+ {
+  "click": ".dz-plant-add"
+ },
+ {
+  "wait": 400
+ },
+ {
+  "assert": "!document.querySelector('.dz-movein').disabled"
+ },
+ {
+  "click": ".dz-movein"
+ },
+ {
+  "waitFor": "[data-stage]"
+ },
+ {
+  "waitReady": true
+ },
+ {
+  "assert": "window.__homesim.getState().phase === 'life' && window.__homesim.getState().life.monthIndex === 2"
+ },
+ {
+  "assert": "window.__homesim.getState().life.history.length === 2 && window.__homesim.getState().relocation === null && window.__homesim.getState().home.kind === 'shared'"
+ },
+ {
+  "assert": "window.__homesim.getState().home.animals.some((a) => a.kind === 'cat')"
+ },
+ {
+  "assert": "window.__homesim.getState().finances.agreements.some((a) => a.status === 'ended' && a.docType === 'lease')"
+ },
+ {
+  "assert": "window.__homesim.getState().finances.recurring.every((r) => r.startsMonth === 2)"
+ },
+ {
+  "shot": "tools/shots/t58/move-3-new-home.png"
+ },
+ {
+  "waitFor": "[data-stage=welcome]"
+ },
+ {
+  "assert": "document.querySelector('.life-title').textContent === 'Welcome to March, 2033.'"
+ },
+ {
+  "click": ".life-go"
+ },
+ {
+  "waitFor": "[data-stage=plan]"
+ },
+ {
+  "click": ".life-plan-foot .life-go"
+ },
+ {
+  "waitFor": "[data-stage=summary]"
+ },
+ {
+  "assert": "document.querySelector('.life-title').textContent === 'March 2033 — how it went'"
+ },
+ {
+  "click": ".life-plan-foot .life-go"
+ },
+ {
+  "waitFor": "[data-stage=welcome]"
+ },
+ {
+  "assert": "window.__homesim.getState().life.monthIndex === 3 && window.__homesim.getState().life.history.length === 3"
+ },
+ {
+  "eval": "(s => ({ home: s.home.label, cash: s.finances.checkingCents + s.finances.savingsCents, score: s.finances.credit.score, months: s.life.history.length }))(window.__homesim.getState())"
+ }
+]

@@ -11,7 +11,7 @@ import { AGREEMENT_STATUS, APPLICATION_STATUS, letterList, letterRevealed } from
 import { renderLetterReport } from '../letterReport.js';
 import { bandFor } from '../../letters/score.js';
 
-const AG_CHIP = { pending: 'yellow', active: 'green', void: 'na' };
+const AG_CHIP = { pending: 'yellow', active: 'green', void: 'na', ended: 'na' };
 const APP_CHIP = { pending: 'yellow', approved: 'green', denied: 'red' };
 const dateText = (ms) => (ms ? new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '');
 /** Agreements list; opening one shows the signed document read-only (forms/engine.js, task 18). */
@@ -20,7 +20,9 @@ export function renderAgreements(state, nav) {
   const open = list.find((a) => a.id === nav.openId);
   if (open) {
     const doc = h('div', { class: 'pf-doc' });
-    renderForm(doc, agreementSchema(open, state), { values: open.docValues || {}, state, readOnly: true });
+    // Signature dates follow the month the document was signed for (task 58), not today's game month.
+    const signedState = { ...state, life: { ...state.life, monthIndex: open.signedMonth ?? 0 } };
+    renderForm(doc, agreementSchema(open, state), { values: open.docValues || {}, state: signedState, readOnly: true });
     return detail({ title: open.title || humanKey(open.type), onBack: nav.back },
       h('p', null, chip(AG_CHIP[open.status] ?? 'na', AGREEMENT_STATUS[open.status] ?? open.status),
         open.counterparty ? ` with ${open.counterparty}` : null, open.signedAt ? ` · signed ${dateText(open.signedAt)}` : null),

@@ -11,8 +11,9 @@ a home from 20 real places × 5 kinds of homes, do the real paperwork to get it,
 a time starting January 2033. Every person and business in the game is made up. Prices are 2025–26 figures, so they
 line up with the salary data used in class.
 
-Students can't skip ahead or go back, except where the rules send them back: a denied application returns them to the
-Plan table, and three missed housing payments in a row (eviction or foreclosure) does the same. Their **portfolio**
+Students can't skip ahead, and they only go back in a few ways: a denied application returns them to the Plan table,
+three missed housing payments in a row (eviction or foreclosure) does the same, and in Life they can choose
+**Find a new place to live** (see "Moving and the year fast-forward" below). Their **portfolio**
 (accounts, agreements, automatic expenses, letters, applications, credit score) is open from every phase after intake.
 
 ## What each phase teaches
@@ -23,7 +24,7 @@ Plan table, and three missed housing payments in a row (eviction or foreclosure)
 | **Plan** | Read a 20 × 5 table colored by what they can afford, open any cell for a picture, cost breakdown and lifestyle facts, and choose one. | Upfront vs. monthly costs; the ⅓-of-income rule of thumb; why the same home costs wildly different amounts in Pāhoa, Honolulu, Brooklyn or Yellow Pine; trade-offs like commute, jobs and hazards. |
 | **Paperwork** | Fill in real-looking applications, sign a lease or pick a loan, shop for insurance, write letters, consider a credit card offer, then get results. | Reading a contract to find the trap; what lenders and landlords look for; insurance deductibles vs. premiums; credit scores and hard inquiries; writing to an adult for something you want. |
 | **Design** | Renters pick a building, floor and unit; buyers furnish; builders draw a blueprint inside a budget. | Square footage and cost per square foot; budgets with a contingency; tying a plan to real limits. |
-| **Life** | Each month: answer four questions (exercise, extra work, time with friends and family, a daily deep practice), check the time budget, watch the month play out in 3D, keep plants and animals alive, read the month summary. Investing unlocks once they have savings. | Time as a budget; how choices move money and five areas of wellbeing (physical, purpose, financial, social, mental); surprise expenses and emergency funds; long-term investing with risk. |
+| **Life** | Each month: answer four questions (exercise, extra work, time with friends and family, a daily deep practice), check the time budget, watch the month play out in 3D, keep plants and animals alive, read the month summary. Investing unlocks once they have savings. They can also live a whole year at once on the same answers, or look for a new home. | Time as a budget; how choices move money and five areas of wellbeing (physical, purpose, financial, social, mental); surprise expenses and emergency funds; long-term investing with risk; saving up for a bigger goal and what moving really costs. |
 
 **Letters.** Paperwork includes one to three short letters (to a property manager, roommates, a co-signer, or a loan
 officer, depending on the home). A small model in the browser rates them on content, length, spelling, grammar and
@@ -45,9 +46,36 @@ Practical notes:
   runs as long as you like (about one game month per 5–10 minutes).
 - Students who are denied go back to the Plan table with their credit and savings changed by what happened. That's a
   lesson, not a failure: ask them what they'd do differently.
-- Logging out and back in on any Chromebook picks up exactly where they left off.
+- Logging out and back in on any Chromebook picks up exactly where they left off: the same paperwork step, the same
+  building or listing in Design, the same stage of the month. The **Save** button in the header saves on the spot (the
+  game also saves by itself), which is reassuring before a bell.
 - Before students start, have them write their username and password somewhere you can see (a sealed index card works).
   It saves a transfer later.
+
+## Moving and the year fast-forward
+
+Two buttons in the Life phase let students play the long game:
+
+- **Live like this for a year** (next to *Live this month*, once the four questions are answered) lives up to 12 months
+  at once with the same answers, with no day-by-day animation. Plants and animals are fed every day. It **stops early
+  after any month with a missed rent or mortgage payment**, so nobody gets evicted without a chance to react. A recap
+  shows the money in and out, net worth before and after, and wellbeing trends, plus an optional reflection box (saved
+  in the student's game like the year-in-review one). Every run also brings a surprise: a black stray cat moves in (it
+  costs nothing).
+- **Find a new place to live** (on the month's welcome and plan screens) sends the student back to the Plan table while
+  they keep their job, money, credit, wellbeing and month. A bar across the top says where they still live and what
+  moving out will cost or bring:
+  - Renters get their **deposit back** and pay the **lease-break fee** they signed (2 months' rent) if they leave in the
+    first 12 months.
+  - Owners **sell**: about 7% goes to agent and closing costs, the rest of the loan is paid off, and what's left goes to
+    savings. With little equity this can come out negative.
+  - The Plan table counts that amount as cash, so a student who saved up can now afford more.
+  - **Cancel and go home** works until a new home is approved. It takes them back to Live exactly where they were;
+    application fees already paid stay spent. Once Results say yes, the old home ends (signing is final), cats and dogs
+    come along, and life continues in the same month.
+
+Good prompt pairing: have students fast-forward a year, then ask whether what they saved changes which homes they can
+afford.
 
 ## Class codes
 
@@ -153,6 +181,8 @@ Each prompt names the syllabus scope it serves (`teaching/middle school curricul
   your real week?
 - *Health & Safety:* If real life ever feels like too much, who could you talk to? (The year-in-review says it too:
   a school counselor or someone you trust.)
+- *Career & Finance:* You fast-forwarded a year. How much did you keep? What would you need to save before moving to a
+  place you'd like more, and what would moving out cost you?
 
 ## Changing a rule
 

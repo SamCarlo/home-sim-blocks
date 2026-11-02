@@ -66,7 +66,7 @@ function decisionCard(state, d) {
 /** The monthly obligations table, with when each bill starts (builds) and what is left of take-home pay. */
 function monthlyBlock(m) {
   const rows = m.items.map((i) => ({ label: i.label, cents: i.cents,
-    note: [i.startsMonth > 0 ? `starts ${monthLabel(i.startsMonth)}` : '', i.endsMonth != null ? `until ${monthLabel(i.endsMonth)}` : '']
+    note: [i.startsMonth > (m.baseMonth ?? 0) ? `starts ${monthLabel(i.startsMonth)}` : '', i.endsMonth != null ? `until ${monthLabel(i.endsMonth)}` : '']
       .filter(Boolean).join(', ') || null }));
   return block('What you owe each month',
     table(rows, { label: 'Total each month', cents: m.totalCents }),
@@ -79,10 +79,14 @@ function monthlyBlock(m) {
 function moneyBlocks(r) {
   const out = [];
   if (r.receive.length) out.push(block('Money you receive', table(r.receive, null, money)));
+  if (r.moveOut?.lines.length) {
+    out.push(block(r.moveOut.kind === 'sell' ? 'Selling your old home' : 'Moving out of your old home',
+      table(r.moveOut.lines, { label: r.moveOut.netCents >= 0 ? 'Back to your savings' : 'From your savings', cents: r.moveOut.netCents })));
+  }
   out.push(block('Cash you pay now', r.payNow.lines.length ? table(r.payNow.lines, { label: 'Total from your savings', cents: r.payNow.totalCents })
     : h('p', null, 'Nothing more today.'),
   terms([['Already paid during paperwork (fees, deposits)', exact(r.payNow.alreadyPaidCents)],
-    ['Cash in the bank now', exact(r.payNow.cashBeforeCents)], ['Cash left after this', exact(r.payNow.cashAfterCents)]])));
+    [r.moveOut ? 'Cash in the bank after moving out' : 'Cash in the bank now', exact(r.payNow.cashBeforeCents)], ['Cash left after this', exact(r.payNow.cashAfterCents)]])));
   if (r.monthly) out.push(monthlyBlock(r.monthly));
   if (r.loan) {
     const l = r.loan;

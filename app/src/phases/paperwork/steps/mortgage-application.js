@@ -4,7 +4,7 @@
 import { FINANCE, CREDIT } from '../../../config.js';
 import { byId } from '../../../data/locations/index.js';
 import { homeType } from '../../../data/homeTypes.js';
-import { addApplication, PAPERWORK_MONTH } from '../../../finance/ledger.js';
+import { addApplication, inquiryMonth } from '../../../finance/ledger.js';
 import { recordInquiry } from '../../../finance/creditScore.js';
 import { setStep } from '../flow.js';
 import { gameIdField } from './renterTerms.js';
@@ -103,7 +103,7 @@ export default {
   /** Hard inquiry (−5) + pending mortgage application, then mark done. No money moves. */
   complete(state, values, now = 0) {
     const c = state.choice;
-    recordInquiry(state, 'mortgage', PAPERWORK_MONTH);
+    recordInquiry(state, 'mortgage', inquiryMonth(state));
     addApplication(state, { kind: 'mortgage', target: `${c.locationId}|${c.homeTypeId}`, feeCents: 0, at: now });
     setStep(state, 'mortgage-application', 'done', values, now);
     return { ok: true, shortfallCents: 0 };

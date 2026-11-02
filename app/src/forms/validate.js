@@ -2,7 +2,7 @@
 // validateForm(schema, values, state) → { fieldId: message }. Messages are short sentences a 7th grader can act on.
 import { FORMS } from '../config.js';
 import { formatMoney } from '../finance/money.js';
-import { monthLabel } from '../util/dates.js';
+import { monthLabel, moveDates } from '../util/dates.js';
 
 /** Kinds that hold a value (the rest are display-only: computed, info, clauses, table). */
 export const VALUE_KINDS = new Set(['text', 'textarea', 'number', 'currency', 'select', 'radio', 'checkbox', 'month',
@@ -40,6 +40,15 @@ export function initialsMatch(typed, expected) {
 
 /** The player's character name from state (signatures and initials check against it). */
 export const characterName = (state) => state?.player?.characterName ?? '';
+
+/**
+ * The date on every signature (05 §2): the month before the home starts, so "December 2032" for a first home and e.g.
+ * "February 2034" for a move in March 2034 (task 58). Read-only documents pass the agreement's own month.
+ */
+export function signDateLabel(state) {
+  const mi = state?.life?.monthIndex ?? 0;
+  return mi > 0 ? moveDates(mi).signLabel : FORMS.signDate;
+}
 
 /** Options as [{value, label}] (accepts plain strings). */
 export function optionList(options) {

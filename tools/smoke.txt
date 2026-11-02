@@ -77,3 +77,6 @@ life-year-review /index.html?seed=life-year-review&theme=light
 life-invest /index.html?seed=life-invest&theme=light
 life-invest-held /index.html?seed=life-invest-held&theme=light
 life-invest-live /index.html?seed=life-invest-live&theme=light&speed=4
+life-relocating /index.html?seed=life-relocating&theme=light
+life-relocating-house /index.html?seed=life-relocating-house
+life-autopilot-done /index.html?seed=life-autopilot-done&theme=light

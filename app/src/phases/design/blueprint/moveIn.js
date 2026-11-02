@@ -7,6 +7,7 @@ import { charge, cash, PAPERWORK_MONTH } from '../../../finance/ledger.js';
 import { HEN_NAMES, PET_NAMES, PET_LABELS } from '../houseModel.js';
 import { footprintArea } from './model.js';
 import { validateBlueprint } from './validate.js';
+import { startLife } from '../../../life/relocation.js';
 
 /** The validation options for the current state: `{location, budgetCents, included}` (site utilities already paid). */
 export function buildContext(state) {
@@ -18,7 +19,7 @@ export function buildContext(state) {
 /**
  * Move into the built house: refuses while validation has errors (→ `{ok: false, errors}`). Otherwise writes
  * `home.blueprint`, plants from garden beds and fruit trees, 3 hens per coop, the address and lifestyle, and starts life
- * (month 0, stage 'welcome', phase 'life'). `pet` ('none'|'cat'|'dog') is adopted from savings (DESIGN.house.petCents)
+ * (`startLife`: stage 'welcome', phase 'life'). `pet` ('none'|'cat'|'dog') is adopted from savings (DESIGN.house.petCents)
  * and refused with `{ok: false, shortfallCents}` when cash is short. Mutates a store draft. → `{ok, errors}`.
  */
 export function moveInBuild(state, bp, { pet = 'none' } = {}) {
@@ -54,8 +55,6 @@ export function moveInBuild(state, bp, { pet = 'none' } = {}) {
     animals,
     lifestyle: { noise: 0, view: 1, nature: 1, social: 0, garden: Math.min(2, Math.ceil((beds.length + trees.length) / 2)) },
   };
-  state.life.monthIndex = 0;
-  state.life.current = { stage: 'welcome' };
-  state.phase = 'life';
+  startLife(state);
   return { ok: true, errors: [] };
 }

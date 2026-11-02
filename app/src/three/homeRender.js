@@ -105,7 +105,7 @@ export function renderHome(state, { season = 'summer', nightFactor = 0 } = {}) {
   (home.animals ?? []).forEach((a, i) => {
     const at = animalSpot(g, home, a, i);
     if (!at) return;
-    const obj = createAnimal(a.kind);
+    const obj = createAnimal(a.kind, a.color ? { color: a.color } : {});
     obj.position.copy(at);
     obj.rotation.y = (i * 2.1) % (Math.PI * 2);
     obj.visible = a.present !== false;

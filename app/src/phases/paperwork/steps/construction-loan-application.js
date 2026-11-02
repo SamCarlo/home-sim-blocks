@@ -5,7 +5,7 @@
 import { BUILD, CREDIT, FINANCE } from '../../../config.js';
 import { byId } from '../../../data/locations/index.js';
 import { formatMoney } from '../../../finance/money.js';
-import { addApplication, PAPERWORK_MONTH } from '../../../finance/ledger.js';
+import { addApplication, inquiryMonth } from '../../../finance/ledger.js';
 import { recordInquiry } from '../../../finance/creditScore.js';
 import { cashOf } from '../../../finance/grid.js';
 import { projectCost, tierTable, refreshBuildSnapshot } from '../../../finance/build.js';
@@ -107,7 +107,7 @@ export default {
     o.designBudgetBaseCents = o.designBudgetCents;
     refreshBuildSnapshot(state);
     o.pulledScore = state.finances.credit.score;   // the score the lender sees (05 §7 floor; before this inquiry)
-    recordInquiry(state, 'construction', PAPERWORK_MONTH);
+    recordInquiry(state, 'construction', inquiryMonth(state));
     addApplication(state, { kind: 'construction', target: `${c.locationId}|${c.homeTypeId}`, feeCents: 0, at: now });
     setStep(state, 'construction-loan-application', 'done', { ...values, tier: tierId }, now);
     return { ok: true, shortfallCents: 0 };

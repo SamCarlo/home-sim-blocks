@@ -1,0 +1,20 @@
+[
+  {"waitFor": "[data-stage=plan]"},
+  {"assert": "!document.querySelector('.life-year').disabled && document.querySelector('.life-year').textContent === 'Live like this for a year'"},
+  {"shot": "tools/shots/t58/autopilot-1-plan.png"},
+  {"click": ".life-year"},
+  {"waitFor": ".modal-confirm"},
+  {"shot": "tools/shots/t58/autopilot-2-confirm.png"},
+  {"click": ".modal-confirm"},
+  {"waitFor": "[data-stage=autopilot]"},
+  {"assert": "(s => s.life.monthIndex === 12 && s.life.history.length === 12 && s.life.current.autopilot.monthsLived === 12)(window.__homesim.getState())"},
+  {"assert": "(s => s.home.animals.some((a) => a.stray && a.kind === 'cat' && a.color === '#1d1d22'))(window.__homesim.getState())"},
+  {"assert": "/A black cat named/.test(document.querySelector('.life-ap-cat').textContent) && document.querySelectorAll('.life-yr-spark').length === 5"},
+  {"assert": "window.__life.view().home.animals.length === 1"},
+  {"shot": "tools/shots/t58/autopilot-3-recap.png"},
+  {"type": ["#life-ap-text", "Cook at home more."]},
+  {"click": ".life-plan-foot .life-go"},
+  {"waitFor": "[data-stage=welcome]"},
+  {"assert": "(s => s.life.current.stage === 'welcome' && s.life.reflections.at(-1).text === 'Cook at home more.' && s.life.reflections.at(-1).kind === 'autopilot')(window.__homesim.getState())"},
+  {"assert": "document.querySelector('.life-title').textContent === 'Welcome to January, 2034.'"}
+]

@@ -8,7 +8,7 @@ import { cash } from '../../finance/ledger.js';
 import { formatMoney } from '../../util/format.js';
 import { plantsCost } from './apartmentModel.js';
 import { sharedOptions, SHARED_BEDROOMS, roomNotes, roommateEffects, agreementRules, moveInShared } from './sharedModel.js';
-import { section, chips, stepper, pickerShell, rerender } from './pickerParts.js';
+import { section, chips, stepper, pickerShell, rerender, savedPick, rememberPick } from './pickerParts.js';
 
 const signed = (n) => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : '±0');
 
@@ -18,7 +18,8 @@ export async function mount(container, { store }) {
   const loc = byId[state.home.locationId];
   const options = sharedOptions(state);
   const rules = agreementRules(state);
-  const sel = { index: null, roomId: null, plants: 0 };
+  const sel = savedPick(state, { index: null, roomId: null, plants: 0 }, (d) => d.index === null
+    || (Number.isInteger(d.index) && options[d.index] && (d.roomId === null || options[d.index].rooms.some((r) => r.id === d.roomId))));
   const sill = loc.region === 'hawaii' ? 'lānai' : 'windowsill';
 
   const step = (d) => choose(sel.index === null ? (d > 0 ? 0 : 2) : (sel.index + d + 3) % 3);
@@ -36,6 +37,7 @@ export async function mount(container, { store }) {
   }
 
   function update() {
+    rememberPick(store, sel);
     const o = options[sel.index ?? 0];
     const room = o.rooms.find((r) => r.id === sel.roomId);
     view?.show({ seed: o.seed, bedrooms: SHARED_BEDROOMS, pin: room ? room.side : null });

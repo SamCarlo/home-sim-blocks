@@ -10,7 +10,7 @@ import { formatMoney } from '../../util/format.js';
 import {
   listings, QUIRKS, PET_LABELS, customLines, customCost, afterCustom, moveInHouse, normalizeCustom,
 } from './houseModel.js';
-import { section, chips, stepper, pickerShell, rerender } from './pickerParts.js';
+import { section, chips, stepper, pickerShell, rerender, savedPick, rememberPick } from './pickerParts.js';
 
 const H = DESIGN.house;
 
@@ -20,7 +20,8 @@ export async function mount(container, { store }) {
   const loc = byId[state.home.locationId];
   const list = listings(state);
   const palettes = styleFamily(loc.styleFamily, loc.styleVariant).palettes;
-  const sel = { index: null, palette: null, gardenBeds: 0, fruitTrees: 0, coop: false, pet: 'none' };
+  const sel = savedPick(state, { index: null, palette: null, gardenBeds: 0, fruitTrees: 0, coop: false, pet: 'none' },
+    (d) => d.index === null || (Number.isInteger(d.index) && d.index >= 0 && d.index < list.length));
 
   const step = (d) => choose(sel.index === null ? (d > 0 ? 0 : 2) : (sel.index + d + 3) % 3);
   const ui = pickerShell({
@@ -39,6 +40,7 @@ export async function mount(container, { store }) {
   function custom() { return normalizeCustom(sel, palettes.length); }
 
   function update() {
+    rememberPick(store, sel);
     const l = list[sel.index ?? 0];
     view?.show({ seed: l.seed, palette: sel.palette ?? l.palette, sqft: l.sqftTarget, bedrooms: l.bedrooms,
       extras: sel.index === null ? {} : { gardenBeds: sel.gardenBeds, fruitTrees: sel.fruitTrees, coop: sel.coop } });

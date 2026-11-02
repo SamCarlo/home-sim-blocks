@@ -148,6 +148,11 @@
   background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -8px 14px -10px rgba(0, 0, 0, .25);
 }
 .life-plan-foot .life-go { margin-top: 0; }
+.life-go-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); margin-top: auto; }
+.life-plan-foot .life-go-row { margin-top: 0; }
+.life-go-row .life-go { margin-top: 0; }
+.life-move { align-self: flex-start; }
+.life-ap-cat { margin: 0; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-sm); background: var(--surface-2); font-size: .92rem; }
 
 /* Time budget bar (09 §4): a storage-style bar with a bracket over the free time. */
 .life { --tb-job: #3f6fb5; --tb-commute: #7b8794; --tb-care: #5aa5a0; --tb-chores: #a07a4f; --tb-exercise: #e0603a;

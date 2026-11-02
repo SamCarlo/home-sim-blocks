@@ -9,6 +9,7 @@ import { namesFor } from '../../content/names.js';
 import { planHouse } from './housePlan.js';
 import { STREETS } from './houseModel.js';
 import { plantsCost } from './apartmentModel.js';
+import { startLife } from '../../life/relocation.js';
 
 const S = DESIGN.shared;
 /** planHouse `bedrooms` for shared houses: the roommates' rooms plus up to 3 open ones (planHouse adds 1 for shared). */
@@ -124,7 +125,7 @@ export function sharedLifestyle(room, effects, plants = 0) {
 
 /**
  * Move in (07 §1, §4): pays for potted plants (month −1, all or nothing), writes the full `home` (shared, label,
- * address, plants, lifestyle), starts life at January 2033 and sets phase 'life'. Mutates a store draft. → `{ok, shortfallCents}`.
+ * address, plants, lifestyle), starts life (`startLife`) and sets phase 'life'. Mutates a store draft. → `{ok, shortfallCents}`.
  */
 export function moveInShared(state, { index, roomId, plants = 0 }) {
   const loc = byId[state.home.locationId];
@@ -150,8 +151,6 @@ export function moveInShared(state, { index, roomId, plants = 0 }) {
     animals: state.home.animals ?? [],
     lifestyle: sharedLifestyle(room, effects, n),
   };
-  state.life.monthIndex = 0;
-  state.life.current = { stage: 'welcome' };
-  state.phase = 'life';
+  startLife(state);
   return { ok: true, shortfallCents: 0 };
 }

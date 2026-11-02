@@ -8,7 +8,8 @@ import { cashOf } from '../../finance/grid.js';
 import { homeApproved } from '../../finance/underwriting.js';
 import { payoffExample, durationText } from '../../finance/creditCard.js';
 import { lateFee } from './steps/lease.js';
-import { recurringFor } from './commit.js';
+import { recurringFor, baseMonth } from './commit.js';
+import { moveOutQuote } from '../../life/relocation.js';
 
 const money = (c) => formatMoney(c);
 
@@ -116,8 +117,10 @@ export function resultsSummary(state, decisions, { letters = [] } = {}) {
     const items = recurringFor(state, home, loan).map((r) => ({ label: r.label, cents: r.amountCents, category: r.category, startsMonth: r.startsMonth, endsMonth: r.endsMonth ?? null }));
     const totalCents = sumCents(items.map((i) => i.cents));
     const incomeCents = state.player.netMonthlyIncomeCents;
-    const firstCents = sumCents(items.filter((i) => i.startsMonth === 0).map((i) => i.cents));
-    monthly = { items, totalCents, incomeCents, leftCents: incomeCents - totalCents, firstCents, laterStart: items.some((i) => i.startsMonth > 0) };
+    const base = baseMonth(state); // 0 for a first home, the current month after a move (task 58)
+    const firstCents = sumCents(items.filter((i) => i.startsMonth === base).map((i) => i.cents));
+    monthly = { items, totalCents, incomeCents, leftCents: incomeCents - totalCents, firstCents, baseMonth: base,
+      laterStart: items.some((i) => i.startsMonth > base) };
   }
 
   const loanSummary = loan ? { lender: t.lender, label: loan.label, principalCents: t.principalCents, rate: t.rate, termMonths: t.termMonths,
@@ -131,6 +134,8 @@ export function resultsSummary(state, decisions, { letters = [] } = {}) {
     deductibleCents: ins.deductibleCents, addOns: ins.addOns ?? [] } : null;
   const cardTerms = card?.approved ? { ...card.terms } : null;
 
-  return { approved, home, card, receive, payNow, monthly, loan: loanSummary, lease, insurance, cardTerms,
+  // Moving from Live (task 58): what leaving the old home brings or costs. cashOf already counts it in payNow.
+  const moveOut = approved && state.relocation && !state.relocation.movedOut ? moveOutQuote(state) : null;
+  return { approved, home, card, receive, payNow, moveOut, monthly, loan: loanSummary, lease, insurance, cardTerms,
     ifYouDontPay: consequences(home, card, approved), nextSteps: approved || !home ? [] : nextStepsFor(home, letters) };
 }

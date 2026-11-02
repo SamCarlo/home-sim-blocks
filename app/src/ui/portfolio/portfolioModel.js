@@ -11,7 +11,7 @@ export const CATEGORY_LABELS = {
   debt: 'Debt payments', lifestyle: 'Lifestyle', savings: 'Savings', other: 'Other',
 };
 
-export const AGREEMENT_STATUS = { pending: 'Pending approval', active: 'Active', void: 'Void' };
+export const AGREEMENT_STATUS = { pending: 'Pending approval', active: 'Active', void: 'Void', ended: 'Ended (moved out)' };
 export const APPLICATION_STATUS = { pending: 'Pending', approved: 'Approved', denied: 'Denied' };
 
 /** "Paperwork" for month −1, otherwise "March 2033". */

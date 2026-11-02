@@ -12,6 +12,7 @@ import { cellKey, deniedKeys } from './tableModel.js';
 import { renderDetail } from './detail.js';
 import { applyChoice, confirmText, detailTitle } from './detailModel.js';
 import { openModal, confirmDialog } from '../../ui/modal.js';
+import { canCancelRelocation } from '../../life/relocation.js';
 
 const PRICE_NOTE = 'Prices are approximate 2025–26 figures for each place. Canada is converted to U.S. dollars.';
 // 04 §6: inline panel at ≥ 900 px wide, modal sheet below. Also a sheet under 720 px tall, where the table frame is too
@@ -22,6 +23,7 @@ const WIDE = '(min-width: 900px) and (min-height: 720px)';
 export function mount(container, ctx) {
   const { store } = ctx;
   let grid = buildGrid(store.getState());
+  const pendingMove = canCancelRelocation(store.getState());
 
   const num = (label, value, extra = null) => h('div', { class: 'plan-num' },
     h('span', { class: 'plan-num-label' }, label), h('strong', { class: 'plan-num-value' }, value), extra);
@@ -37,7 +39,8 @@ export function mount(container, ctx) {
     h('div', { class: 'plan-bar-nums' },
       h('h2', { class: 'plan-bar-title' }, 'Your numbers'),
       num(term('gross-net', 'Take-home pay'), nums.income),
-      num('Cash in the bank', nums.cash),
+      // While moving (task 58) the cash counts what moving out brings or costs (finance/grid.js cashOf).
+      num(pendingMove ? 'Cash after moving out' : 'Cash in the bank', nums.cash),
       num('⅓ of your income', nums.third, h('span', { class: 'plan-num-note' }, 'stretch line')),
       num('⅕ of your income', nums.fifth, h('span', { class: 'plan-num-note' }, 'well-below line'))),
     h('div', { class: 'plan-bar-side' },

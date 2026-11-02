@@ -60,7 +60,8 @@ export function monthBills(state, choices, monthIndex = state.life.monthIndex) {
   if ((choices.exercise ?? 0) >= LIFE.gymMinExerciseHours) push('Gym membership', loc?.living?.gymMonthlyCents ?? 0);
   push('Going out with friends', socialCostCents(state, choices.social, loc));
   push('Books, supplies and classes', LIFE.deepPracticeCostCents[choices.deepPractice] ?? 0);
-  const kinds = new Set(presentAnimals(state.home).map((a) => a.kind));
+  // Strays (the year fast-forward's black cats, task 58) feed themselves: no food line.
+  const kinds = new Set(presentAnimals(state.home).filter((a) => !a.stray).map((a) => a.kind));
   if (choices.homeGarden === 'cat') kinds.add('cat');
   if (choices.homeGarden === 'chickens') kinds.add('chicken');
   for (const k of kinds) push(`${k === 'chicken' ? 'Chicken' : k[0].toUpperCase() + k.slice(1)} food and care`,

@@ -6,6 +6,7 @@ import { byId } from '../../data/locations/index.js';
 import { charge, PAPERWORK_MONTH } from '../../finance/ledger.js';
 import { createRng, seedFor } from '../../util/rng.js';
 import { planBuilding, homeFloors, unitCell } from './buildingPlan.js';
+import { startLife } from '../../life/relocation.js';
 
 /** Fictional building names per region (07 §2 "Kaiko Terrace", "The Alder"). */
 export const BUILDING_NAMES = {
@@ -136,7 +137,7 @@ export function plantsCost(n) {
 
 /**
  * Move in (07 §1): pays for the plants (month −1, checking then savings; all or nothing), writes the full `home`
- * (building, label, plants, lifestyle), starts life at January 2033 (`stage: 'welcome'`) and sets phase 'life'.
+ * (building, label, plants, lifestyle), starts life (`startLife`: welcome stage, phase 'life', the calendar keeps going).
  * Mutates a store draft. → `{ok, shortfallCents}`.
  */
 export function moveIn(state, { index, floor, unit, plants = 0 }) {
@@ -162,8 +163,6 @@ export function moveIn(state, { index, floor, unit, plants = 0 }) {
     animals: state.home.animals ?? [],
     lifestyle: lifestyleFor(traits, option.amenities, n),
   };
-  state.life.monthIndex = 0;
-  state.life.current = { stage: 'welcome' };
-  state.phase = 'life';
+  startLife(state);
   return { ok: true, shortfallCents: 0 };
 }

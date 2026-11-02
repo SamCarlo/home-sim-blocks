@@ -3,7 +3,7 @@
 import { assertCents } from './money.js';
 
 /** Agreement statuses (02 §2). */
-export const AGREEMENT_STATUSES = ['pending', 'active', 'void'];
+export const AGREEMENT_STATUSES = ['pending', 'active', 'void', 'ended'];
 /** Application statuses (02 §2). */
 export const APPLICATION_STATUSES = ['pending', 'approved', 'denied'];
 
@@ -19,13 +19,15 @@ export function addAgreement(state, a) {
   const list = state.finances.agreements;
   const stored = { id: a.id ?? nextId(list, 'ag'), type: a.type, title: a.title ?? '', status: a.status ?? 'pending',
     signedAt: a.signedAt ?? null, counterparty: a.counterparty ?? '', summary: a.summary ?? '',
-    terms: a.terms ?? {}, docValues: a.docValues ?? {}, ...(a.docType ? { docType: a.docType } : {}) };
+    terms: a.terms ?? {}, docValues: a.docValues ?? {}, ...(a.docType ? { docType: a.docType } : {}),
+    // Signed for a home that starts mid-game (task 58): the documents are dated the month before (forms signDateLabel).
+    ...(state.life?.monthIndex > 0 ? { signedMonth: state.life.monthIndex } : {}) };
   if (!AGREEMENT_STATUSES.includes(stored.status)) throw new RangeError(`bad agreement status "${stored.status}"`);
   list.push(stored);
   return stored;
 }
 
-/** Set an agreement's status ('pending' | 'active' | 'void'); returns it, or null if the id is unknown. */
+/** Set an agreement's status ('pending' | 'active' | 'void' | 'ended' (moved out, task 58)); returns it, or null if the id is unknown. */
 export function setAgreementStatus(state, id, status) {
   if (!AGREEMENT_STATUSES.includes(status)) throw new RangeError(`bad agreement status "${status}"`);
   const a = state.finances.agreements.find((x) => x.id === id);

@@ -11,6 +11,7 @@ import { formatMoney, sumCents } from './money.js';
 import { pmt, totalInterest } from './loans.js';
 import { offerFor } from './creditCard.js';
 import { cashOf } from './grid.js';
+import { homeLoans } from '../life/relocation.js';
 import { unpaidUpfront } from './ledgerRecords.js';
 import { loanOptions, findOption, programBlock, creditTier, optionLabel } from './loanOptions.js';
 import { appliesTo, rentOf } from '../phases/paperwork/flow.js';
@@ -141,9 +142,13 @@ function roommatesDecision(state, opts, uw = UNDERWRITING.roommates) {
     terms: renterTermsOf(state, b, { roommateComfort: comfort }) });
 }
 
-/** Monthly debts the student already has (loans and debt-category bills), for the back-end ratio. */
+/**
+ * Monthly debts the student already has (open loans and debt-category bills), for the back-end ratio. While moving
+ * (task 58) the current home's loan doesn't count: the sale pays it off before the new loan starts.
+ */
 const otherDebtsCents = (state) => sumCents(
-  ...state.finances.loans.map((l) => l.paymentCents ?? 0),
+  ...state.finances.loans.filter((l) => !l.closedReason && !(state.relocation && homeLoans(state).includes(l)))
+    .map((l) => l.paymentCents ?? 0),
   ...state.finances.recurring.filter((r) => r.category === 'debt').map((r) => r.amountCents));
 
 /** Mortgage (condo/house, 05 §7), using the loan option the student chose (task 21) and the closing's final rate. */

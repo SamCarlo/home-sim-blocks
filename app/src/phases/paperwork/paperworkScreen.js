@@ -8,6 +8,8 @@ import { byId } from '../../data/locations/index.js';
 import { homeType } from '../../data/homeTypes.js';
 import { detailTitle } from '../plan/detailModel.js';
 import { renderForm } from '../../forms/engine.js';
+import { signDateLabel } from '../../forms/validate.js';
+import { moveDates } from '../../util/dates.js';
 import * as config from '../../config.js';
 import { STATUS_INFO, checklist, nextStep, setStep, completeStep, withdraw } from './flow.js';
 import { step as stepModule } from './steps/index.js';
@@ -22,7 +24,9 @@ export function mount(container, ctx) {
   const location = byId[first.choice.locationId];
   const type = homeType(first.choice.homeTypeId);
 
-  let active = nextStep(first) ?? 'results';
+  // Reopen the step the student was on (paperwork.activeStep, task 58), unless it has since locked.
+  const saved = first.paperwork.activeStep;
+  let active = saved && checklist(first).some((x) => x.id === saved && x.status !== 'locked') ? saved : nextStep(first) ?? 'results';
   let mountedKey = null;
   let unmountStep = null;
   let form = null;
@@ -38,7 +42,8 @@ export function mount(container, ctx) {
   const side = h('aside', { class: 'pw-side card', 'aria-label': 'Paperwork checklist' },
     h('p', { class: 'pw-eyebrow' }, 'Phase 2 · Paperwork'),
     h('h1', { class: 'pw-title' }, detailTitle(location, type)),
-    h('p', { class: 'pw-sub' }, `Every document is dated ${config.FORMS.signDate}. You move in on January 1, 2033.`),
+    h('p', { class: 'pw-sub' }, `Every document is dated ${signDateLabel(store.getState())}. You move in on `
+      + `${moveDates(store.getState().life.monthIndex).moveInLabel}.`),
     count, list,
     h('button', { type: 'button', class: 'pw-withdraw', onClick: () => chooseDifferent() }, 'Choose a different home'));
 
@@ -46,6 +51,7 @@ export function mount(container, ctx) {
 
   function select(id, focus = true) {
     active = id;
+    if (store.getState().paperwork.activeStep !== id) store.update((s) => { s.paperwork.activeStep = id; });
     render(store.getState());
     if (focus) body.querySelector('.pw-step-title, .fm-title')?.focus();
   }

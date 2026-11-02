@@ -21,7 +21,7 @@ function svg(tag, attrs, ...kids) {
 }
 
 /** One domain's sparkline: a 2px line in the domain's color, a dot at the end, a hover title per month. */
-function spark(key, label, values, months) {
+export function spark(key, label, values, months) {
   const pts = sparkPoints(values, SPARK_W, SPARK_H).split(' ').map((p) => p.split(',').map(Number));
   const end = pts.at(-1) ?? [0, 0];
   const el = svg('svg', { class: 'life-yr-spark', viewBox: `0 0 ${SPARK_W} ${SPARK_H}`, width: SPARK_W, height: SPARK_H,

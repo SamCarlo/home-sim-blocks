@@ -7,6 +7,7 @@ import { styleFamily } from '../../data/styleFamilies.js';
 import { charge, cash, PAPERWORK_MONTH } from '../../finance/ledger.js';
 import { createRng, seedFor } from '../../util/rng.js';
 import { planHouse, fruitTreeKind } from './housePlan.js';
+import { startLife } from '../../life/relocation.js';
 
 const H = DESIGN.house;
 
@@ -133,7 +134,7 @@ export function quirkModifiers(quirk) {
 /**
  * Move in (07 §1, §3): checks the customization fits in checking + savings (never below $0), charges each line from
  * savings at month −1, writes the full `home` (house, label, address, plants, animals, lifestyle, modifiers), starts
- * life at January 2033 and sets phase 'life'. Mutates a store draft. → `{ok, shortfallCents}`.
+ * life (`startLife`) and sets phase 'life'. Mutates a store draft. → `{ok, shortfallCents}`.
  */
 export function moveInHouse(state, { index, ...custom }) {
   const loc = byId[state.home.locationId];
@@ -171,8 +172,6 @@ export function moveInHouse(state, { index, ...custom }) {
     lifestyle: houseLifestyle(listing, c, loc),
     modifiers: quirkModifiers(listing.quirk),
   };
-  state.life.monthIndex = 0;
-  state.life.current = { stage: 'welcome' };
-  state.phase = 'life';
+  startLife(state);
   return { ok: true, shortfallCents: 0 };
 }

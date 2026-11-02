@@ -2,6 +2,8 @@
 // is given. Approved → charge what's still owed upfront, open the loan, add the monthly bills, activate the agreements,
 // move to design. Denied → void the agreements, refund earnest money if the contingency was kept, record the attempt,
 // reset paperwork (letters and fees stay) and go back to plan. The credit card is handled on its own either way.
+// A student moving from Phase 4 (state.relocation, task 58) leaves the old home first (life/relocation.js moveOut), and
+// the new bills and loan start in the current life month instead of month 0.
 // Callers: store.update((s) => commitPaperwork(s, decisions, now), {checkpoint: result.approved ? 'paperwork-committed' : 'paperwork-denied'}).
 import { CREDIT } from '../../config.js';
 import { byId } from '../../data/locations/index.js';
@@ -10,10 +12,14 @@ import { charge, post, addRecurring, openLoan, pmiSource, setAgreementStatus, re
   available, PAPERWORK_MONTH } from '../../finance/ledger.js';
 import { homeApproved } from '../../finance/underwriting.js';
 import { formatMoney } from '../../finance/money.js';
+import { moveOut } from '../../life/relocation.js';
 
 const M = PAPERWORK_MONTH;
 const CARD_APP_KINDS = new Set(['credit-card', 'card']);
 const CARD_AGREEMENT_TYPES = new Set(['card', 'credit-card']);
+
+/** The life month the new home starts in: 0 for a first home, the next unlived month after a move (task 58). */
+export const baseMonth = (state) => state.life?.monthIndex ?? 0;
 
 /** Monthly line `key` from the chosen home's snapshot, or null. */
 const monthlyLine = (state, key) => (state.choice.snapshot?.breakdown?.monthly ?? []).find((l) => l.key === key) ?? null;
@@ -22,13 +28,14 @@ const monthlyLine = (state, key) => (state.choice.snapshot?.breakdown?.monthly ?
  * The recurring bills an approved home adds (05 §8): housing payment, PMI/MIP, escrowed tax, HOA, special assessment,
  * rent, insurance, utilities and the location's living costs. `loan` is the opened loan (buyers/builders) or null.
  * Housing bills for a build start when the house is finished (`terms.buildMonths`); the interest reserve and
- * temporary-housing lines paid upfront cover the months before.
+ * temporary-housing lines paid upfront cover the months before. Everything is offset by `baseMonth`.
  */
 export function recurringFor(state, home, loan) {
   const type = state.choice.homeTypeId;
   const loc = byId[state.choice.locationId];
   const o = state.paperwork.options;
-  const startsMonth = type === 'build' ? (home.terms.buildMonths ?? 0) : 0;
+  const base = baseMonth(state);
+  const startsMonth = base + (type === 'build' ? (home.terms.buildMonths ?? 0) : 0);
   const items = [];
   const add = (label, amountCents, category, source, extra = {}) => {
     if (amountCents > 0) items.push({ label, amountCents, category, source, startsMonth, ...extra });
@@ -55,7 +62,7 @@ export function recurringFor(state, home, loan) {
   add('Utilities', monthlyLine(state, 'utilities')?.cents ?? 0, 'utilities', 'utility');
   // Living costs (03 §2 living) start right away, wherever the student lives while building.
   const living = loc.living ?? {};
-  const now = (label, cents, category) => { if (cents > 0) items.push({ label, amountCents: cents, category, source: 'living', startsMonth: 0 }); };
+  const now = (label, cents, category) => { if (cents > 0) items.push({ label, amountCents: cents, category, source: 'living', startsMonth: base }); };
   now('Groceries', living.groceriesMonthlyCents ?? 0, 'food');
   now(`Transportation (${living.transport?.mode ?? 'car'})`, living.transport?.monthlyCents ?? 0, 'transportation');
   now('Phone', living.phoneMonthlyCents ?? 0, 'utilities');
@@ -113,15 +120,16 @@ function chargeUpfront(state, home) {
 /** Open the loan for an approved mortgage or construction decision, or null for renters. */
 function openHomeLoan(state, home) {
   const t = home.terms;
+  const base = baseMonth(state);
   if (home.kind === 'mortgage') {
     return openLoan(state, { kind: 'mortgage', label: `${t.termMonths / 12}-year mortgage`, lender: t.lender,
-      principalCents: t.principalCents, rate: t.rate, termMonths: t.termMonths, paymentCents: t.paymentCents, startMonth: 0,
+      principalCents: t.principalCents, rate: t.rate, termMonths: t.termMonths, paymentCents: t.paymentCents, startMonth: base,
       priceCents: t.priceCents, pmiCents: t.mortgageInsuranceCents ?? 0, escrow: t.escrow });
   }
   if (home.kind === 'construction') {
     return openLoan(state, { kind: 'construction-perm', label: 'Construction-to-permanent loan', lender: t.lender,
       principalCents: t.principalCents, rate: t.rate, termMonths: t.termMonths, paymentCents: t.paymentCents,
-      startMonth: t.buildMonths ?? 0, priceCents: t.priceCents });
+      startMonth: base + (t.buildMonths ?? 0), priceCents: t.priceCents });
   }
   return null;
 }
@@ -141,6 +149,7 @@ export function commitPaperwork(state, decisions, now = 0) {
   const result = { approved, chargedCents: 0, loan: null, recurring: [], card: null };
 
   if (approved) {
+    if (state.relocation && !state.relocation.movedOut) result.movedOut = moveOut(state);
     result.chargedCents = chargeUpfront(state, home);
     result.loan = openHomeLoan(state, home);
     result.recurring = recurringFor(state, home, result.loan).map((r) => addRecurring(state, r));

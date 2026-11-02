@@ -2081,3 +2081,34 @@ life-month1-house · seed 7 · income $4,300/mo
   `npm run test:e2e`, emulator tests via `mise exec java@temurin-21 -- …` (see CLAUDE.md Commands).
 - **What's left**: only teacher actions in OPEN_ITEMS: the one-time Firebase setup (docs/DEPLOY.md) and an optional
   GAME_TITLE rename. Not measured (from task 54): the 600 KB compressed JS+CSS budget for login → plan.
+
+## Task 58 — Moving and the year fast-forward (interactive session with the teacher)
+- done 2026-10-03
+- Asked for: (1) "Live like this for a year" (no animation, plants and animals fed, a black cat Easter egg), (2) "Find a
+  new place to live" back to Plan keeping all life data, (3) a Save button and resuming on the exact page, (4) Cancel
+  while re-housing. Teacher's choices: realistic move-out costs, old home ends at approval (Cancel until then), stop
+  after a missed housing payment, one free black cat per run.
+- Files added: app/src/life/{autopilot,relocation}.js, app/src/phases/life/autopilotRecap.js, app/src/ui/relocationBar.js,
+  tests/unit/{autopilot,relocation}.test.js, tests/e2e/{life-autopilot,life-relocate-cancel,play-relocate-hilo}.json.
+- Files changed: state/{schema,migrate}.js (v2), config.js (LIFE.autopilot, RELOCATION), finance/{grid,underwriting,ledger,
+  ledgerRecords}.js, life/{planMonth,monthReport}.js, phases/paperwork/{commit,resultsModel,paperworkScreen}.js + steps
+  (results, lease, renterTerms, closing-disclosure, mortgage/construction applications, credit-card-offer),
+  phases/design/{apartment,house,shared}Model.js + pickers + blueprint/moveIn.js + pickerParts.js, phases/life/{lifeScreen,
+  yearReview}.js, phases/plan/planScreen.js, forms/{fields,validate}.js, ui/{header,portfolio/records,portfolio/portfolioModel}.js,
+  three/homeRender.js, util/dates.js, main.js, styles/{life,components}.css, dev/lifeSeeds.js, tools/smoke.txt,
+  tools/e2e/genPlaythroughs.mjs, tests/unit/state.test.js, CLAUDE.md, README.md, docs/TEACHER_GUIDE.md, docs/spec/DEVIATIONS.md.
+- Verified: `npm test` 405/405; `bash tools/check.sh` OK (smoke 80/80 incl. the 3 new seeds); `npm run test:e2e` 6/6;
+  `life-autopilot.json` and `life-relocate-cancel.json` OK; also re-ran life-two-months, life-month1, paperwork-apartment-full,
+  renter-shared, buyer-house, card-offer, persist (OK). `node tools/sim-months.mjs` for all five life-month1 seeds is
+  byte-identical before and after (first homes unchanged). Shots (tools/shots/t58/):
+  - plan-buttons: plan panel foot with "Live this month" and "Live like this for a year"; Save in the header.
+  - autopilot / autopilot-house: recap of Jan–Dec 2033 (money in/out, net worth, best/worst month, the black cat line,
+    sparklines); at the Katy house the black cat sits in the yard by the coop.
+  - relocating-house: the moving bar (+$12,105 back from the sale) and "Cash after moving out" on the Plan table.
+  - cancel-1-confirm / cancel-2-paperwork: the confirm lists deposit back and the lease break fee; the bar stays above Paperwork.
+  - move-2-results: shared room approved, "Moving out of your old home" table; move-3-new-home: March 2033 welcome in the
+    new Hilo house with money and wellbeing carried over.
+  - narrow-800 / narrow-380: header Save button and the bar wrap cleanly.
+- Notes: four older e2e scripts (design-apartment/house/shared, renter-apartment) were already stale before this task
+  (placeholders from early tasks); not changed. Reflections (year review and autopilot) are saved but not shown in the
+  admin console.

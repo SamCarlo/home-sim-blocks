@@ -136,7 +136,7 @@ export function trapScore(values = {}) {
 /** Lease terms worth keeping on the agreement (renterTerms plus the clause numbers). */
 export function leaseAgreementTerms(terms) {
   return { ...terms, lateFeeCents: LEASE.lateFeeCents, lateFeePerDayCents: LEASE.lateFeePerDayCents,
-    lateFeeGraceDay: LEASE.lateFeeGraceDay, renewalNoticeDays: LEASE.renewalNoticeDays, startMonth: 0 };
+    lateFeeGraceDay: LEASE.lateFeeGraceDay, renewalNoticeDays: LEASE.renewalNoticeDays, startMonth: terms.startMonth ?? 0 };
 }
 
 export default {

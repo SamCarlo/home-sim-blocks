@@ -3,12 +3,12 @@ import { hashString } from '../util/rng.js';
 import { CREDIT, LIFE } from '../config.js';
 
 /** Current save version. Any shape change bumps it and adds a step to migrate.js. */
-export const STATE_VERSION = 1;
+export const STATE_VERSION = 2;
 
 /** Valid values of state.phase. */
 export const PHASES = ['intake', 'plan', 'paperwork', 'design', 'life'];
 /** Valid values of state.life.current.stage (09 §2). */
-export const LIFE_STAGES = ['welcome', 'plan', 'live', 'summary', 'review'];
+export const LIFE_STAGES = ['welcome', 'plan', 'live', 'summary', 'review', 'autopilot'];
 const WELLBEING_KEYS = ['physical', 'purpose', 'financial', 'social', 'mental'];
 
 /** A fresh paperwork attempt (02 §2), used by a new save and by choosing a home (04 §6). */
@@ -51,6 +51,8 @@ export function createInitialState({ uid, username = '', classCode = '', now = 0
       credit: { score: CREDIT.startingScore, history: [], inquiries: [], onTimeStreak: 0, missedPayments: 0, lateHousingStreak: 0 },
     },
     home: null,
+    // Looking for a new home from Phase 4 (life/relocation.js): {startedMonth, stage, from, movedOut?, pets?} or null.
+    relocation: null,
     life: {
       monthIndex: 0,
       current: null,
@@ -108,6 +110,9 @@ export function validateState(state) {
     (finances.transactions || []).forEach((t, i) => { if (!isInt(t?.amountCents)) errs.push(`finances.transactions[${i}].amountCents must be integer cents`); });
   }
   if (state.home !== null && !isObj(state.home)) errs.push('home must be null or an object');
+  if (state.relocation !== null && !(isObj(state.relocation) && isInt(state.relocation.startedMonth))) {
+    errs.push('relocation must be null or have an integer startedMonth');
+  }
 
   if (!isObj(life)) errs.push('life missing');
   else {
