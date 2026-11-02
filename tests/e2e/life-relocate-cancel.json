@@ -1,9 +1,13 @@
 [
   {"waitFor": "[data-stage=plan]"},
   {"eval": "window.__before = JSON.stringify(window.__homesim.getState().life); 'saved life'"},
+  {"click": ".life-home"},
+  {"waitFor": ".life-home-menu .life-move:not([disabled])"},
+  {"shot": "tools/shots/t58/cancel-0-menu.png"},
   {"click": ".life-move"},
   {"waitFor": ".modal-confirm"},
   {"assert": "/Lease break fee/.test(document.querySelector('.modal-message').textContent)"},
+  {"assert": "/Your builds stay with this home when you move\\./.test(document.querySelector('.modal-message').textContent)"},
   {"shot": "tools/shots/t58/cancel-1-confirm.png"},
   {"click": ".modal-confirm"},
   {"waitFor": ".reloc-bar"},

@@ -1,35 +1,41 @@
 [
-  {
-"waitFor": ".life-explore-open:not([disabled])"
-},
-  {
-"click": ".life-explore-open"
-},
-  {
-"waitFor": ".life-explore"
-},
-  {
-"assert": "!!window.__explore && document.activeElement.closest('.life-explore') !== null && document.querySelector('.life').closest('[inert]') !== null"
-},
-  {
-"eval": "(() => { const c = window.__life.view().contract; const p = window.__explore.pose(); window.__b16 = {door: c.door, start: p}; return {door: c.door, exit: c.exit, start: p}; })()"
-},
-  {
-"eval": "(() => { const e = window.__explore, {door} = window.__b16, exit = window.__life.view().contract.exit; const to = (x, z) => { for (let i = 0; i < 60; i++) { const p = e.pose(), dx = x - p.x, dz = z - p.z, d = Math.hypot(dx, dz); if (d < 0.15) return; e.look((p.yaw - Math.atan2(-dx, -dz)) / 0.0025, 0); e.move(['w'], Math.min(150, d * 280)); } }; to(door.x + 0.5, e.pose().z); to(door.x + 0.5, exit.z + 0.5); const p = e.pose(); e.look(p.yaw / 0.0025, 0); return e.pose(); })()"
-},
-  {
-"assert": "window.__explore.pose().z > window.__b16.door.z + 2 && Math.abs(window.__explore.pose().y - window.__b16.door.y) < 1.01 && Math.abs(window.__explore.pose().yaw) < 0.01"
-},
-  {
-"eval": "window.__explore.look(0, -40)"
-},
-  {
-"click": ".life-explore-done"
-},
-  {
-"assert": "!document.querySelector('.life-explore') && !window.__explore && !document.querySelector('[inert]') && document.querySelector('.life-stage canvas') !== null"
-},
-  {
-"assert": "!document.querySelector('.life-anim') && document.querySelector('.life').dataset.stage !== 'live'"
-}
+ {
+  "waitFor": "body[data-ready=\"1\"] .life-home"
+ },
+ {
+  "click": ".life-home"
+ },
+ {
+  "waitFor": ".life-explore-open:not([disabled])"
+ },
+ {
+  "click": ".life-explore-open"
+ },
+ {
+  "waitFor": ".life-explore"
+ },
+ {
+  "assert": "!!window.__explore && document.activeElement.closest('.life-explore') !== null && document.querySelector('.life').closest('[inert]') !== null"
+ },
+ {
+  "eval": "(() => { const c = window.__life.view().contract; const p = window.__explore.pose(); window.__b16 = {door: c.door, start: p}; return {door: c.door, exit: c.exit, start: p}; })()"
+ },
+ {
+  "eval": "(() => { const e = window.__explore, {door} = window.__b16, exit = window.__life.view().contract.exit; const to = (x, z) => { for (let i = 0; i < 60; i++) { const p = e.pose(), dx = x - p.x, dz = z - p.z, d = Math.hypot(dx, dz); if (d < 0.15) return; e.look((p.yaw - Math.atan2(-dx, -dz)) / 0.0025, 0); e.move(['w'], Math.min(150, d * 280)); } }; to(door.x + 0.5, e.pose().z); to(door.x + 0.5, exit.z + 0.5); const p = e.pose(); e.look(p.yaw / 0.0025, 0); return e.pose(); })()"
+ },
+ {
+  "assert": "window.__explore.pose().z > window.__b16.door.z + 2 && Math.abs(window.__explore.pose().y - window.__b16.door.y) < 1.01 && Math.abs(window.__explore.pose().yaw) < 0.01"
+ },
+ {
+  "eval": "window.__explore.look(0, -40)"
+ },
+ {
+  "click": ".life-explore-done"
+ },
+ {
+  "assert": "!document.querySelector('.life-explore') && !window.__explore && !document.querySelector('[inert]') && document.querySelector('.life-stage canvas') !== null"
+ },
+ {
+  "assert": "!document.querySelector('.life-anim') && document.querySelector('.life').dataset.stage !== 'live'"
+ }
 ]

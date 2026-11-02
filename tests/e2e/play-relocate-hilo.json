@@ -417,10 +417,19 @@
   "waitFor": ".save-indicator[data-status=saved]"
  },
  {
+  "click": ".life-home"
+ },
+ {
+  "waitFor": ".life-home-menu .life-move:not([disabled])"
+ },
+ {
   "click": ".life-move"
  },
  {
   "waitFor": ".modal-confirm"
+ },
+ {
+  "assert": "/Your builds stay with this home when you move\\./.test(document.querySelector('.modal-message').textContent)"
  },
  {
   "click": ".modal-confirm"

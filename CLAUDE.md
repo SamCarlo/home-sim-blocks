@@ -923,8 +923,8 @@ shows "3 of 8 required done". `readOnly` renders values as text (the portfolio's
   stamps `signedMonth` when monthIndex > 0 and the portfolio renders documents with that month. Credit inquiries use
   `ledger.inquiryMonth(state)`.
 - UI: `ui/relocationBar.js` `renderRelocationBar(store)` (main.js puts it between header and screen in plan/paperwork;
-  `.reloc-cancel` → confirm → `cancelRelocation`, checkpoint 'relocation-cancelled'); lifeScreen `.life-move` (welcome and
-  plan panels, confirm lists the quote, checkpoint 'relocation-started'); planScreen labels cash "Cash after moving out".
+  `.reloc-cancel` → confirm → `cancelRelocation`, checkpoint 'relocation-cancelled'); `.life-move` now lives in the My home menu
+  (blocks task 19; confirm lists the quote, checkpoint 'relocation-started'); planScreen labels cash "Cash after moving out".
   Results shows a "Moving out of / Selling your old home" table. Seeds `life-relocating` (Hilo, April), `life-relocating-house`
   (Katy sale). e2e `tests/e2e/life-relocate-cancel.json` (`?seed=life-plan-filled&theme=light`) and `play-relocate-hilo`.
 - **Save and resume**: header `onSave` → `.header-save` (`persistence.saveNow('manual-save')`, shows "Saved" for 1.5 s).
@@ -975,8 +975,8 @@ rename). History: `docs/PROGRESS.md`. Before shipping a change run `bash tools/c
   card `.life-explore-card` ("Got it" saves `settings.exploreCardDismissed`; "Controls" reopens). Reduced motion turns off head bob.
 - Pure `world/firstPerson.js`: `collides(v, x, y, z)`, `createPlayer(spawn | pose)`, `stepPlayer(v, p, input, dt)`, `turn`, `poseOf`; numbers in
   `config.EXPLORE` (vendored Player body/speeds, our collision: DEVIATIONS). Feet in block space, yaw 0 looks −z.
-- lifeScreen: "Explore & build" (`.life-explore-open`) on welcome, plan and summary (never live; disabled until the view is ready, hidden with
-  `?view=classic`); Done saves checkpoint 'explore'. Dev flag `&explore=1` opens it on load (smoke `life-explore`). e2e `tests/e2e/blocks-explore.json`
+- lifeScreen: "Explore & build" (`.life-explore-open`, inside the My home menu since blocks task 19) on welcome, plan and summary (never live;
+  disabled until the view is ready, hidden with `?view=classic`); Done saves checkpoint 'explore'. Dev flag `&explore=1` opens it on load (smoke `life-explore`). e2e `tests/e2e/blocks-explore.json`
   on `?seed=life-month1-house&theme=light` (walks out the front door). Shot steps `tools/shots/b16/steps-{house,hilo}.json`.
 
 ## Building in Explore (13 §9, blocks task 17; `world/buildRules.js` pure, `phases/life/exploreBuild.js` browser only)
@@ -1002,3 +1002,13 @@ rename). History: `docs/PROGRESS.md`. Before shipping a change run `bash tools/c
   'world' with edits + pose. `.life-hotbar-full` shows "Your world is almost full" at 90 %.
 - Seed `life-world-built` (Katy, 38 edits = `plannedBuilds()`, pose on the sidewalk facing them). e2e `tests/e2e/blocks-persist.json` on
   `/index.html?theme=light` (register → `store.replace` a seed → build → reload without a seed → same blocks and pose).
+
+## The "My home" menu (13 §10, blocks task 19; `life/homeMenu.js` pure, `phases/life/homeMenu.js` browser)
+- Welcome, plan and summary panels have one `.life-home` button → `openHomeMenu({store, go, explore})` (openModal `.life-home-menu`: a list of
+  buttons, focus trapped, Esc/Back close, My home refocused). Items from pure `homeMenuItems(state, {explore, exploreReady, upgradeReady})`:
+  `.life-explore-open` (hidden with `?view=classic`, disabled while loading; `refreshHomeMenu(ready)` enables it), `.life-upgrade` ("Coming soon"
+  until task 20 passes `upgradeReady`; hidden when `!hasUpgrades(kind)`), `.life-move` (`canRelocate`; disabled on the summary). `confirmMove`
+  ends with `BUILDS_STAY` ("Your builds stay with this home when you move.").
+- Moving with a world: `cancelRelocation` never touches `state.world`; `startLife` sets `state.world = null` (unless `state.upgrade`).
+- e2e: `{"click": ".life-home"}`, then `{"waitFor": ".life-home-menu .life-move:not([disabled])"}`. `tests/e2e/blocks-relocate-keep.json` on
+  `?seed=life-world-built&theme=light`. `ui/screens.js` renderPhase clears `body[data-ready]` before loading a different phase's module.

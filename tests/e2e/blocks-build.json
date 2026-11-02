@@ -1,5 +1,11 @@
 [
  {
+  "waitFor": "body[data-ready=\"1\"] .life-home"
+ },
+ {
+  "click": ".life-home"
+ },
+ {
   "waitFor": ".life-explore-open:not([disabled])"
  },
  {

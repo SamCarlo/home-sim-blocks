@@ -412,3 +412,10 @@ body.has-explore { overflow: hidden; }
   font-weight: 600; text-align: center;
 }
 .life-explore-toast[hidden] { display: none; }
+
+/* The "My home" menu (13 §10, blocks task 19). */
+.life-home { white-space: nowrap; }
+.life-home-menu { width: min(420px, 100vw - 24px); }
+.life-home-list { list-style: none; margin: 0 0 var(--sp-3); padding: 0; display: flex; flex-direction: column; gap: var(--sp-3); }
+.life-home-item { width: 100%; justify-content: flex-start; text-align: left; }
+.life-home-note { margin: var(--sp-1) 0 0; font-size: 0.875rem; }

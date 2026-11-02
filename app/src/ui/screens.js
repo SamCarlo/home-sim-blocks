@@ -27,6 +27,9 @@ export function unmountCurrent(container) {
 export async function renderPhase(container, ctx) {
   const phase = ctx.phase ?? ctx.store.getState().phase;
   const token = ++renderToken;
+  // The old screen's ready flag must not outlive the switch: the next screen's module can take a moment to load, and a
+  // test's waitReady would otherwise pass on the screen that is about to go (blocks task 19).
+  if (current && current.phase !== phase) delete document.body.dataset.ready;
   const loader = loaders.get(phase);
   if (!loader) throw new Error(`No screen registered for phase "${phase}"`);
   const mod = await loader();

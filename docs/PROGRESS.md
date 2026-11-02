@@ -2602,3 +2602,29 @@ each logs here under `## Blocks NN: <title>`.
   base too. lifeScreen only checkpoints the world on Explore close; task 19's menu transitions should call `ensureWorld` as needed. e2e scripts
   can load any seed after registering with `window.__homesim.store.replace(window.__homesim.seeds[name].build(Date.now()))`, then
   `goto /index.html` reloads the real save.
+## Blocks 19: The "My home" menu and moving with a world
+- attempt started 2026-11-02T13:24:43-10:00
+- done 2026-11-02T13:47:01-10:00
+- Files added: app/src/life/homeMenu.js (pure: `homeMenuItems(state, {explore, exploreReady, upgradeReady})`, `hasUpgrades`, `UPGRADE_KINDS`,
+  `HOME_MENU_STAGES`), app/src/phases/life/homeMenu.js (`homeButton`, `openHomeMenu`, `confirmMove` (moved out of lifeScreen), `refreshHomeMenu`,
+  `BUILDS_STAY`), tests/unit/homeMenu.test.js (6 tests), tests/e2e/blocks-relocate-keep.json. Changed: phases/life/lifeScreen.js (welcome, plan and
+  summary show one **My home** button; `exploreButton`/`moveButton` removed), life/relocation.js (`startLife` sets `state.world = null` unless
+  `state.upgrade`), ui/screens.js (renderPhase clears the old screen's `body[data-ready]` before loading a different phase), styles/life.css,
+  tools/e2e/genPlaythroughs.mjs `buildRelocate` (opens the menu, asserts the builds sentence) + regenerated play JSON, tests/e2e/life-relocate-cancel.json,
+  blocks-{explore,build,persist}.json and tools/shots/b17/steps-*.json (open the menu before `.life-explore-open`), CLAUDE.md.
+- Verified: `node --test tests/unit/homeMenu.test.js tests/unit/relocation.test.js` 16/16; `bash tools/check.sh` OK (smoke 93/93); `npm run test:e2e`
+  6/6 incl. play-relocate-hilo; blocks-explore, blocks-build, blocks-persist, life-relocate-cancel all ✓;
+  `node tools/shoot.mjs --path '/index.html?seed=life-world-built&theme=light' --wait-ready --steps tests/e2e/blocks-relocate-keep.json` ✓ (38 edits,
+  menu items explore/upgrade/move, focus on Explore, Esc closes and refocuses My home, world JSON identical after start + cancel). Shots → tools/shots/b19/:
+  - 1-menu-welcome.png: the My home dialog over the Katy welcome panel: "729 Sycamore Way, Katy. What would you like to do?", Explore & build,
+    a greyed Upgrade this home with "Coming soon", Find a new place to live, Back; the My home button beside Plan my month.
+  - 2-move-confirm.png: "Find a new place to live?" with the sale/selling costs/payoff lines and "+$11,250 back. Your builds stay with this home
+    when you move." Stay here / Start looking.
+  - 3-world-after-cancel.png: Explore after the cancelled move: the seed's plaster planter with two glass blocks and red flowers in front of the house.
+- Fixed on the way: play-relocate-hilo failed 3 of 3 times with the menu (a waitReady right after the move passed on the still-mounted life screen,
+  because main.js adds the relocation bar before renderPhase awaits the plan module). renderPhase now drops the stale ready flag when the phase changes;
+  3/3 and the full suite pass after it.
+- Deviations: none. Find a new place stays in the menu on the summary stage but disabled ("You can look for a new place at the start of next
+  month."), since canRelocate only allows welcome/plan. Every kind has upgrades per 13 §10, so the Upgrade item always shows.
+- Notes for task 20: flip `upgradeReady` in `openHomeMenu`'s `homeMenuItems` call and fill `act.upgrade` in phases/life/homeMenu.js (class
+  `.life-upgrade`). Scripts open the menu with `{"click": ".life-home"}` then wait for `.life-home-menu .life-<item>:not([disabled])`.

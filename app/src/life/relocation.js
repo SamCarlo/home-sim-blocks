@@ -140,6 +140,8 @@ export function startLife(s) {
   }
   if (s.home) delete s.home.pickDraft; // the design picker's saved selection is done with
   s.relocation = null;
+  // 13 §7: the builds stay with the old home. A new home starts a fresh block world (blockView creates it for its homeKey).
+  if (!s.upgrade) s.world = null;
   s.life.current = { stage: 'welcome' };
   s.phase = 'life';
   return s;

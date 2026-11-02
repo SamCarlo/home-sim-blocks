@@ -42,10 +42,16 @@
   "eval": "(() => { const s = window.__homesim.seeds['life-month1-house'].build(Date.now()); window.__homesim.store.replace(s); return s.phase; })()"
  },
  {
-  "waitFor": ".life-explore-open:not([disabled])"
+  "waitFor": "body[data-ready=\"1\"] .life-home"
  },
  {
   "assert": "window.__homesim.getState().world === null"
+ },
+ {
+  "click": ".life-home"
+ },
+ {
+  "waitFor": ".life-explore-open:not([disabled])"
  },
  {
   "click": ".life-explore-open"
@@ -99,13 +105,19 @@
   "waitReady": true
  },
  {
-  "waitFor": ".life-explore-open:not([disabled])"
+  "waitFor": "body[data-ready=\"1\"] .life-home"
  },
  {
   "assert": "(() => { const { cells } = JSON.parse(sessionStorage.getItem('b18')); const w = window.__life.view().scene.world; return cells.every((c) => c.id !== 0 && w.getBlock(c.x, c.y, c.z) === c.id) && window.__homesim.getState().world.editCount === 4; })()"
  },
  {
   "shot": "tools/shots/b18/3-orbit-after.png"
+ },
+ {
+  "click": ".life-home"
+ },
+ {
+  "waitFor": ".life-explore-open:not([disabled])"
  },
  {
   "click": ".life-explore-open"

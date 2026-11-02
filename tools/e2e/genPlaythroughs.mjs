@@ -262,7 +262,11 @@ export function buildRelocate(p) {
   steps.push(...month(1, null)); // February → March welcome
   // The Save button, then "Find a new place to live".
   steps.push({ click: '.header-save' }, { wait: 300 }, { waitFor: '.save-indicator[data-status=saved]' },
-    { click: '.life-move' }, { waitFor: '.modal-confirm' }, { click: '.modal-confirm' },
+    // 13 §10 (blocks task 19): the move lives in the "My home" menu, and its confirm says the builds stay behind.
+    { click: '.life-home' }, { waitFor: '.life-home-menu .life-move:not([disabled])' }, { click: '.life-move' },
+    { waitFor: '.modal-confirm' },
+    { assert: `/Your builds stay with this home when you move\\./.test(document.querySelector('.modal-message').textContent)` },
+    { click: '.modal-confirm' },
     { waitFor: '.reloc-bar' }, { waitReady: true },
     { assert: `${S('.phase')} === 'plan' && ${S('.relocation.startedMonth')} === 2 && ${S('.home.kind')} === 'apartment'` },
     { assert: `/Cash after moving out/.test(document.querySelector('.plan-bar').textContent)` },

@@ -29,9 +29,8 @@ import { buy, sell, valueAt, monthSeries, totalInvested } from '../../life/inves
 import { netWorth } from '../../finance/ledger.js';
 import { getFlag } from '../../dev/flags.js';
 import { confirmDialog } from '../../ui/modal.js';
-import { formatMoney } from '../../finance/money.js';
 import { liveYear, finishAutopilot } from '../../life/autopilot.js';
-import { canRelocate, startRelocation, moveOutQuote, quoteText } from '../../life/relocation.js';
+import { homeButton, refreshHomeMenu } from './homeMenu.js';
 import { renderAutopilotRecap } from './autopilotRecap.js';
 import { recordEdits, savePose } from '../../world/worldState.js';
 import { WORLD } from '../../config.js';
@@ -46,31 +45,6 @@ function investBlock(state, go, mode, day = 1) {
   return renderInvestPanel({ state, mode,
     onBuy: (key, cents) => go((s) => { buy(s, key, cents, { day }); }, 'invest'),
     onSell: (key, cents) => go((s) => { sell(s, key, cents, { day }); }, 'invest') });
-}
-
-/** "Find a new place to live" (task 58): confirms with what moving out costs, then opens Plan. null when not allowed. */
-function moveButton(state, go) {
-  if (!canRelocate(state)) return null;
-  return h('button', { class: 'btn btn-ghost life-move', type: 'button', onClick: async () => {
-    const q = moveOutQuote(state);
-    const lines = q.lines.map((l) => `${l.label}: ${l.cents >= 0 ? '+' : '−'}${formatMoney(Math.abs(l.cents))}.`).join(' ');
-    const ok = await confirmDialog({
-      title: 'Find a new place to live?',
-      message: 'You keep your job, your money, your credit and your wellbeing. You stay in your home while you look, and '
-        + 'you can cancel until a new home says yes. '
-        + (q.lines.length ? `When you move out of ${state.home.label}: ${lines} In all: ${quoteText(q.netCents)}.` : ''),
-      confirmLabel: 'Start looking',
-      cancelLabel: 'Stay here',
-    });
-    if (ok) go(startRelocation, 'relocation-started');
-  } }, 'Find a new place to live');
-}
-
-/** "Explore & build" (13 §8, blocks task 16): opens the block world in first person. Never on the live stage. */
-function exploreButton(explore) {
-  if (!explore) return null;
-  return h('button', { class: 'btn btn-secondary life-explore-open', type: 'button', disabled: !explore.ready(),
-    onClick: () => explore.open() }, 'Explore & build');
 }
 
 /** "Live like this for a year" (task 58): confirms, then lives up to 12 months at once (life/autopilot.js). */
@@ -89,7 +63,7 @@ function yearButton(choices, go) {
 }
 
 const PANELS = {
-  welcome({ state, go, explore }) {
+  welcome({ state, go, store, explore }) {
     const mi = state.life.monthIndex;
     const { line, warnings } = recap(state);
     return [
@@ -101,8 +75,7 @@ const PANELS = {
         + 'Your choices change your money and your wellbeing.'),
       h('div', { class: 'life-go-row' },
         h('button', { class: 'btn btn-primary btn-lg life-go', type: 'button', onClick: () => go(startPlan, 'life-plan') }, 'Plan my month'),
-        exploreButton(explore),
-        moveButton(state, go)),
+        homeButton({ store, go, explore })),
     ];
   },
   plan({ state, go, store, onUpdate, explore }) {
@@ -128,7 +101,7 @@ const PANELS = {
       h('h1', { class: 'life-title' }, welcomeTitle(mi)),
       questions.el,
       invest?.el,
-      h('div', { class: 'life-go-row' }, exploreButton(explore), moveButton(state, go)),
+      h('div', { class: 'life-go-row' }, homeButton({ store, go, explore })),
       // The bar and the buttons stay pinned at the bottom of the panel so the bar is in view while answering.
       h('div', { class: 'life-plan-foot' }, budget.el, h('div', { class: 'life-go-row' }, live, year)),
     ];
@@ -146,7 +119,7 @@ const PANELS = {
       invest?.el,
     ];
   },
-  summary({ state, go, onUpdate, explore }) {
+  summary({ state, go, store, onUpdate, explore }) {
     const mi = state.life.monthIndex;
     const invest = investBlock(state, go, 'summary', state.life.current?.plan?.days ?? 28);
     if (invest) onUpdate((s) => invest.update(s));
@@ -158,7 +131,7 @@ const PANELS = {
       h('div', { class: 'life-plan-foot' }, h('div', { class: 'life-go-row' },
         h('button', { class: 'btn btn-primary btn-lg life-go', type: 'button', onClick: () => go(nextMonth, 'life-month') },
           isYearEnd(mi) ? 'See your year in review' : `Continue to ${monthName(mi + 1)}`),
-        exploreButton(explore))),
+        homeButton({ store, go, explore }))),
     ];
   },
   review({ state, go }) {
@@ -310,7 +283,7 @@ export async function mount(container, { store }) {
     care: () => care };
   if (view && currentStage(store.getState()) !== 'live') view.syncHome(store.getState());
   startAnimation(store.getState());
-  root.querySelectorAll('.life-explore-open').forEach((b) => { b.disabled = !exploreCtx?.ready(); });
+  refreshHomeMenu(!!exploreCtx?.ready());
   if (getFlag('explore') != null && exploreCtx?.ready()) await exploreCtx.open();
   document.body.dataset.ready = '1';
   return () => {
