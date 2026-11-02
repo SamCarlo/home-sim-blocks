@@ -2341,3 +2341,36 @@ each logs here under `## Blocks NN: <title>`.
   [{type, box}] (box = interior at feet..feet+2); stairs fill a 3 × 4 corner of multi-story mains (planks-dark), keep furniture off
   them. `windows` holds glass indices to light at night; garage boxes are in `parts`. One-story houses often have only 2–3 rooms,
   so put the kitchen in the living room when typed rooms run out.
+
+## Blocks 10: Apartment and condo buildings in blocks
+- attempt started 2026-11-02T06:31:39-10:00
+- done 2026-11-02T06:44:54-10:00
+- Files added: app/src/world/voxBuilding.js (`voxBuilding`, `buildingLayout`, `buildingWorldSize`, `buildingBlocksHigh`),
+  app/src/world/voxBuildingParts.js (`facade`, `groundUse`, `balcony`, `switchback`, `roofTop`, `glassIn`, `slabY`),
+  tests/unit/voxBuilding.test.js (4 tests). Changed: app/src/world/voxHouse.js (`partition`, `doorway` now exported, no logic change),
+  app/src/config.js (`VOX_BUILDING`), app/src/dev/voxelGallery.js (`&gen=building&loc=&kind=&seed=&floor=<n|top>&unit=&inside=1`),
+  tools/smoke.txt (+voxel-building), CLAUDE.md, docs/spec/DEVIATIONS.md.
+- Verified: `node --test tests/unit/voxBuilding.test.js` 4/4 (20 places × apartment/condo × seeds 1–2: entrance and unit door reachable
+  from the sidewalk by BFS, every unit room reachable, path door → exit, unit box on the chosen floor and unit column/row, inside the lot,
+  never above the volume; all five forms seen; every unit of the Hilo condo's first home floor; Honolulu tower floor 26 in a 160-high
+  volume; a forced 8-wide walk-up gets the front stair tower; deterministic; a too-short volume throws). A scratch sweep of 160 builds
+  (seeds 1–4, top floor, last unit) passed, 0–4 ms each. `bash tools/check.sh` OK (syntax 253 · tests · data · contrast · copy ·
+  smoke 88/88 · lazy-plan). Shots `node tools/shoot.mjs --path '/index.html?dev=voxel&gen=building&theme=light&loc=…' --wait-ready` → tools/shots/b10/:
+  - hilo-walkup.png (apartment seed 1, floor 2 unit 3): 3-floor plantation walk-up, 8 units in one row, white walls with brown floor
+    bands, red stepped hip roof, a concrete stair tower in front with the street door and a concrete walk to the sidewalk. 115k triangles.
+  - honolulu-tower.png (apartment seed 1, floor 26): 26-floor concrete tower with window rows and lit windows, stair bulkhead and AC boxes
+    on the roof, among big-city neighbor towers; 128 × 160 × 128 volume, nothing clipped. 318k triangles.
+  - miami-condo.png (condo seed 1, floor 27): 27-floor glass condo with metal floor bands, trim parapet and two stepped glass crown tiers.
+  - katy-townhome.png (condo seed 1, unit 1): row of 4 two-story brick townhomes, each with its own door and awning, trim party walls,
+    dark hip roof, slab patios in front.
+  - hilo-condo-inside.png (condo seed 1, floor 2 unit 1, `&inside=1` cuts the building off above the unit): the hollow street-side unit
+    with a plaster partition (living + bedroom), glass windows, railed balconies on every unit; the rest of the floor is solid.
+- Deviations: every floor is 4 blocks (lobby and parking decks too); wide rows are squeezed into the 33-block lot (units down to 4 wide,
+  front stair tower); small units get fewer rooms than a full apartment; exterior stairs, fire escapes and deco tops are not drawn (DEVIATIONS).
+- Notes for later tasks: voxHome (task 12) should make the volume with `buildingWorldSize(location, kind, plan)` (not worldSizeFor), run
+  genTerrain + genNeighborhood, then `voxBuilding(v, {plan: option.plan, floor: home.building.floor, unit: home.building.unit, seed})` with
+  the plan from `buildingOptions(state)[home.building.index]` (check the exact home.building field names). `door` = the corridor cell
+  outside the unit door (townhomes: outside the front door); `entrance` = outside the street door; `unit` is the interior box (townhomes
+  span all floors); `unitRooms` boxes are feet..feet+2. Only the student's floor corridor and the core up to that floor are hollow; the
+  core's stairs climb row A/C like voxHouse. Interiors (task 12) should keep furniture off the cell just inside the unit door and the
+  balcony opening.

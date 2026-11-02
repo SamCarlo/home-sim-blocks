@@ -629,6 +629,19 @@ export const VOX_HOUSE = {
   bed: { w: 3, d: 2 },          // a garden bed
 };
 
+export const VOX_BUILDING = {
+  storyH: 4,                    // 13 §3 floor-to-floor for every floor (lobby and parking decks too; see DEVIATIONS)
+  maxW: 33,                     // widest building in blocks = the flat lot (2 × WORLD.lotHalf + 1); wide rows get narrower units
+  minUnitW: 4,                  // narrowest unit incl. one party wall (3 × n interior)
+  minUnitD: 5,                  // shallowest unit interior
+  sideCoreMinW: 5,              // a side stair core is used when units can stay at least this wide; else a front stair tower
+  setback: 3,                   // blocks between the lot front and the building front (incl. the stair tower)
+  roofRoom: 10,                 // blocks kept above the roof for crowns, tanks and the stair bulkhead
+  balconyW: 3,                  // standing width of a balcony (2 deep with a rail)
+  acBoxes: [2, 4],              // rooftop AC boxes (seeded)
+  litChance: 0.25,              // share of other units' windows that are lit-glass
+};
+
 export const NEIGHBORHOOD = {
   setback: 3,                   // blocks between the sidewalk and a neighbor's front wall
   gap: 2,                       // clear blocks kept between a neighbor and the lot, the street or another neighbor

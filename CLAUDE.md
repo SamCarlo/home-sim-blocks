@@ -101,7 +101,7 @@ app/src/three/                 scene.js sky.js terrain.js landmarks.js materials
                                character.js · styles.js styleParts.js styleSwatch.js · buildingGen.js buildingParts.js · houseGen.js houseYard.js · blueprintTo3d.js · homeRender.js
                                (browser only, import() lazily; see 3D scene)
 app/vendor/                    three/ (+addons/) nspell/ dictionary-en/ vader/ · voxel/ (block engine, task 02) · kenney-voxel/ (CC0 tiles, blocks task 03) · VERSIONS.md (pinned, licensed)
-app/src/world/                 blocks.js (block registry) · volume.js (dense volume) · edits.js (save diffs) · mesher.js (face mesher + raycast) · genTerrain.js trees.js (blocks task 06) · genNeighborhood.js shells.js (blocks task 07) · genLandmarks.js (blocks task 08) (pure; more generators, voxHome in later tasks)
+app/src/world/                 blocks.js (block registry) · volume.js (dense volume) · edits.js (save diffs) · mesher.js (face mesher + raycast) · genTerrain.js trees.js (blocks task 06) · genNeighborhood.js shells.js (blocks task 07) · genLandmarks.js (blocks task 08) · voxHouse.js voxHouseYard.js walk.js (task 09) · voxBuilding.js voxBuildingParts.js (task 10) (pure; more generators, voxHome in later tasks)
 app/src/phases/<phase>/        one screen per phase (placeholders until their tasks); design/blueprint/ = the build editor
                                paperwork/: paperworkScreen.js · flow.js (pure) · steps/ (index.js registry, one module per step)
 app/src/accounts/              provider.js (AccountError, validation, chooseMode, selectProvider) · local.js (PBKDF2, homeblocks:v1:accounts/session)
@@ -264,6 +264,22 @@ docs/                          TASK_PROTOCOL, PROGRESS, OPEN_ITEMS, spec/
 - `walk.js`: `canStand(v,x,y,z)` (2 tall, solid ground below; fences/hedges/leaves aren't ground; doors are walked through),
   `walkSearch(v, start, {bounds, goal})` → Map, `canWalk`, `walkPath` → waypoints at turns. Gallery
   `?dev=voxel&gen=house&loc=&seed=&variant=house|shared&extras=0|1&palette=` (`window.__voxel.house`); tests `tests/unit/voxHouse.test.js`.
+
+## Apartment and condo buildings in blocks (13 §5, blocks task 10; `app/src/world/voxBuilding.js` + `voxBuildingParts.js`, pure)
+- `voxBuilding(v, {plan (planBuilding), floor (a home floor; default the middle one), unit (0-based, row 0 = street), styleKey?, origin?, seed})`
+  after genTerrain/genNeighborhood → `{door (corridor cell outside the unit door; townhomes outside the front door), exit, path, unit
+  (interior box), unitRooms [{type, box}], windows [index], plantSpots (balcony / lānai / sill), animalSpots, lotBox, entrance, info {form,
+  floors, floor, unit, cols, rows, unitW, unitD, core side|front|null, box, top, ids}}`. Make the volume with `buildingWorldSize(location,
+  kind, plan)` (raises y to `WORLD.tallY` for towers); a too-short volume throws.
+- `buildingLayout(plan, origin)`: every floor `VOX_BUILDING.storyH` 4; widths squeezed into `maxW` 33 (the lot); two rows = back units ·
+  corridor (2) · front units with a 3-wide stair core on the left; one row = units · corridor in front, side core or (too wide) a stair tower
+  in front; townhomes = whole houses with their own doors, inside stairs, slab patio, fenced back yard. The body is solid wall with glass in
+  the faces (`facade`, bands); only the core up to the student's floor, that floor's corridor and the unit are hollow. Ground use: shops
+  (storefront + awning), lobby (lit glass), parking decks (rails). Balconies (2 deep, railed) on every home unit's outer face when
+  `features.balconies`. Roofs: pitched per `features.rooftop` (townhomes: family look) or parapet + AC boxes, water tank, stair bulkhead,
+  glass crown tiers / fin. `voxHouse` exports `partition` and `doorway` for reuse.
+- Gallery `?dev=voxel&gen=building&loc=&kind=apartment|condo&seed=&floor=<n|top>&unit=&inside=1` (`window.__voxel.building`); tests
+  `tests/unit/voxBuilding.test.js`.
 
 ## Finance helpers (`app/src/finance/`, pure, integer cents, rates are annual decimals)
 - `money.js`: `dollarsToCents(input)` (numbers, "3,200", "$3,200.50", "-$45"; null when unparseable) · `assertCents` ·

@@ -49,7 +49,7 @@ const inRect = (r, x, z) => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1;
 const interior = (p) => ({ x0: p.x0 + 1, z0: p.z0 + 1, x1: p.x1 - 1, z1: p.z1 - 1 });
 
 /** Split rect into about n rooms with partition walls (y feet..feet+2). Records rooms and the walls between them. */
-function partition(v, rect, n, feet, wallId, out) {
+export function partition(v, rect, n, feet, wallId, out) {
   const w = rect.x1 - rect.x0 + 1, d = rect.z1 - rect.z0 + 1;
   const alongX = w >= 7 && (w >= d || d < 7);
   const len = alongX ? w : d;
@@ -67,7 +67,7 @@ function partition(v, rect, n, feet, wallId, out) {
 }
 
 /** Open a 2-high doorway in a 1-thick wall line where both sides can be stood on; middle first. */
-function doorway(v, cells, side, feet) {
+export function doorway(v, cells, side, feet) {
   const mid = cells.length >> 1;
   const order = cells.map((_, i) => i).sort((a, b) => Math.abs(a - mid) - Math.abs(b - mid));
   for (const i of order) {

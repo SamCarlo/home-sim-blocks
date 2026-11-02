@@ -391,3 +391,9 @@ and where in the code. Keep entries short. The teacher's intent in `99-original-
   story plus the loft under its roof, counted × 1.5 like `planHouse`; rooms are at least 3 × 3, so small one-story houses get fewer
   rooms than beds + baths + 2 (types are ordered living, bedroom, bathroom, kitchen so a bedroom and bathroom always come first).
   Where: app/src/world/voxHouse.js.
+- **2026-11-02, homeblocks 10 — building blocks are fitted to the lot.** What: every floor of a block building is 4 blocks (13 §3
+  floor-to-floor), including the 14 ft lobby and the parking decks; rows wider than the 33-block flat lot are squeezed (units down to
+  4 blocks incl. a party wall, i.e. 3 wide inside) and get a stair tower in front instead of a side core; a unit's rooms are cut at
+  least 3 × 3, so narrow units are one or two rooms (studio-like) rather than living + bedroom + bathroom + kitchen; exterior stairs,
+  fire escapes and deco tops from the plan's features are not drawn. Why: the lot is the only flat, neighbor-free ground (genTerrain,
+  genNeighborhood) and 13 §6 needs a real walk from the street to the unit. Where: app/src/world/voxBuilding.js, voxBuildingParts.js.
