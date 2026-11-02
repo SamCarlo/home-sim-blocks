@@ -171,12 +171,13 @@ export async function createVoxelWorld(container, { volume, far = null, timeOfDa
       requestRender();
       return true;
     },
-    /** The block under normalized device coords (−1…1) → {x, y, z, normal, id} or null. */
-    pick(ndcX, ndcY) {
+    /** The block under normalized device coords (−1…1) through the active camera (Explore's when set) → {x, y, z, normal, id} or null. */
+    pick(ndcX, ndcY, maxDist = null) {
       const ray = new THREE.Raycaster();
-      ray.setFromCamera(new THREE.Vector2(ndcX, ndcY), camera);
+      active.updateMatrixWorld();
+      ray.setFromCamera(new THREE.Vector2(ndcX, ndcY), active);
       const { origin: o, direction: d } = ray.ray;
-      const hit = raycast(volume, [o.x, o.y, o.z], [d.x, d.y, d.z], camera.far);
+      const hit = raycast(volume, [o.x, o.y, o.z], [d.x, d.y, d.z], maxDist ?? active.far);
       return hit && { x: hit.x, y: hit.y, z: hit.z, normal: hit.normal, id: hit.id };
     },
     /** Point the orbit camera at target {x, y, z} from `distance` blocks, keeping the view direction. */

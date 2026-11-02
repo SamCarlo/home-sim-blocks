@@ -718,3 +718,14 @@ export const EXPLORE = {
   bob: { amp: 0.05, perBlock: 2.2 }, // head bob height and radians per block walked (off with reduced motion)
   maxDt: 0.05,                  // s, longest physics step per frame (a stalled tab doesn't tunnel)
 };
+
+// Building in Explore (13 §9, blocks task 17; world/buildRules.js, phases/life/exploreBuild.js).
+export const BLOCK_BUILD = {
+  slots: 9,                     // hotbar slots (13 §9: 1–9 and scroll)
+  // After the home's style blocks (wall, roof, trim, floor): glass, planks, flowers, then decor; extras fill the 9 slots
+  // when a style's floor is already planks.
+  hotbarTail: ['glass', 'planks-light', 'flowers', 'lamp', 'potted-plant', 'fence', 'planks-dark'],
+  replaceable: [],              // block keys a placement may overwrite (none: you place only into air)
+  reach: 6,                     // blocks, farthest cell the crosshair can break or place
+  toastMs: 2600,                // how long a refusal toast stays up
+};

@@ -2542,3 +2542,29 @@ each logs here under `## Blocks NN: <title>`.
   should write it to `state.world.pose` in lifeScreen's onClose (openExplore already starts from `state.world?.pose`). Settings key
   `exploreCardDismissed` (not in the schema defaults; absent = show the card). Pointer lock: Esc first frees the mouse (browser rule), a second
   Esc leaves. The e2e walk is generic (door.x, then exit.z) but upstairs units have a landing, so it runs on the Katy house only.
+
+## Blocks 17: Building and breaking blocks
+- attempt started 2026-11-02T11:52:40-10:00
+- done 2026-11-02T12:03:44-10:00
+- Files added: app/src/world/buildRules.js (`canEdit`, `REASONS`, `protectedCells`, `hotbarFor`, `placeCell`), app/src/phases/life/exploreBuild.js
+  (`createBuilder`: hotbar, break/place, toast, in-memory edits Map), tests/unit/buildRules.test.js (5 tests), tests/e2e/blocks-build.json,
+  tools/shots/b17/steps-{house,hilo}.json. Changed: app/src/phases/life/explore.js (builder wired in: click/B break, right/Shift+click/P place,
+  1–9 and wheel, controls card rows, API `breakBlock placeBlock select slot edits aimAt`, onClose(pose, edits)), app/src/three/voxel/engine.js
+  (`pick(ndcX, ndcY, maxDist?)` now casts from the ACTIVE camera, so Explore's crosshair picks), app/src/config.js (`BLOCK_BUILD`), app/styles/life.css
+  (`.life-hotbar*`, `.life-explore-toast`), CLAUDE.md.
+- Verified: `bash tools/check.sh` OK (syntax 264 · tests · data · contrast · copy · smoke 92/92 · lazy-plan). `node tools/shoot.mjs --path
+  '/index.html?seed=life-month1-house&theme=light' --wait-ready --steps tests/e2e/blocks-build.json` ✓: 9 slots, keys 3/1 select, walks out to the
+  sidewalk, places 4 plaster + 4 roof blocks on the Katy lot (edits 8), breaks 1 (edits 7, cell back to air), a placement on the street is refused
+  'outside' with the toast and no edit, Esc closes cleanly. tests/e2e/blocks-explore.json (task 16) still ✓. Shots → tools/shots/b17/:
+  - 1-hotbar.png: Katy bedroom in first person, hotbar bottom centre (9 textured swatches with 1–9, slot 1 ringed), "Plaster (Texas suburban)" above it.
+  - 2-katy-wall.png: a 4-wide, 2-high wall in the front yard (plaster row, roof-block row with one block knocked out), house and street behind, slot 2 "Roof" selected.
+  - 4-katy-refused.png: looking at the street past the fence, toast "That's your neighbor's. Build on your own place." under the title bar.
+  - 3-hilo-refused.png: Hilo apartment unit (furniture, windows), a flowers block just placed on the floor, the same toast after trying to break the unit's wall.
+- Deviations: none of substance. Unspecified details I chose: reach 6 blocks (`BLOCK_BUILD.reach`); protected = door step + the cell above, each
+  plant/animal spot with the cells under and over it, every cell of `path` with its ground and head room; placing only into air (`replaceable` []);
+  the config block is `BLOCK_BUILD` because `BUILD` is the builder-paperwork config.
+- Notes for later tasks: `explore.edits()` is a Map volume index → id holding only cells that differ from the generated world (an edit undone by hand
+  drops out), the 13 §7 `edits.js` format, so task 18 can `pack()` it straight into `state.world`; lifeScreen's onClose now receives `(pose, edits)`.
+  The builder writes into `world.volume` (the same object as the contract's volume), so canEdit reads live cells. A click acts on pointer *release*
+  when the pointer moved ≤ 6 px; the click that captures the mouse does nothing. Scripts aim with `__explore.aimAt(x, y, z)` (a face centre) and must
+  place far cells first or the ray clips the block placed before it; furniture also occludes, so pick a clear column.

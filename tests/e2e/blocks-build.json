@@ -1,0 +1,59 @@
+[
+ {
+  "waitFor": ".life-explore-open:not([disabled])"
+ },
+ {
+  "click": ".life-explore-open"
+ },
+ {
+  "waitFor": ".life-explore .life-hotbar"
+ },
+ {
+  "click": ".life-explore-gotit"
+ },
+ {
+  "assert": "document.querySelectorAll('.life-hotbar-slot').length === 9 && document.querySelector('.life-hotbar-slot[aria-pressed=\"true\"]').getAttribute('aria-label').startsWith('1: ') && document.querySelector('.life-hotbar-name').textContent.length > 0"
+ },
+ {
+  "press": "3"
+ },
+ {
+  "assert": "window.__explore.slot().index === 2 && document.querySelectorAll('.life-hotbar-slot')[2].getAttribute('aria-pressed') === 'true'"
+ },
+ {
+  "press": "1"
+ },
+ {
+  "eval": "(() => { const e = window.__explore, c = window.__life.view().contract; const to = (x, z) => { for (let i = 0; i < 60; i++) { const p = e.pose(), dx = x - p.x, dz = z - p.z, d = Math.hypot(dx, dz); if (d < 0.15) return; e.look((p.yaw - Math.atan2(-dx, -dz)) / 0.0025, 0); e.move(['w'], Math.min(150, d * 280)); } }; to(c.door.x + 0.5, e.pose().z); to(c.door.x + 0.5, c.exit.z + 0.5); const p = e.pose(); e.look(p.yaw / 0.0025, 0); window.__b17 = {door: c.door, exit: c.exit, lot: c.property[0]}; return e.pose(); })()"
+ },
+ {
+  "eval": "(() => { const e = window.__explore, {door} = window.__b17; const w = window.__life.view().scene.world; const gy = (x, z) => { for (let y = Math.floor(e.pose().y) + 3; y > 0; y--) if (w.getBlock(x, y, z) === 0 && w.getBlock(x, y - 1, z) !== 0) return y; return -1; }; const z = Math.floor(e.pose().z) - 3, out = []; for (let i = 3; i >= 0; i--) { const x = door.x + 1 + i, y = gy(x, z); e.aimAt(x + 0.5, y, z + 0.5); out.push(e.placeBlock()); } window.__b17.row = out; return out.map((r) => [r.ok, r.reason, r.cell]); })()"
+ },
+ {
+  "assert": "window.__b17.row.every((r) => r.ok) && window.__explore.edits().size === 4"
+ },
+ {
+  "eval": "(() => { const e = window.__explore; e.select(1); const out = window.__b17.row.map((r) => { e.aimAt(r.cell.x + 0.5, r.cell.y + 1, r.cell.z + 0.5); return e.placeBlock(); }); window.__b17.top = out; return out.map((r) => [r.ok, r.reason, r.cell]); })()"
+ },
+ {
+  "assert": "window.__b17.top.every((r) => r.ok) && window.__explore.edits().size === 8"
+ },
+ {
+  "eval": "(() => { const e = window.__explore, t = window.__b17.top[2].cell; e.aimAt(t.x + 0.5, t.y + 1, t.z + 0.5); const r = e.breakBlock(); window.__b17.broke = r; return [r.ok, r.reason, r.cell]; })()"
+ },
+ {
+  "assert": "window.__b17.broke.ok && window.__explore.edits().size === 7 && window.__life.view().scene.world.getBlock(window.__b17.broke.cell.x, window.__b17.broke.cell.y, window.__b17.broke.cell.z) === 0"
+ },
+ {
+  "eval": "(() => { const e = window.__explore, {lot} = window.__b17; const w = window.__life.view().scene.world; const gy = (x, z) => { for (let y = Math.floor(e.pose().y) + 3; y > 0; y--) if (w.getBlock(x, y, z) === 0 && w.getBlock(x, y - 1, z) !== 0) return y; return -1; }; const x = Math.floor(e.pose().x), z = lot.z1 + 4, y = gy(x, z); e.aimAt(x + 0.5, y, z + 0.5); const r = e.placeBlock(); window.__b17.out = r; return [r.ok, r.reason, r.cell]; })()"
+ },
+ {
+  "assert": "window.__b17.out.reason === 'outside' && !document.querySelector('.life-explore-toast').hidden && document.querySelector('.life-explore-toast').textContent.includes(\"neighbor's\") && window.__explore.edits().size === 7"
+ },
+ {
+  "press": "Escape"
+ },
+ {
+  "assert": "!document.querySelector('.life-explore') && !window.__explore && !document.querySelector('[inert]')"
+ }
+]

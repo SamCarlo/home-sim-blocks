@@ -2,11 +2,14 @@
 // world the life view already built (same renderer and meshes; the canvas moves into the overlay and back), the vendored
 // engine's Player body and speeds with our collision (world/firstPerson.js), WASD/arrows + Space, mouse look with pointer
 // lock or drag when pointer lock is unavailable, keyboard look Q/E R/F, a crosshair, a dismissable controls card and Done.
-// Building (break/place, hotbar) is task 17. The frame loop runs only while open; close() removes every listener.
+// Building (hotbar, break/place on the property only) lives in exploreBuild.js (task 17). The frame loop runs only while open;
+// close() removes every listener.
 import * as THREE from 'three';
 import { h } from '../../ui/dom.js';
 import { EXPLORE } from '../../config.js';
 import { createPlayer, poseOf, stepPlayer, turn } from '../../world/firstPerson.js';
+import { byId } from '../../data/locations/index.js';
+import { createBuilder } from './exploreBuild.js';
 
 const KEYS = {
   KeyW: 'forward', ArrowUp: 'forward', KeyS: 'back', ArrowDown: 'back', KeyA: 'left', ArrowLeft: 'left', KeyD: 'right',
@@ -17,12 +20,13 @@ const NAMED = { w: 'forward', s: 'back', a: 'left', d: 'right', ' ': 'jump', spa
   r: 'lookUp', f: 'lookDown', arrowup: 'forward', arrowdown: 'back', arrowleft: 'left', arrowright: 'right' };
 const CONTROLS = [
   ['Move', 'W A S D or the arrow keys'], ['Jump', 'Space'], ['Look', 'Move the mouse, or drag on the screen'],
-  ['Look with keys', 'Q / E turn, R / F look up and down'], ['Leave', 'Esc or Done'],
+  ['Look with keys', 'Q / E turn, R / F look up and down'], ['Break', 'Left click or B'],
+  ['Place', 'Right click, Shift + click or P'], ['Choose block', '1 to 9 or scroll'], ['Leave', 'Esc or Done'],
 ];
 
 /**
- * openExplore({view, contract, state, onClose(pose), onSettings?(patch), reduced?}) → {el, pose(), move(keys, ms), look(dx, dy),
- * close()} or null when the view has no block world. `view` is blockView's handle, `contract` its voxHome contract.
+ * openExplore({view, contract, state, onClose(pose, edits), onSettings?(patch), reduced?}) → {el, pose(), move(keys, ms), look(dx, dy),
+ * breakBlock(), placeBlock(), select(i), slot(), edits(), close()} or null when the view has no block world. `view` is blockView's handle, `contract` its voxHome contract.
  */
 export function openExplore({ view, contract, state, onClose, onSettings = null, reduced = false }) {
   const world = view?.scene?.world;
@@ -50,12 +54,15 @@ export function openExplore({ view, contract, state, onClose, onSettings = null,
     gotIt);
   help.setAttribute('aria-controls', 'life-explore-card');
   const stage = h('div', { class: 'life-explore-stage', tabindex: 0, role: 'application',
-    'aria-label': 'First-person view of your home. W A S D to move, Q and E to turn, R and F to look up and down, Space to jump, Esc to leave.' },
+    'aria-label': 'First-person view of your home. W A S D to move, Q and E to turn, R and F to look up and down, Space to jump, '
+      + 'B to break a block, P to place one, 1 to 9 to choose a block, Esc to leave.' },
     h('div', { class: 'life-explore-crosshair', 'aria-hidden': 'true' }));
   const el = h('div', { class: 'life-explore', role: 'application', 'aria-labelledby': 'life-explore-title' },
     stage,
     h('div', { class: 'life-explore-bar' }, h('h1', { class: 'life-explore-title', id: 'life-explore-title' }, 'Explore your home'), help, done),
     card, status);
+  const builder = createBuilder({ world, contract, location: byId[state.home?.locationId], player, status });
+  el.append(builder.el, builder.toast);
   function showCard(on) {
     card.hidden = !on;
     help.setAttribute('aria-expanded', String(on));
@@ -75,10 +82,12 @@ export function openExplore({ view, contract, state, onClose, onSettings = null,
   const canvas = world.renderer.domElement;
 
   // ── Look: pointer lock when it works, drag otherwise ──
-  let lockFailed = !canvas.requestPointerLock, dragging = false;
+  let lockFailed = !canvas.requestPointerLock, dragging = false, down = null;
   const locked = () => document.pointerLockElement === canvas;
   const onPointerDown = (e) => {
     stage.focus({ preventScroll: true });
+    // A click (no drag) breaks or places on release; the click that captures the mouse does neither.
+    down = { x: e.clientX, y: e.clientY, moved: 0, button: e.button, shift: e.shiftKey, capture: !locked() && !lockFailed };
     if (!locked() && !lockFailed) {
       try {
         const r = canvas.requestPointerLock();
@@ -88,8 +97,22 @@ export function openExplore({ view, contract, state, onClose, onSettings = null,
     dragging = true;
     canvas.setPointerCapture?.(e.pointerId);
   };
-  const onPointerUp = () => { dragging = false; };
+  const onPointerUp = (e) => {
+    dragging = false;
+    const d = down;
+    down = null;
+    if (!d || e.type !== 'pointerup' || d.moved > 6 || (d.capture && locked())) return;
+    if (d.button === 2 || (d.button === 0 && d.shift)) builder.placeBlock();
+    else if (d.button === 0) builder.breakBlock();
+  };
+  const onContext = (e) => e.preventDefault();
+  const onWheel = (e) => {
+    if (!e.deltaY) return;
+    e.preventDefault();
+    builder.cycle(e.deltaY > 0 ? 1 : -1);
+  };
   const onPointerMove = (e) => {
+    if (down) down.moved += Math.abs(e.movementX) + Math.abs(e.movementY);
     if (!locked() && !dragging) return;
     turn(player, -e.movementX * EXPLORE.mouseSens, -e.movementY * EXPLORE.mouseSens);
   };
@@ -104,8 +127,10 @@ export function openExplore({ view, contract, state, onClose, onSettings = null,
       return;
     }
     if (e.key === 'Tab') { if (e.type === 'keydown') trapTab(e); return; }
+    const onStage = e.target === stage || e.target === canvas || e.target === document.body;
+    if (onStage && builder.onKey(e)) { e.preventDefault(); return; }
     const k = KEYS[e.code];
-    if (!k || (e.target !== stage && e.target !== canvas && e.target !== document.body)) return;
+    if (!k || !onStage) return;
     e.preventDefault();
     input[k] = e.type === 'keydown';
   };
@@ -119,6 +144,8 @@ export function openExplore({ view, contract, state, onClose, onSettings = null,
   canvas.addEventListener('pointerdown', onPointerDown);
   canvas.addEventListener('pointerup', onPointerUp);
   canvas.addEventListener('pointercancel', onPointerUp);
+  canvas.addEventListener('contextmenu', onContext);
+  stage.addEventListener('wheel', onWheel, { passive: false });
   document.addEventListener('pointermove', onPointerMove);
   document.addEventListener('pointerlockchange', onLockChange);
   document.addEventListener('pointerlockerror', onLockError);
@@ -152,6 +179,9 @@ export function openExplore({ view, contract, state, onClose, onSettings = null,
     canvas.removeEventListener('pointerdown', onPointerDown);
     canvas.removeEventListener('pointerup', onPointerUp);
     canvas.removeEventListener('pointercancel', onPointerUp);
+    canvas.removeEventListener('contextmenu', onContext);
+    stage.removeEventListener('wheel', onWheel);
+    builder.dispose();
     document.removeEventListener('pointermove', onPointerMove);
     document.removeEventListener('pointerlockchange', onLockChange);
     document.removeEventListener('pointerlockerror', onLockError);
@@ -169,7 +199,7 @@ export function openExplore({ view, contract, state, onClose, onSettings = null,
     delete document.body.dataset.explore;
     if (window.__explore === api) delete window.__explore;
     if (opener?.isConnected) opener.focus();
-    onClose?.(poseOf(player));
+    onClose?.(poseOf(player), builder.edits());
   }
 
   const api = {
@@ -191,6 +221,23 @@ export function openExplore({ view, contract, state, onClose, onSettings = null,
       world.renderNow();
       return poseOf(player);
     },
+    /** Turn the view so the crosshair points at block-space point (x, y, z) (scripts aim at a face centre). Returns the pose. */
+    aimAt(x, y, z) {
+      const ex = player.x, ey = player.y + EXPLORE.eyeHeight, ez = player.z;
+      const dx = x - ex, dy = y - ey, dz = z - ez;
+      turn(player, Math.atan2(-dx, -dz) - player.yaw, Math.atan2(dy, Math.hypot(dx, dz)) - player.pitch);
+      place();
+      world.renderNow();
+      return poseOf(player);
+    },
+    /** Break / place at the crosshair (as B / P); each returns canEdit's {ok, reason, text?, cell?}. */
+    breakBlock: () => { const r = builder.breakBlock(); world.renderNow(); return r; },
+    placeBlock: () => { const r = builder.placeBlock(); world.renderNow(); return r; },
+    /** Choose hotbar slot i (0–8); slot() → {index, id, label}. */
+    select: (i) => builder.select(i),
+    slot: () => builder.slot(),
+    /** This session's edits: Map volume index → block id (task 18 saves them). */
+    edits: () => builder.edits(),
     close,
   };
   window.__explore = api;

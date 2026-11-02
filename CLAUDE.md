@@ -978,3 +978,14 @@ rename). History: `docs/PROGRESS.md`. Before shipping a change run `bash tools/c
 - lifeScreen: "Explore & build" (`.life-explore-open`) on welcome, plan and summary (never live; disabled until the view is ready, hidden with
   `?view=classic`); Done saves checkpoint 'explore'. Dev flag `&explore=1` opens it on load (smoke `life-explore`). e2e `tests/e2e/blocks-explore.json`
   on `?seed=life-month1-house&theme=light` (walks out the front door). Shot steps `tools/shots/b16/steps-{house,hilo}.json`.
+
+## Building in Explore (13 §9, blocks task 17; `world/buildRules.js` pure, `phases/life/exploreBuild.js` browser only)
+- `canEdit(contract, {x,y,z}, 'break'|'place', id, {player?, allowed?})` → `{ok, reason, text?}`; reasons `outside bedrock too-deep protected player
+  not-placeable occupied empty` → toast text in `REASONS` (outside = "That's your neighbor's. Build on your own place."). Reads live cells from
+  `contract.volume` when present. `protectedCells(contract)` (cached): door + above, plant/animal spots ±1 y, path cells ±1 y; door and mailbox ids
+  are always protected. `hotbarFor(location)` = style wall/roof/trim/floor + `BLOCK_BUILD.hotbarTail`, 9 unique; style blocks pass via `allowed`.
+- `createBuilder` makes `.life-hotbar` (toolbar of 9 `aria-pressed` buttons, name pill, announcements in Explore's live region) and
+  `.life-explore-toast`; edits Map = volume index → id (only cells differing from the generated world). Explore API adds `breakBlock() placeBlock()
+  select(i) slot() edits() aimAt(x,y,z)`; onClose gets `(pose, edits)`. Engine `pick` uses the active camera; `maxDist` = `BLOCK_BUILD.reach` (6).
+- e2e `tests/e2e/blocks-build.json` on `?seed=life-month1-house&theme=light`; shot steps `tools/shots/b17/steps-{house,hilo}.json` (Hilo =
+  `life-month1-apartment`). Aim far cells first (the ray clips your last block) and avoid furniture in the line of sight.

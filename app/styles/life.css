@@ -376,3 +376,34 @@ body.has-explore { overflow: hidden; }
 .life-explore-card dt { font-weight: 700; }
 .life-explore-card dd { margin: 0; color: var(--ink-2); }
 .life-explore-open { white-space: nowrap; }
+/* Building in Explore (blocks task 17): hotbar bottom centre, refusal toast under the top bar. */
+.life-hotbar {
+  position: absolute; left: 50%; bottom: var(--sp-3); transform: translateX(-50%); display: flex; flex-direction: column;
+  align-items: center; gap: 6px; pointer-events: none;
+}
+.life-hotbar-name {
+  margin: 0; padding: 2px 12px; border-radius: var(--r-pill); background: var(--surface); color: var(--ink); font-size: .9rem;
+  font-weight: 700; box-shadow: var(--shadow);
+}
+.life-hotbar-row {
+  display: flex; gap: 4px; padding: 4px; border-radius: var(--r-md, 10px); background: rgba(0, 0, 0, .55); pointer-events: auto;
+}
+.life-hotbar-slot {
+  position: relative; width: 44px; height: 44px; padding: 3px; border: 2px solid rgba(255, 255, 255, .35); border-radius: 6px;
+  background: rgba(0, 0, 0, .35); cursor: pointer;
+}
+.life-hotbar-slot.is-selected { border-color: #fff; box-shadow: 0 0 0 2px var(--accent); }
+.life-hotbar-slot:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+.life-hotbar-swatch {
+  display: block; width: 100%; height: 100%; border-radius: 3px; background-size: cover; background-blend-mode: multiply;
+  image-rendering: pixelated;
+}
+.life-hotbar-key {
+  position: absolute; left: 3px; top: 1px; color: #fff; font-size: .7rem; font-weight: 700; text-shadow: 0 0 2px #000, 0 0 2px #000;
+}
+.life-explore-toast {
+  position: absolute; left: 50%; top: 64px; transform: translateX(-50%); max-width: min(520px, calc(100% - 2 * var(--sp-3)));
+  padding: 8px 16px; border-radius: var(--r-pill); background: var(--surface); color: var(--ink); box-shadow: var(--shadow-lg);
+  font-weight: 600; text-align: center;
+}
+.life-explore-toast[hidden] { display: none; }
