@@ -187,6 +187,11 @@
 .bp-breakdown td { padding: 3px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
 .bp-breakdown td small { display: block; color: var(--muted); font-size: .76rem; }
 .bp-breakdown td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; padding-left: 8px; }
+/* Renovation cost lines (blocks task 21) */
+.bp-reno-lines { width: 100%; border-collapse: collapse; margin: 4px 0; font-size: .9rem; }
+.bp-reno-lines td { padding: 3px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.bp-reno-lines td small { display: block; color: var(--muted); font-size: .76rem; }
+.bp-reno-lines td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; padding-left: 8px; }
 .bp-field { display: flex; flex-direction: column; gap: 3px; margin: 0 0 var(--sp-2); font-size: .86rem; }
 .bp-field > span { color: var(--ink-2); font-weight: 600; }
 .bp-field select { padding: 5px 8px; border-radius: var(--r-sm); border: 1px solid var(--field-line); background: var(--field); color: var(--ink); font: inherit; }

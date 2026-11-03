@@ -436,3 +436,10 @@ and where in the code. Keep entries short. The teacher's intent in `99-original-
 - **Why:** with the seed tied to the homeKey, any house upgrade re-rolled the terrain, neighbors and furniture, so `rebase` dropped most
   builds. Removing animals or beds raises questions (rehoming a pet, refunds) the spec doesn't answer.
 - **Where:** `app/src/world/homeKey.js`, `world/voxHome.js`, `life/upgrade.js`, `phases/design/upgradePicker.js`.
+
+- 2026-11-02, blocks task 21: **the site key ignores a build's blueprint** (`world/homeKey.js` UPGRADE_FIELDS adds `bp`). Task 20 left the
+  whole blueprint in `siteKeyFor`, so any renovation re-rolled the terrain, neighbors and furniture and the rebase dropped builds. Now a build's land
+  is seeded from location + student seed only. Side effect: a Block Edition build save made before this commit regenerates different land around its
+  house (none ship yet). **Renovation permit** = `RENOVATION.permitCents` $1,500 (no BUILD number fit; spec gives none), one line per renovation,
+  charged even when the change only removes things. Renovation work = blueprintCost(new) − blueprintCost(old), never negative (tearing out refunds
+  nothing). Commit needs a change: the Renovate button stays disabled until the draft differs from the house.

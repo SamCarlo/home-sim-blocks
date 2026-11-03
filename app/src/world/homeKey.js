@@ -33,8 +33,8 @@ export function homeKeyFor(state) {
   return `${state.home.kind}:${hashString(stable(homeInputs(state))).toString(36)}`;
 }
 
-/** What an upgrade can change on a house (13 §10): left out of the site key so the land around it stays the same. */
-const UPGRADE_FIELDS = ['palette', 'beds', 'trees', 'coop'];
+/** What an upgrade can change (13 §10): a house's picks, a build's whole blueprint (task 21). Left out of the site key so the land stays the same. */
+const UPGRADE_FIELDS = ['palette', 'beds', 'trees', 'coop', 'bp'];
 
 /**
  * The key that seeds the generated land around the home (terrain, neighbors, furniture). Same as the homeKey's inputs

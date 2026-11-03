@@ -15,7 +15,7 @@ export function hasUpgrades(kind) {
 
 /**
  * The menu items, in order → `[{id 'explore'|'upgrade'|'move', label, disabled, note}]`. `explore` false hides Explore
- * (`?view=classic`); `exploreReady` false disables it while the world loads; `upgradeReady` = `life/upgrade.js` canUpgrade (builds: task 21).
+ * (`?view=classic`); `exploreReady` false disables it while the world loads; `upgradeReady` = `life/upgrade.js` canUpgrade.
  */
 export function homeMenuItems(state, { explore = true, exploreReady = true, upgradeReady = false } = {}) {
   const items = [];

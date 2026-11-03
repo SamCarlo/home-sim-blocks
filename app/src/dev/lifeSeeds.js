@@ -13,6 +13,8 @@ import { liveYear } from '../life/autopilot.js';
 import { homeKeyFor } from '../world/homeKey.js';
 import { recordEdits, savePose } from '../world/worldState.js';
 import { WORLD } from '../config.js';
+import { post, PAPERWORK_MONTH } from '../finance/ledger.js';
+import { startUpgrade } from '../life/upgrade.js';
 
 /**
  * The builds in `life-world-built` (blocks task 18): a flower planter in the Katy front yard, 38 cells. Wall z 77 x 67–72
@@ -108,6 +110,20 @@ export function addLifeSeeds(seeds) {
       let bp = s.home.blueprint;
       for (const kind of ['garden-bed', 'garden-bed', 'coop']) bp = addYardItem(bp, kind);
       ok(moveInBuild(s, bp), 'life-month1-build');
+      return s;
+    } };
+  seeds['life-renovate-build'] = { phase: 'life',
+    description: 'The Pāhoa blueprint home (life-month1-build) with $45,000 more in savings, a family gift toward a renovation (blocks task 21).',
+    build: (now) => {
+      const s = seeds['life-month1-build'].build(now);
+      post(s, { month: PAPERWORK_MONTH, label: 'Gift from family toward a renovation', amountCents: 4500000, account: 'savings', category: 'other' });
+      return s;
+    } };
+  seeds['design-renovate-build'] = { phase: 'design',
+    description: 'life-renovate-build with Upgrade this home started: the blueprint editor in upgrade mode (blocks task 21).',
+    build: (now) => {
+      const s = seeds['life-renovate-build'].build(now);
+      startUpgrade(s);
       return s;
     } };
   seeds['life-plan-filled'] = { phase: 'life',

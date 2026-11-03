@@ -1,7 +1,8 @@
 // Blueprint editor screen (07 §5, tasks 39–40): an SVG plan of the lot with select / move / resize / draw / delete,
 // door and window tools, the keyboard, zoom and pan, 50-step undo/redo, templates, roof/exterior/yard panels, the
 // budget bar and a status bar. The working blueprint is a draft in state.home.blueprint. The 3D split view (task 41,
-// view3d.js) rebuilds after each change; Move in takes an optional pet.
+// view3d.js) rebuilds after each change; Move in takes an optional pet. Upgrade mode (blocks task 21, `state.upgrade` set):
+// the draft is a copy in `state.upgrade.blueprint`, the budget panel shows the renovation cost and cash, Renovate commits.
 import { h } from '../../../ui/dom.js';
 import { confirmDialog } from '../../../ui/modal.js';
 import { formatMoney } from '../../../util/format.js';
@@ -14,13 +15,15 @@ import { buildContext, moveInBuild } from './moveIn.js';
 import { createBlueprintView } from './view3d.js';
 import { PET_LABELS } from '../houseModel.js';
 import { seedFor } from '../../../util/rng.js';
-import { budgetPanel, checksPanel, outsidePanel, yardPanel } from './panels.js';
+import { budgetPanel, checksPanel, outsidePanel, renovationPanel, yardPanel } from './panels.js';
 import { styleFamily } from '../../../data/styleFamilies.js';
 import { problemRoomIds, validateBlueprint } from './validate.js';
 import { TEMPLATES, TEMPLATE_IDS, applyTemplate } from './templates.js';
 import { applyRoomAction, createHistory, drawRect, drawable, keyAction, moveRect, resizeRect, zoomView } from './tools.js';
 import { fitView, lotMarkup, roomsMarkup, roomsView } from './canvas.js';
 import { BLUEPRINT, DESIGN } from '../../../config.js';
+import { renovationContext, renovationDraft, renovationQuote, afterRenovation, hasChanges, commitRenovation } from '../../../life/renovation.js';
+import { cash } from '../../../finance/ledger.js';
 
 const SVGNS = 'http://www.w3.org/2000/svg';
 const HANDLE_PX = 11;
@@ -30,13 +33,15 @@ export async function mount(container, { store }) {
   const state = store.getState();
   const loc = byId[state.home.locationId];
   const opts = state.paperwork?.options ?? {};
-  const ctx = buildContext(state);
+  const reno = !!state.upgrade;   // renovating the house the student lives in (blocks task 21)
+  const ctx = reno ? renovationContext(state) : buildContext(state);
   const budgetCents = ctx.budgetCents;
   const palette = styleFamily(loc.styleFamily, loc.styleVariant)?.palettes?.[0] ?? null;
   let tab = 'rooms';
-  let bp = state.home.blueprint ?? createBlueprint(lotOf(loc), {
+  let bp = reno ? structuredClone(renovationDraft(state)) : state.home.blueprint ?? createBlueprint(lotOf(loc), {
     solarKw: opts.siteUtilities?.solarKw ?? 0, catchmentGallons: opts.siteUtilities?.catchmentGallons ?? 0 });
-  if (!state.home.blueprint) store.update((s) => { s.home.blueprint = bp; });
+  if (!reno && !state.home.blueprint) store.update((s) => { s.home.blueprint = bp; });
+  const quote = () => renovationQuote(store.getState(), bp);
 
   const area = buildArea(bp);
   const yardArea = editWindow(bp.lot);
@@ -80,7 +85,8 @@ export async function mount(container, { store }) {
   const status = h('div', { class: 'bp-status', 'aria-live': 'polite' });
   const stageWrap = h('div', { class: 'dz-stage-wrap bp-stage' }, svg, toolbar, status);
   const panel = h('div', { class: 'dz-panel-body' });
-  const moveBtn = h('button', { class: 'btn btn-primary dz-movein', type: 'button', disabled: true, onClick: () => moveIn() }, 'Move in');
+  const moveBtn = h('button', { class: 'btn btn-primary dz-movein', type: 'button', disabled: true, onClick: () => moveIn() }, reno ? 'Renovate' : 'Move in');
+  if (reno) moveBtn.classList.add('bp-renovate');
   const moveNote = h('div', { class: 'bp-movein-note', 'aria-live': 'polite' });
   const petSelect = h('label', { class: 'bp-row bp-pet' }, 'A pet ', h('select', { class: 'bp-pet-select', onChange: (e) => { pet = e.target.value; } },
     Object.entries(PET_LABELS).map(([id, label]) => h('option', { value: id }, id === 'none' ? label : `${label}, ${formatMoney(DESIGN.house.petCents[id])}`))));
@@ -89,10 +95,10 @@ export async function mount(container, { store }) {
   const root = h('section', { class: 'dz bp bp-split' }, stageWrap, view3dWrap,
     h('aside', { class: 'dz-panel', 'aria-label': 'Blueprint' },
       h('p', { class: 'dz-eyebrow' }, `Phase 3 · ${loc.name}`),
-      h('h1', { class: 'dz-title' }, 'Design your house'),
-      h('p', { class: 'dz-intro muted' }, `Your lot is ${bp.lot.widthFt} × ${bp.lot.depthFt} ft. Draw rooms inside the dashed line, `
-        + 'or start from a template and change it.'),
-      panel, petSelect, moveBtn, moveNote));
+      h('h1', { class: 'dz-title' }, reno ? 'Renovate your house' : 'Design your house'),
+      h('p', { class: 'dz-intro muted' }, reno ? 'Add or change rooms and yard items. You pay only what the new plan costs more than your house, plus a permit.'
+        : `Your lot is ${bp.lot.widthFt} × ${bp.lot.depthFt} ft. Draw rooms inside the dashed line, or start from a template and change it.`),
+      panel, reno ? null : petSelect, moveBtn, moveNote));
   container.append(root);
 
   // ---- coordinates ----
@@ -112,7 +118,7 @@ export async function mount(container, { store }) {
   const ftPerPx = () => Math.max(view.w / (svg.clientWidth || 1), view.h / (svg.clientHeight || 1));
 
   // ---- state changes ----
-  function save() { store.update((s) => { s.home.blueprint = bp; }); view3d?.update(bp); }
+  function save() { store.update((s) => { if (reno) s.upgrade.blueprint = bp; else s.home.blueprint = bp; }); view3d?.update(bp); }
   const exists = (id) => bp.rooms.some((r) => r.id === id) || bp.yard.some((y) => y.id === id);
   function commit(next) {
     if (!next || next === bp) return;
@@ -143,17 +149,30 @@ export async function mount(container, { store }) {
     undoBtn.disabled = !history.canUndo;
     redoBtn.disabled = !history.canRedo;
     const problems = result.errors.length;
+    const after = reno ? afterRenovation(store.getState(), bp) : null;
+    const costText = reno ? `Renovation ${formatMoney(quote().deltaCents)} of ${formatMoney(cash(store.getState()))} cash`
+      : `Cost ${formatMoney(result.cost.totalCents)}${budgetCents != null ? ` of ${formatMoney(budgetCents)}` : ''}`;
     status.replaceChildren(
       h('span', null, `Area ${footprintArea(bp).toLocaleString('en-US')} sq ft`), h('span', null, `${bp.rooms.length} room${bp.rooms.length === 1 ? '' : 's'}`),
-      h('span', { class: budgetCents != null && result.cost.totalCents > budgetCents ? 'bp-over' : null },
-        `Cost ${formatMoney(result.cost.totalCents)}${budgetCents != null ? ` of ${formatMoney(budgetCents)}` : ''}`),
+      h('span', { class: (reno ? !after.ok : budgetCents != null && result.cost.totalCents > budgetCents) ? 'bp-over' : null }, costText),
       h('span', { class: problems ? 'bp-bad' : 'bp-good' }, problems ? `${problems} to fix` : 'Plan OK'));
     fillPanel();
-    moveBtn.disabled = problems > 0;
-    moveNote.replaceChildren(...(problems ? [h('p', { class: 'bp-movein-why' }, `Move in opens when these ${problems === 1 ? 'is' : 'are'} fixed:`),
-      h('ul', { class: 'bp-movein-list' }, result.errors.map((e) => h('li', null, e.message)))] : []));
+    const changed = !reno || hasChanges(store.getState(), bp);
+    moveBtn.disabled = problems > 0 || !changed || (reno && !after.ok);
+    const label = reno ? 'Renovate' : 'Move in';
+    moveNote.replaceChildren(...(problems ? [h('p', { class: 'bp-movein-why' }, `${label} opens when these ${problems === 1 ? 'is' : 'are'} fixed:`),
+      h('ul', { class: 'bp-movein-list' }, result.errors.map((e) => h('li', null, e.message)))]
+      : !changed ? [h('p', { class: 'bp-movein-why' }, 'Change a room or a yard item to renovate.')]
+        : reno && !after.ok ? [h('p', { class: 'bp-movein-why' }, `Not enough cash: ${formatMoney(-after.leftCents)} short.`)] : []));
   }
-  function moveIn() {
+  async function moveIn() {
+    if (reno) {
+      const { voxHome } = await import('../../../world/voxHome.js');
+      let res = null;
+      store.update((s) => { res = commitRenovation(s, bp, { voxHomeFn: voxHome }); }, { checkpoint: 'upgrade-committed' });
+      if (res && !res.ok) render();
+      return;
+    }
     let res = null;
     store.update((s) => { res = moveInBuild(s, bp, { pet }); }, { checkpoint: 'design-finalized' });
     if (res && !res.ok) {
@@ -165,7 +184,7 @@ export async function mount(container, { store }) {
   function fillPanel() {
     const focusKey = document.activeElement?.dataset?.focusKey;
     panel.replaceChildren();
-    panel.append(budgetPanel(result.cost, budgetCents));
+    panel.append(reno ? renovationPanel(quote(), afterRenovation(store.getState(), bp)) : budgetPanel(result.cost, budgetCents));
     const tabs = [['rooms', 'Rooms'], ['outside', 'Roof & walls'], ['yard', 'Yard']];
     panel.append(h('div', { class: 'bp-tabs', role: 'tablist', 'aria-label': 'Design panels' }, tabs.map(([id, label]) => h('button', {
       class: `bp-tab bp-tab-${id}`, type: 'button', role: 'tab', 'aria-selected': String(tab === id), dataset: { focusKey: `tab-${id}` },
@@ -270,7 +289,7 @@ export async function mount(container, { store }) {
   function onDown(ev) {
     if (ev.button !== 0 && ev.button !== 1) return;
     if (popover) closePopover();
-    svg.focus();
+    svg.focus({ preventScroll: true }); // a scroll here would move the plan under the pointer
     const p = toLot(ev);
     const handle = ev.target.closest?.('[data-handle]')?.dataset.handle;
     const roomEl = ev.target.closest?.('[data-id]');
@@ -372,7 +391,7 @@ export async function mount(container, { store }) {
   applyView();
   render();
   window.__blueprint = { get bp() { return bp; }, get sel() { return sel; }, get history() { return history.depth; },
-    toClient, result: () => result, get view3d() { return view3d; } };
+    toClient, result: () => result, get view3d() { return view3d; }, quote: () => (reno ? quote() : null) };
   createBlueprintView(view3dWrap, { location: loc, palette: 0, seed: seedFor(state.meta.seed, 'build') }).then((v) => {
     view3dWrap.querySelector('.dz-loading')?.remove();
     if (!alive) { v?.dispose(); return; }

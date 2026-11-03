@@ -2,7 +2,8 @@
 // touches the DOM. "Upgrade this home" keeps the student where they live: `state.upgrade` remembers the home and world
 // as they were, the design screen shows the upgrade choices, and Commit charges only what is new (removing never
 // refunds), updates `home` like the move-in functions do and rebases the block world onto the renovated base. Cancel
-// puts everything back. Both return to Live at the same stage. Builds (blueprint homes) are task 21.
+// puts everything back. Both return to Live at the same stage. Builds (blueprint homes) renovate through life/renovation.js
+// (task 21): the blueprint editor in upgrade mode, then commitRenovation.
 import { DESIGN, LEASE } from '../config.js';
 import { charge, cash, addRecurring } from '../finance/ledger.js';
 import { createRng, seedFor } from '../util/rng.js';
@@ -15,8 +16,8 @@ import { homeKeyFor } from '../world/homeKey.js';
 import { rebase, countEdits } from '../world/edits.js';
 
 const H = DESIGN.house;
-/** Kinds this task upgrades (builds come in task 21). */
-export const UPGRADE_NOW = Object.freeze(['house', 'apartment', 'condo', 'shared']);
+/** Kinds that can upgrade (builds since blocks task 21). */
+export const UPGRADE_NOW = Object.freeze(['house', 'build', 'apartment', 'condo', 'shared']);
 const stageOf = (state) => state.life?.current?.stage ?? 'welcome';
 
 /** True when "Upgrade this home" can start: in Live with a home, at welcome/plan/summary, not moving or upgrading. */

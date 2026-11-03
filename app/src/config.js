@@ -518,6 +518,13 @@ export const BLUEPRINT = {
   },
 };
 
+// Renovating a student-built home (13 §10, blocks task 21): the cost is blueprintCost(new) − blueprintCost(old), never
+// negative, plus a county building permit charged once per renovation (a Hawaiʻi County residential addition permit
+// with plan review runs roughly $1,000–$2,000).
+export const RENOVATION = {
+  permitCents: 150000,
+};
+
 export const DESIGN = {
   plantCents: 2000,             // 07 §2: optional potted plants, $20 each, paid from savings/checking
   maxPlants: 3,

@@ -94,3 +94,5 @@ mobs /index.html?dev=mobs&theme=light
 life-explore /index.html?seed=life-month1-house&theme=light&explore=1
 life-world-built /index.html?seed=life-world-built&theme=light
 life-upgrade-house /index.html?seed=life-upgrade-house&theme=light
+life-renovate-build /index.html?seed=life-renovate-build&theme=light
+design-renovate-build /index.html?seed=design-renovate-build&theme=light

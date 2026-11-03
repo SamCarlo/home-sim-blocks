@@ -150,7 +150,7 @@ export function worldErrors(w) {
   return errs;
 }
 
-/** Problems with `state.upgrade` (13 §7): null, or {startedMonth, stage, homeBefore, worldBefore}. */
+/** Problems with `state.upgrade` (13 §7): null, or {startedMonth, stage, homeBefore, worldBefore, blueprint? (task 21 draft)}. */
 export function upgradeErrors(u) {
   if (u === null) return [];
   if (!isObj(u)) return ['upgrade must be null or an object'];
@@ -159,5 +159,6 @@ export function upgradeErrors(u) {
   if (typeof u.stage !== 'string') errs.push('upgrade.stage must be a string');
   if (u.homeBefore !== undefined && u.homeBefore !== null && !isObj(u.homeBefore)) errs.push('upgrade.homeBefore must be an object');
   if (u.worldBefore !== undefined && u.worldBefore !== null && !isObj(u.worldBefore)) errs.push('upgrade.worldBefore must be null or an object');
+  if (u.blueprint !== undefined && u.blueprint !== null && !isObj(u.blueprint)) errs.push('upgrade.blueprint must be null or an object');
   return errs;
 }

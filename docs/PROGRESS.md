@@ -2652,3 +2652,29 @@ each logs here under `## Blocks NN: <title>`.
 - Notes for task 21: designScreen sends builds to the blueprint editor even while `state.upgrade` is set; `canUpgrade` excludes 'build' (UPGRADE_NOW),
   so the menu shows "Coming soon" for builds. Reuse `rebaseWorld(s, homeBefore, voxHome)` and the upgrade bar; pass `{voxHomeFn: voxHome}` (lazy import).
   The site key does not strip blueprint fields, so a blueprint change re-seeds the world: consider a blueprint-free site key for builds.
+
+## Blocks 21: Upgrade (renovate) a student-built home
+- attempt started 2026-11-02T14:56:46-10:00
+- done 2026-11-02T15:12:34-10:00
+- Files added: app/src/life/renovation.js (`renovationContext renovationDraft blueprintBefore renovationQuote hasChanges afterRenovation
+  commitRenovation`), tests/unit/renovation.test.js (6 tests), tests/e2e/blocks-upgrade-build.json. Changed: config.js (`RENOVATION.permitCents`
+  $1,500), life/upgrade.js (UPGRADE_NOW + 'build'), world/homeKey.js (site key drops `bp`), state/schema.js (`upgrade.blueprint`),
+  phases/design/blueprint/editor.js (upgrade mode; SVG focus with preventScroll), blueprint/panels.js (`renovationPanel`), designScreen.js and
+  life/homeMenu.js (comments), dev/lifeSeeds.js (`life-renovate-build`, `design-renovate-build`), styles/design.css (`.bp-reno-lines`),
+  tools/smoke.txt, CLAUDE.md, DEVIATIONS.
+- Verified: `node --test tests/unit/renovation.test.js` 6/6 (bedroom added → work > 0; bedroom removed → 0 + permit; permit charged once with
+  three changes; errors and short cash refuse; site key unchanged and a far build survives the rebase; cancel leaves the live blueprint);
+  `bash tools/check.sh` OK (syntax 272 · tests · smoke 96/96 · lazy-plan); `node tools/shoot.mjs --path '/index.html?seed=life-renovate-build&theme=light'
+  --wait-ready --steps tests/e2e/blocks-upgrade-build.json` ✓ (My home → Upgrade → editor in upgrade mode, Renovate disabled until a change → add a
+  bedroom, door, window → quote $41,975 work + $1,500 permit; live blueprint untouched while editing → Renovate → exactly $43,475 in 'home-upgrade',
+  3 bedrooms, block view rooms 6 → 7). Shots → tools/shots/b21/:
+  - 1-renovate-editor.png: "Upgrading your home" bar with Cancel; plan with the new 10 × 10 Bedroom 3 left of the living room; 3D split view of the
+    Cozy house; panel "Renovate your house", Renovation cost $43,475 (work $41,975, building permit $1,500), cash after $16,663, house now $369,595
+    vs new plan $411,570; status bar "Renovation $43,475 of $60,138 cash".
+  - 2-world-new-room.png: Pāhoa welcome, savings $16,663; the block house with its grey roof, lānai and the coop/garden beds behind; Plan my month and
+    My home buttons.
+- Fixed on the way: the editor's pointerdown called `svg.focus()` without preventScroll, so when the side panel had scrolled the page the plan moved
+  under the pointer and a Door tap landed 12 ft off (put the door on the lānai). Now `focus({preventScroll: true})`.
+- Deviations (DEVIATIONS.md): build site key ignores the blueprint; $1,500 permit config; work never negative; Renovate needs a change.
+- Notes for later: the renovation draft lives in `state.upgrade.blueprint`, so a reload mid-renovation reopens the draft. Plants/hens follow yard item
+  ids (removed beds take their plants). Steps-file evals share one global scope: never redeclare a `const`.

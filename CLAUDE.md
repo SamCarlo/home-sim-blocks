@@ -1029,3 +1029,19 @@ rename). History: `docs/PROGRESS.md`. Before shipping a change run `bash tools/c
 - Seed `life-upgrade-house` (Katy, 1 bed, no coop, cat, the 38-block planter). e2e `tests/e2e/blocks-upgrade-house.json` on
   `?seed=life-upgrade-house&theme=light` (cancel charges nothing and restores the world; +1 bed + coop charges $520 once, builds kept, 4 animals);
   `tools/shots/b20/steps-cleared.json` shows the cleared note. Tests `tests/unit/upgrade.test.js`.
+
+## Renovating a student-built home (13 §10, blocks task 21; `life/renovation.js` pure, blueprint editor upgrade mode)
+- `canUpgrade` now includes builds; designScreen sends a build in `state.upgrade` to `blueprint/editor.js`, which runs in **upgrade mode**
+  (`reno`): the draft is a copy in `state.upgrade.blueprint` (schema allows it), `state.home.blueprint` stays the lived-in house until commit.
+  Title "Renovate your house", no pet select, `.bp-reno` renovation panel (`panels.js` `renovationPanel(quote, after)`), status shows
+  "Renovation $X of $cash", `.bp-renovate` button (disabled until the draft differs, validates and fits cash). `window.__blueprint.quote()`.
+- Pure: `renovationContext` (= `buildContext` minus the design budget), `renovationDraft`, `blueprintBefore`, `renovationQuote(state, bp)` →
+  `{lines [work?, permit], workCents = max(0, new − old), permitCents (RENOVATION.permitCents, once), deltaCents, oldCents, newCents}`,
+  `hasChanges`, `afterRenovation`, `commitRenovation(s, bp, {voxHomeFn})` (errors / shortfall refuse; charges 'home-upgrade', writes blueprint,
+  `home.build` beds/baths/sqft, plants and hens follow yard ids, `rebaseWorld`, phase 'life'). Cancel = task 20's `cancelUpgrade`.
+- `siteKeyFor` drops a build's `bp`, so renovations keep land and builds (DEVIATIONS). The editor's pointerdown focuses the SVG with
+  `preventScroll` (a scroll there moved the plan under synthetic taps).
+- Seeds `life-renovate-build` (life-month1-build + $45,000 family gift), `design-renovate-build` (upgrade started). e2e
+  `tests/e2e/blocks-upgrade-build.json` on `?seed=life-renovate-build&theme=light` (Add → drag to x 52 y 22 → door at (62, 28), window at (52, 27) →
+  Renovate → charged quote, 3 beds, block view rooms 6 → 7). Evals in a steps file share one global scope: don't redeclare `const` names.
+  Tests `tests/unit/renovation.test.js`.

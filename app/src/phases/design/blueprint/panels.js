@@ -91,3 +91,15 @@ export function checksPanel(result) {
     ? h('ul', { class: 'bp-checks' }, items.map(([tone, it]) => h('li', { class: `bp-check is-${tone}` }, it.message)))
     : h('p', { class: 'bp-check is-ok' }, 'Everything checks out.'));
 }
+
+/** Upgrade mode (blocks task 21): renovation cost lines (work + permit), the total and the cash left. */
+export function renovationPanel(quote, after) {
+  return section('Renovation cost',
+    h('div', { class: `bp-budget bp-reno${after.ok ? '' : ' is-over'}` },
+      h('div', { class: 'bp-budget-nums' }, h('strong', null, formatMoney(quote.deltaCents)), h('span', null, ' from checking and savings')),
+      h('table', { class: 'bp-reno-lines' }, h('tbody', null, quote.lines.map((l) => h('tr', null,
+        h('td', null, l.label, h('small', null, l.detail)), h('td', { class: 'num' }, formatMoney(l.cents)))))),
+      h('p', { class: 'bp-budget-left' }, after.ok ? `Cash after: ${formatMoney(after.leftCents)}${after.low ? ' (that is very little left)' : ''}`
+        : `${formatMoney(-after.leftCents)} more than your cash`)),
+    h('p', { class: 'muted bp-help' }, `Your house now: ${formatMoney(quote.oldCents)}. New plan: ${formatMoney(quote.newCents)}. Taking things out refunds nothing.`));
+}
