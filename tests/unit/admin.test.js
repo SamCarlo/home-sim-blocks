@@ -133,3 +133,9 @@ test('local source: codes, players, transfer and delete class over localStorage;
   assert.equal(storage.getItem(saveKey(kai2.uid)), null);
   assert.equal(JSON.parse(storage.getItem(LOCAL_CODES_KEY)).length, 2, 'codes stay');
 });
+
+test('planReset also clears the block world and any upgrade (blocks task 24)', () => {
+  const plan = planReset(player('u1', 'kai', 'IO-P3'), 1000);
+  assert.equal(plan.state.world, null);
+  assert.equal(plan.state.upgrade, null);
+});

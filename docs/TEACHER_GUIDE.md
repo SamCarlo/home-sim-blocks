@@ -1,6 +1,6 @@
 # Teacher guide
 
-How to run Home & Life Sim with a class: what each phase teaches, how a period can go, the admin console, discussion
+How to run Home & Life Sim: Block Edition with a class: what each phase teaches, how a period can go, the admin console, discussion
 prompts tied to the Life Skills syllabus, and how to change the game itself. To put the game online the first time,
 see `DEPLOY.md`.
 
@@ -77,6 +77,70 @@ Two buttons in the Life phase let students play the long game:
 Good prompt pairing: have students fast-forward a year, then ask whether what they saved changes which homes they can
 afford.
 
+## The block world (Block Edition)
+
+This edition changes only the Life phase. Instead of a drawn 3D house, each student's home is built from blocks (one
+block is one meter), with furniture inside and surroundings that fit the place they picked: fields and a far farmhouse
+in the country, neighbor houses in a suburb, row houses and towers in a city, the place's landmark far off. Everything
+before Life, and every rule of the month, works exactly as in the classic game.
+
+**What students see each month.** The same money strip, questions, time budget, care game and summary. The blocky
+character walks out the door each day, windows light up at night, plants turn brown when they need care, and animals
+disappear when they're gone.
+
+**The My home menu.** On the welcome, plan and summary screens (not while a month is playing), **My home** opens:
+
+| Choice | What it does |
+|---|---|
+| **Explore & build** | Walk around the home in first person and place or break blocks. **Done** (or Esc) saves and returns. |
+| **Upgrade this home** | Add to the home they already have. They pay only for what's new (see the table below). **Cancel** in the bar at the top undoes everything and charges nothing. |
+| **Find a new place to live** | The classic move (Plan table, paperwork, design). The confirm warns: "Your builds stay with this home when you move." |
+
+**What upgrades cost** (charged once, from checking then savings, as a "home-upgrade" expense):
+
+| Home | What they can add | Price |
+|---|---|---|
+| House | Garden bed (up to 3) · fruit tree (up to 2) · chicken coop with 3 hens · cat or dog · new paint color | $120 each · $60 each · $400 · $150 / $250 · free |
+| Apartment, condo or shared room | Potted plants · a cat where allowed | $20 each · $150 (apartments add the lease's $300 pet fee and $35/month pet rent) |
+| Student-built home | Change the blueprint (add a bedroom, a lānai…) | the difference in building cost plus a $1,500 renovation permit |
+
+Upgrades can only add, never sell back. Building with blocks is always free: it's decoration. Anything that costs money
+goes through **Upgrade**.
+
+**How saves work.** Only the student's changes are saved (up to 20,000 blocks; at 90 % the game warns "Your world is
+almost full"). Builds survive logging out, reloading, a cancelled move and a cancelled upgrade. A committed upgrade keeps
+every build that wasn't in the way and says "Your renovation cleared N of your blocks." once. Moving into a new home
+starts a fresh world. **Reset game** in the admin console erases the block world along with the rest of the game.
+
+### Student handout: controls
+
+| Action | Mouse or touchpad | Keyboard only |
+|---|---|---|
+| Move | W A S D or the arrow keys | same |
+| Jump | Space | Space |
+| Look around | move the mouse, or **drag** on a Chromebook | Q / E turn, R / F look up and down |
+| Break a block | left click | B |
+| Place a block | right click (two-finger tap) or Shift + click | P |
+| Choose a block | 1–9, or scroll | 1–9 |
+| Leave | Esc or **Done** | Esc |
+
+Rules for building:
+- You can only build on **your own place**. House and build owners get the whole lot. Renters get their own unit or
+  room. Condo owners get their unit and balcony. Anywhere else the game says "That's your neighbor's. Build on your own
+  place."
+- You can't break your door, your mailbox, the ground deep down, or the spots where your plants and animals live.
+- The hotbar starts with your home's own wall, roof and trim blocks, then glass, planks, flowers, a lamp, a potted
+  plant and fence.
+
+### Chromebook tips
+- If the mouse won't lock to the screen (common on Chromebook trackpads), click and **drag** to look around. The
+  keyboard-only keys work everywhere.
+- The block world is sized for a school Chromebook (measured at 1366 × 768). If a machine is slow, close other tabs.
+  **Portfolio → Settings → Reduce motion** shows the month as a calendar instead of the animation; Explore still works.
+- Two-finger tap places a block; Shift + click does too if two-finger tap is turned off.
+- Credits for the borrowed engine and art are in **Portfolio → Settings → Credits**.
+- For comparison, the classic 3D view still opens with `?view=classic` at the end of the address.
+
 ## Class codes
 
 Students can only register with an active class code. Make one per period so you can filter the admin table by class.
@@ -128,7 +192,7 @@ with the new username and carries on.
 
 Every one of these asks you to confirm first.
 
-- **Reset game** (in a student's details): erases their whole game and starts them over at Intake. Their account and
+- **Reset game** (in a student's details): erases their whole game, including their block world and builds, and starts them over at Intake. Their account and
   username stay. It can't be undone.
 - **Pause** / **Unpause**: a paused student sees "Your account is paused" and can't log in until you unpause.
 - **Delete class data** (in **Class codes**): deletes every saved game and class record for that code. You must type

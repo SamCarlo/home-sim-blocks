@@ -443,3 +443,13 @@ and where in the code. Keep entries short. The teacher's intent in `99-original-
   house (none ship yet). **Renovation permit** = `RENOVATION.permitCents` $1,500 (no BUILD number fit; spec gives none), one line per renovation,
   charged even when the change only removes things. Renovation work = blueprintCost(new) − blueprintCost(old), never negative (tearing out refunds
   nothing). Commit needs a change: the Renovate button stays disabled until the draft differs from the house.
+
+## 2026-11-02 · blocks task 24 · the engine repo address in the credits
+- **What:** 13 §1 says never call the game or any UI "Minecraft", and the task's check is
+  `grep -rni minecraft app/src app/styles` → only vendor comments. The in-game credits (13 §2) must name the engine's
+  repository, whose real address is `github.com/vyse12138/minecraft-threejs`, so that address appears once in
+  `app/src/ui/portfolio/credits.js` (the link under "Block engine").
+- **Why:** the MIT license asks for credit, and a repo link that doesn't resolve is no credit. The visible name is
+  "Block world engine for three.js by vyse12138"; nothing calls the game Minecraft. Other grep hits are code comments
+  (`three/voxel/mobs.js`) and the dev-only `?dev=voxel-vendor` gallery label.
+- **Where:** `app/src/ui/portfolio/credits.js`; guarded by `tests/unit/credits.test.js`.

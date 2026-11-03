@@ -2765,3 +2765,53 @@ each logs here under `## Blocks NN: <title>`.
 - Deviations: none.
 - Notes for later: `{"reload": true}` is the way to reload in any e2e that might run under `?emulator=1`. The renovate moves only work
   after `.bp-fit` (the added room spawns at the lot corner, off screen at the editor's default zoom in a fresh play).
+
+## Blocks 24: Docs, credits and final review
+- attempt started 2026-11-02T17:52:07-10:00
+- Spec review, one line per 13 § (evidence = tests, e2e scripts, shots; all re-run or re-shot this task unless noted):
+  - **Verified §1 Identity**: `GAME_TITLE` "Home & Life Sim: Block Edition", serve.py port 1271, `STORAGE_PREFIX` `homeblocks:v1:`,
+    `.firebaserc` default `demo-home-blocks` (own project); header title visible in every b24 shot. No "Minecraft" in UI copy: grep hits are
+    the credited repo URL (DEVIATIONS 2026-11-02 task 24), a mobs.js comment and the dev-only voxel-vendor gallery label; `tests/unit/credits.test.js`.
+  - **Verified §2 Borrowed code and art**: vyse12138/minecraft-threejs @ ead87efb MIT and Kenney Voxel Pack CC0 in `app/vendor/VERSIONS.md` with
+    their license files; in-game credits (Portfolio → Settings → Credits, `ui/portfolio/credits.js`, `tests/e2e/blocks-credits.json`,
+    shot b24/credits.png); lazy loading = `lazy-plan.json` in check.sh (forbids `/vendor/voxel/` and `/src/three/voxel/` before Phase 4).
+  - **Verified §3 World, units, coordinates**: `config.WORLD` {128,96,128}, tallY 160, groundY 24, farScale 4; `volume.test.js` (index formula,
+    ftToBlocks, purity), `genLandmarks.test.js` (far volume past −z); seeded generation re-checked by `voxHome.test.js` determinism.
+  - **Verified §4 Blocks**: `world/blocks.js` 112 ids append-only, `blocks.test.js` id snapshots; every block in `?dev=blocks` (smoke `blocks`).
+  - **Verified §5 Generators**: genTerrain/genNeighborhood/genLandmarks/voxHouse/voxBuilding/voxBlueprint/voxInteriors/voxHome unit tests (all in
+    `npm test`); b24 shots home-{apartment,shared,condo,house,build}.png show the five homes with their surroundings (Hilo apartment between
+    row buildings, Honolulu shared house among towers, Miami condo tower, Katy house with suburban neighbors, Pāhoa build with ʻōhiʻa, lava rock, garden beds).
+  - **Verified §6 Voxel home contract**: `voxHome.test.js` checks every contract key for all five kinds; blockView uses only the contract.
+  - **Verified §7 Saves**: `STATE_VERSION` 3 + migrate STEPS[2] (`state.test.js`, `worldState.test.js`), `worldState.test.js` (cap, almost-full, rebase), e2e
+    `blocks-persist.json` (task 18), every `play-*` places a block, reloads and checks it (this run's `npm run test:e2e`), upgrade plays keep builds,
+    `blocks-relocate-keep.json` (task 19). Admin reset clears `world`/`upgrade` (new test in `admin.test.js`).
+  - **Verified §8 Phase 4 with blocks**: blockView is the default (all b24 home shots); `?view=classic` still mounts lifeView (kept, OPEN_ITEMS);
+    live month / care in `blocks-live-month.json` (task 15) and every play's 3 months at speed 20; Explore & build in b24/explore-build.png
+    (Katy `life-world-built`, first person facing the student's planter wall with windows and flowers, hotbar 9 slots, crosshair, Done/Controls).
+  - **Verified §9 Controls and building**: `firstPerson.test.js`, `buildRules.test.js` (property, bedrock, dig depth, protected cells, toast text),
+    `blocks-build.json` + `blocks-a11y.json` (keyboard only, task 22); controls table copied to TEACHER_GUIDE "Student handout: controls".
+  - **Verified §10 My home menu and upgrades**: `homeMenu.test.js`, `upgrade.test.js`, `renovation.test.js`; e2e `play-upgrade-katy`,
+    `play-upgrade-pahoa-build` (this run); b24/welcome-menu.png shows the menu (Explore & build, Upgrade this home, Find a new place to live, Back).
+  - **Verified §11 Performance and accessibility**: task 22's table (44–67 calls, 76k–341k triangles vs 150 / 400k; voxHome ≤ 90 ms);
+    `blocks-reduced-motion.json`, `describeSurroundings` in `life-flow.test.js`. Not re-measured this task (no render code changed).
+  - **Verified §12 Task map**: tasks 01–23 each have a done entry above; this is 24. Task 25 (GitHub push) is a separate queued task.
+- Small gaps fixed: credits (§2, missing until now); README still said "six playthroughs (~2 min)" → eight (~4 min); TEACHER_GUIDE had no
+  Block Edition section; reset doc now says it clears the block world.
+- done 2026-11-02T18:01:52-10:00
+- Files: new `app/src/ui/portfolio/credits.js`, `tests/unit/credits.test.js`, `tests/e2e/blocks-credits.json`; changed `ui/portfolio/settings.js`
+  ("About this game" → Credits link), `styles/portfolio.css` (.pf-credit*), `tests/unit/admin.test.js` (reset clears world/upgrade), README
+  (status, "What's different from the classic game", tests line, licenses), TEACHER_GUIDE ("The block world": My home menu, upgrade prices,
+  saves, student controls handout, Chromebook tips; reset wording), OPEN_ITEMS (Block Edition list incl. `?view=classic` removal steps),
+  DEVIATIONS (engine repo URL in credits), CLAUDE.md (Current status, credits).
+- Verify: `bash tools/check.sh` → check: OK (smoke 96/96, 220 s; a first run in parallel with e2e failed only the genNeighborhood 500 ms timing
+  test from CPU contention, passes alone). `npm run test:e2e` → 8/8 playthroughs passed. `node tools/copy-audit.mjs` → OK (grade 4.09).
+  `blocks-credits.json` → OK (Esc closes, focus back on Credits).
+  - b24/settings.png: Settings tab, new "About this game" block with the underlined Credits link under Restart, nothing clipped.
+  - b24/credits.png: Credits dialog over the portfolio: Block engine (vyse12138, MIT, repo link), Textures (Voxel Pack by Kenney, CC0), three.js,
+    nspell, dictionary-en, VADER; the list scrolls inside the dialog.
+  - b24/welcome-menu.png: Katy welcome with the My home menu open (address line, three choices with hints, Back).
+  - b24/home-{apartment,shared,condo,house,build}.png: the five homes in blocks, light theme, wellbeing card, no console errors.
+  - b24/explore-build.png: first person beside the student's built planter wall (plaster, windows, flowers), hotbar + crosshair, a chicken by the door.
+- Deviations: engine repo URL in credits (DEVIATIONS 2026-11-02).
+- Notes: `?view=classic` kept on purpose (OPEN_ITEMS). Don't run check.sh and test:e2e at the same time: the timing tests in
+  genNeighborhood/voxHome get starved.

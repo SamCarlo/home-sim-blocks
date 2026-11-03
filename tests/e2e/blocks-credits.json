@@ -1,0 +1,11 @@
+[
+  {"wait": 400},
+  {"shot": "tools/shots/b24/settings.png"},
+  {"click": ".pf-credits-open"},
+  {"waitFor": ".pf-credits-modal"},
+  {"assert": "document.querySelectorAll('.pf-credit').length >= 2 && /Kenney/.test(document.querySelector('.pf-credits').textContent) && /CC0/.test(document.querySelector('.pf-credits').textContent) && /vyse12138/.test(document.querySelector('.pf-credits').textContent)"},
+  {"wait": 300},
+  {"shot": "tools/shots/b24/credits.png"},
+  {"press": "Escape"},
+  {"assert": "!document.querySelector('.pf-credits-modal') && document.activeElement.classList.contains('pf-credits-open')"}
+]

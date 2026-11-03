@@ -29,3 +29,20 @@ mark it ✅ with the date and who resolved it.
 - [x] ✅ 2026-10-02, task 29: the floor now checks `options.pulledScore` (see DEVIATIONS). **Construction credit floor (task 23 → 29)**: 05 §7 hard-fails construction loans under 680, but `CREDIT.startingScore`
   is 680 and the construction loan application's hard inquiry drops it to 675, so every build would be denied. Fix in task
   29: check the score from before the inquiry, lower the floor to 660, or raise the starting score; record it in DEVIATIONS.
+
+## Block Edition (blocks task 24 review, 2026-11-02)
+- [ ] **Remove `?view=classic` when the teacher is happy with the block view** (13 §8 kept it "until task 24"; the teacher
+  hasn't seen the block view in class yet, so it stays). To remove it: in `app/src/phases/life/lifeScreen.js` delete the
+  two `getFlag('view') === 'classic'` checks (the `exploreCtx` line, ~215, and the `import('./lifeView.js')` branch, ~281),
+  so the block view always mounts and Explore is always offered; then delete `phases/life/lifeView.js` (and
+  `three/homeRender.js` only if `grep -rn "homeRender" app/src tests` finds nothing else); fix the comment in
+  `life/homeMenu.js`; update README ("What's different"), TEACHER_GUIDE ("Chromebook tips") and CLAUDE.md; run `bash tools/check.sh` and
+  `npm run test:e2e`.
+- [ ] **Firebase for the Block Edition is a separate project** (13 §1). Same steps as the item above, but create a *new*
+  Firebase project; never reuse the classic game's project (saves are schema v3).
+- [ ] *(Optional, build)* The block perf/leak/a11y/reduced-motion scripts (`tests/e2e/blocks-{perf,leak,a11y,reduced-motion}.json`)
+  and `blocks-credits.json` are not in `check.sh` or `npm run test:e2e`. Before a big change run each with
+  `node tools/shoot.mjs --path "<path in the script's first line / CLAUDE.md>" --out /tmp/x.png --wait-ready --steps tests/e2e/<name>.json`.
+- [ ] *(Optional, build)* House customization palettes other than palette 0 use the nearest-tint existing style blocks
+  (blocks task 09, DEVIATIONS). If the teacher wants exact repaint colors, append per-palette block sets to
+  `world/blocks.js` (append only) and map them in `voxHouse.js` `paletteBlocks`.

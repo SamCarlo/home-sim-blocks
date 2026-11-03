@@ -99,7 +99,7 @@ app/src/persistence/firestore.js  Firestore adapter (saves/{uid} + players/{uid}
 app/src/ui/                    dom.js (h, clear, qs) · screens.js (registerScreen, renderPhase) · header.js · saveStatus.js ·
                                letterReport.js (renderLetterReport) · modal.js (openModal, confirmDialog) · icons.js · drawer.js (openDrawer) ·
                                portfolio/ (index.js openPortfolio + tabs; portfolioModel.js pure; settings.js applySettings;
-                               agreementDoc.js registerAgreementDoc/agreementSchema)
+                               agreementDoc.js registerAgreementDoc/agreementSchema; credits.js openCredits)
 app/src/forms/                 engine.js (renderForm) · fields.js (field kinds) · validate.js (pure rules + helpers)
 app/src/dev/                   flags.js (devAllowed, getFlag) · galleries.js (?dev=<name> registry) · vendorCheck.js
                                seeds.js (fixtures) · designSeeds.js (design-* seeds, addDesignSeeds) · sampleLetters.js · devPanel.js (?dev=1) · gallery2d.js (?dev=gallery2d) · formsGallery.js (?dev=forms) · lettersGallery.js (?dev=letters) · sceneGallery.js (?dev=scene) · propsGallery.js (?dev=props) · stylesGallery.js (?dev=styles) · buildingsGallery.js (?dev=buildings) · housesGallery.js (?dev=houses) · blueprint3dGallery.js (?dev=blueprint3d) · voxelVendorGallery.js (?dev=voxel-vendor) · blocksGallery.js (?dev=blocks[&night=1]) · landmarksGallery.js (?dev=landmarks) · mobsGallery.js (?dev=mobs) · lifeSeeds.js (life-* seeds, addLifeSeeds)
@@ -942,8 +942,14 @@ shows "3 of 8 required done". `readOnly` renders values as text (the portfolio's
 
 ## Current status
 All 57 build tasks are done (2026-10-03), plus task 58 (moving and the year fast-forward, same day). Every requirement R1–R40 in `docs/spec/99-original-request.md` §3 is verified
-there with its evidence. What's left is in `docs/OPEN_ITEMS.md` (only the teacher's Firebase setup and an optional
-rename). History: `docs/PROGRESS.md`. Before shipping a change run `bash tools/check.sh` and `npm run test:e2e`.
+there with its evidence. The **Block Edition** (blocks tasks 01–24) is done as of 2026-11-02: every section of `docs/spec/13-blocks.md` has a
+"Verified" line under "Blocks 24" in `docs/PROGRESS.md`. What's left is in `docs/OPEN_ITEMS.md` (the teacher's Firebase setup in a *new* project,
+removing `?view=classic` once the teacher is happy, an optional rename). Teacher docs: README "What's different from the classic game",
+TEACHER_GUIDE "The block world" (My home menu, upgrade prices, saves, the student controls handout, Chromebook tips). Task 25 (GitHub push) is
+queued separately. Before shipping a change run `bash tools/check.sh` and `npm run test:e2e`.
+- Credits (blocks task 24): `ui/portfolio/credits.js` `CREDITS` (keep in step with `app/vendor/VERSIONS.md`) + `openCredits()`, opened by
+  `.pf-credits-open` in the Settings tab ("About this game"). The engine's repo URL is the only "minecraft" string allowed in UI code
+  (`tests/unit/credits.test.js`, DEVIATIONS). e2e `tests/e2e/blocks-credits.json` on `?seed=portfolio-demo&open=portfolio&tab=settings&theme=light`.
 
 ## Blocky character and animals (13 §8, blocks task 13; `app/src/three/voxel/mobs.js` browser only, `world/wander.js` pure)
 - `createBlockCharacter(colors)` has exactly `createCharacter`'s API (`object, colors, walking, walkTo(points, ms?) → Promise<bool>,

@@ -4,6 +4,7 @@ import { LIFE } from '../../config.js';
 import { confirmDialog } from '../modal.js';
 import { createInitialState } from '../../state/schema.js';
 import { block } from './parts.js';
+import { openCredits } from './credits.js';
 
 /** settings → <html> attributes: data-theme (absent = follow the OS) and data-reduced-motion. */
 export function applySettings(settings, { themeOverride = null } = {}) {
@@ -54,5 +55,8 @@ export function renderSettings(state, { store, user, onRestarted }) {
         LIFE.speeds.map((v) => radio('pf-speed', String(v), `${v}×`, (s.animationSpeed || 1) === v, () => set({ animationSpeed: v }))))),
     block('Start over',
       h('p', { class: 'muted pf-note' }, 'Restarting keeps your account and settings but erases your game.'),
-      h('button', { type: 'button', class: 'btn btn-danger pf-restart', onClick: restart }, 'Restart game…')));
+      h('button', { type: 'button', class: 'btn btn-danger pf-restart', onClick: restart }, 'Restart game…')),
+    block('About this game',
+      h('p', { class: 'muted pf-note' }, 'See who made the free tools and art inside this game.'),
+      h('button', { type: 'button', class: 'pf-credits-open', onClick: openCredits }, 'Credits')));
 }
