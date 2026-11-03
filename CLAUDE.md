@@ -13,6 +13,14 @@ month by month from January 2033. Vanilla ES modules with an import map, no buil
 Teacher-facing docs: `README.md`, `docs/DEPLOY.md` (Firebase setup), `docs/TEACHER_GUIDE.md` (running the class, admin,
 changing rules, adding a location). Keep their commands, labels and paths true when you change the UI or tools.
 
+## Remotes (blocks task 25)
+- `origin` = https://github.com/SamCarlo/home-sim-blocks (PUBLIC). `upstream` = https://github.com/SamCarlo/home-sim
+  (classic, PUBLIC). Shared history up to classic `dfece19`; GitHub shows no "forked from" badge (DEVIATIONS, task 25).
+- Push: `git push` (branch `master` tracks `origin/master`). Never force-push. Pull classic changes with
+  `git fetch upstream` and merge or cherry-pick by hand.
+- Anything pushed is public: no student names, rosters, real emails or keys. Task runs still never push unless their
+  task file says so (TASK_PROTOCOL §5, §8).
+
 ## Commands
 - Serve: `python3 tools/serve.py` → http://127.0.0.1:1271 (`python3 tools/serve.py 8080` for another port)
 - Test: `npm test` (= `node --test "tests/unit/*.test.js"`; Node 25 rejects a bare directory, see DEVIATIONS)

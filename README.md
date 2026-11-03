@@ -2,6 +2,8 @@
 
 *Plan it. Sign it. Build it. Live it.*
 
+Forked from [SamCarlo/home-sim](https://github.com/SamCarlo/home-sim) at `dfece19` (classic edition).
+
 A browser game for the middle school Life Skills course in Pāhoa, Hawaiʻi Island (grades 7–8). Students enter the net
 income and savings of their class job, pick a home from 20 real places × 5 home types, do the real paperwork (applications,
 a lease or loan, insurance, letters scored by a small in-browser model, a credit card offer), design the home, then live

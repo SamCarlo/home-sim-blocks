@@ -453,3 +453,12 @@ and where in the code. Keep entries short. The teacher's intent in `99-original-
   "Block world engine for three.js by vyse12138"; nothing calls the game Minecraft. Other grep hits are code comments
   (`three/voxel/mobs.js`) and the dev-only `?dev=voxel-vendor` gallery label.
 - **Where:** `app/src/ui/portfolio/credits.js`; guarded by `tests/unit/credits.test.js`.
+
+## 2026-11-02 · blocks task 25 · Block Edition is a separate repo, not a GitHub fork
+- **What:** `SamCarlo/home-sim-blocks` was made with `gh repo create --public`, not `gh repo fork`, so GitHub shows no
+  "forked from" badge. Its git history is still a true fork: it shares classic's commits up to `dfece19`, and the local
+  repo has an `upstream` remote pointing at `SamCarlo/home-sim`. `README.md` says so near the top.
+- **Why:** `gh repo fork SamCarlo/home-sim --fork-name home-sim-blocks` failed with "A single user account cannot own
+  both a parent and fork." Getting the badge would take an organization or a second account; that's Sam's call, so
+  no organization was created.
+- **Where:** `README.md` (fork line), `CLAUDE.md` → "Remotes".

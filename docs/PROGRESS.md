@@ -2815,3 +2815,28 @@ each logs here under `## Blocks NN: <title>`.
 - Deviations: engine repo URL in credits (DEVIATIONS 2026-11-02).
 - Notes: `?view=classic` kept on purpose (OPEN_ITEMS). Don't run check.sh and test:e2e at the same time: the timing tests in
   genNeighborhood/voxHome get starved.
+
+## Blocks 25: GitHub push
+- attempt started 2026-11-02T18:37:00-10:00
+- done 2026-11-02T18:42:47-10:00
+- Repos (both PUBLIC under SamCarlo): classic https://github.com/SamCarlo/home-sim (branch master, head 8aca105);
+  Block Edition https://github.com/SamCarlo/home-sim-blocks (branch master).
+- Classic: committed task 58 as 8aca105 "homesim 58: Moving and the year fast-forward" (changes matched CL PROGRESS task 58's
+  file list). LEFT OUT and still untracked in CL: app/src/phases/design/blueprint/canvas.sync-conflict-20261010-132257-W3E5ROX.js
+  (a Syncthing conflict copy, not task 58; HS never had it). No CL file edited.
+- Fork path: FALLBACK. `gh repo fork` refused: "A single user account cannot own both a parent and fork." Made the repo with
+  `gh repo create --public`, remotes origin (home-sim-blocks) + upstream (home-sim), README fork line, DEVIATIONS entry. No org created.
+- Secrets/student-data check (all history, both repos, `git log -p --all`): CLEAN.
+  - No gho_/ghp_/sk-/AKIA/AIza/-----BEGIN/private_key/xox hits; no .env/.pem/.key/service-account/csv/pdf/db/image files except
+    Kenney CC0 PNGs. Passwords are test fixtures (password123). Firebase config is demo-only (demo-home-sim, apiKey 'demo-key').
+  - Emails: only placeholders (example.com, players.example.com, you@/kid@/teacher@gmail.com fixtures) and library author
+    credits in vendor LICENSE files / package-lock. The one real address, sam.ryn.cas@gmail.com, is the git commit author only
+    (not in any file); it is now public in commit metadata.
+  - Grepped both 2026-27 rosters (planning/2026-2027/rosters/*.csv): 0 full-name matches; surname hits are generic words or
+    fictional names (Santos in names.js/letters, Hamilton County, "Doctor visit", Sellers = home sellers). Letter corpus is synthetic (task 27).
+  - Licenses: three.js MIT, nspell MIT, dictionary-en MIT+BSD, vader Apache-2.0/MIT, vyse12138 engine MIT, Kenney CC0, all in
+    app/vendor/VERSIONS.md; no Mojang/engine src/static textures anywhere in history.
+- Files changed: README.md (fork line), CLAUDE.md (Remotes), docs/spec/DEVIATIONS.md, docs/PROGRESS.md.
+- Verified: `bash tools/check.sh` OK (smoke 96/96); `git merge-base HEAD upstream/master` = dfece19; gh repo view both PUBLIC;
+  status -sb tracking origin with nothing ahead/behind in both (checked after the final push).
+- Notes: the CL sync-conflict file is Sam's to delete or keep. A GitHub "forked from" badge needs an org or second account (Sam decides).
