@@ -22,7 +22,10 @@ export async function createBlockView(container, { state }) {
   const view = h('div', { class: 'life-view life-view-blocks' });
   container.append(view);
 
+  // Timings for the 13 §11 performance table (blocks task 22): generation on the main thread, view start → first frame.
+  const tStart = performance.now();
   let vh = voxHome(state, { monthIndex: state.life.monthIndex });
+  const timing = { genMs: performance.now() - tStart, firstFrameMs: null };
   // The student's saved builds (13 §7, blocks task 18) go into the generated volume before it is meshed; `base` keeps each
   // edited cell's generated id so Explore can tell an undone edit from a new one.
   const base = new Map();
@@ -225,7 +228,13 @@ export async function createBlockView(container, { state }) {
       }
       home.setLiving(s.home);
     },
-    firstFrame: () => world.firstFrame(),
+    async firstFrame() {
+      const info = await world.firstFrame();
+      timing.firstFrameMs ??= performance.now() - tStart;
+      return info;
+    },
+    /** {genMs, firstFrameMs}: voxHome time and view start → first rendered frame (13 §11). */
+    get timing() { return { ...timing }; },
     dispose() {
       sky.group.traverse((o) => { o.material?.dispose?.(); });
       world.dispose();

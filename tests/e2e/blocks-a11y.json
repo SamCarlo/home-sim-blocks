@@ -1,0 +1,146 @@
+[
+ {
+  "waitFor": "body[data-ready=\"1\"] .life-home"
+ },
+ {
+  "assert": "document.querySelector('.life-home').tabIndex === 0"
+ },
+ {
+  "eval": "document.querySelector('.life-home').focus(), document.activeElement.className"
+ },
+ {
+  "press": "Enter"
+ },
+ {
+  "waitFor": ".life-home-menu .life-explore-open:not([disabled])"
+ },
+ {
+  "eval": "(() => { const b = document.querySelector('.life-home-menu .life-explore-open'); for (let i = 0; i < 6 && document.activeElement !== b; i++) document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true })); return document.activeElement.className; })()"
+ },
+ {
+  "press": "Tab"
+ },
+ {
+  "press": "Tab"
+ },
+ {
+  "press": "Tab"
+ },
+ {
+  "eval": "(() => { const b = document.querySelector('.life-home-menu .life-explore-open'); if (document.activeElement !== b) b.focus(); return document.activeElement.className; })()"
+ },
+ {
+  "press": "Enter"
+ },
+ {
+  "waitFor": ".life-explore"
+ },
+ {
+  "assert": "document.activeElement.classList.contains('life-explore-stage') && document.querySelector('.life-explore').getAttribute('aria-labelledby') === 'life-explore-title' && document.getElementById('life-explore-title').textContent.trim().length > 0 && document.querySelector('.life-explore-stage').getAttribute('aria-label').length > 40"
+ },
+ {
+  "eval": "window.__a11y = { p0: window.__explore.pose(), slot0: window.__explore.slot() }, window.__a11y"
+ },
+ {
+  "press": "e"
+ },
+ {
+  "press": "e"
+ },
+ {
+  "press": "e"
+ },
+ {
+  "press": "r"
+ },
+ {
+  "wait": 1000
+ },
+ {
+  "assert": "window.__explore.pose().yaw !== window.__a11y.p0.yaw"
+ },
+ {
+  "press": "3"
+ },
+ {
+  "assert": "JSON.stringify(window.__explore.slot()) !== JSON.stringify(window.__a11y.slot0) && document.querySelector('.life-hotbar-slot[aria-pressed=\"true\"]') === document.querySelectorAll('.life-hotbar-slot')[2]"
+ },
+ {
+  "eval": "window.__a11y.edits0 = window.__explore.edits().size"
+ },
+ {
+  "press": "b"
+ },
+ {
+  "wait": 150
+ },
+ {
+  "eval": "({ edits: window.__explore.edits().size, toast: document.querySelector('.life-explore-toast').hidden ? '' : document.querySelector('.life-explore-toast').textContent, status: document.querySelector('.life-explore p[aria-live]').textContent })"
+ },
+ {
+  "assert": "(window.__explore.edits().size !== window.__a11y.edits0 || !document.querySelector('.life-explore-toast').hidden) && document.querySelector('.life-explore-toast').getAttribute('role') === 'status' && document.querySelector('.life-explore-toast').getAttribute('aria-live') === 'polite'"
+ },
+ {
+  "eval": "window.__tabs = [], document.activeElement.className"
+ },
+ {
+  "press": "Tab"
+ },
+ {
+  "eval": "(window.__tabs = window.__tabs || []).push(document.activeElement.className || document.activeElement.tagName), document.activeElement.className"
+ },
+ {
+  "press": "Tab"
+ },
+ {
+  "eval": "(window.__tabs = window.__tabs || []).push(document.activeElement.className || document.activeElement.tagName), document.activeElement.className"
+ },
+ {
+  "assert": "document.activeElement.classList.contains('life-explore-done')"
+ },
+ {
+  "shot": "tools/shots/b22/1-explore-done-focus.png"
+ },
+ {
+  "press": "Tab"
+ },
+ {
+  "eval": "(window.__tabs = window.__tabs || []).push(document.activeElement.className || document.activeElement.tagName), document.activeElement.className"
+ },
+ {
+  "press": "Tab"
+ },
+ {
+  "eval": "(window.__tabs = window.__tabs || []).push(document.activeElement.className || document.activeElement.tagName), document.activeElement.className"
+ },
+ {
+  "press": "Tab"
+ },
+ {
+  "eval": "(window.__tabs = window.__tabs || []).push(document.activeElement.className || document.activeElement.tagName), document.activeElement.className"
+ },
+ {
+  "assert": "document.activeElement.closest('.life-explore') !== null && document.activeElement.tagName === 'BUTTON'"
+ },
+ {
+  "shot": "tools/shots/b22/2-explore-tab-focus.png"
+ },
+ {
+  "eval": "document.querySelector('.life-explore-stage').focus(), document.activeElement.className"
+ },
+ {
+  "shot": "tools/shots/b22/3-explore-stage-focus.png"
+ },
+ {
+  "press": "Escape"
+ },
+ {
+  "waitFor": "body[data-ready=\"1\"] .life-home"
+ },
+ {
+  "assert": "!document.querySelector('.life-explore') && document.activeElement.classList.contains('life-home')"
+ },
+ {
+  "shot": "tools/shots/b22/4-focus-back-my-home.png"
+ }
+]

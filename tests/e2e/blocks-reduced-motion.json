@@ -1,0 +1,26 @@
+[
+ {
+  "reducedMotion": true
+ },
+ {
+  "goto": "/index.html?seed=life-live-house&theme=light"
+ },
+ {
+  "waitReady": true
+ },
+ {
+  "waitFor": ".life[data-anim]"
+ },
+ {
+  "assert": "document.querySelector('.life').dataset.anim === 'calendar' && !!document.querySelector('.life-calgrid')"
+ },
+ {
+  "eval": "(async () => { const sc = window.__life.view().scene, c = sc.camera; const a = { cam: c.position.toArray(), night: sc.nightFactor }; await new Promise((r) => setTimeout(r, 1500)); window.__rm = { a, b: { cam: c.position.toArray(), night: sc.nightFactor } }; return window.__rm; })()"
+ },
+ {
+  "assert": "JSON.stringify(window.__rm.a.cam) === JSON.stringify(window.__rm.b.cam)"
+ },
+ {
+  "shot": "tools/shots/b22/5-reduced-motion-live.png"
+ }
+]

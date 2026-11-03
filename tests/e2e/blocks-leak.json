@@ -1,0 +1,29 @@
+[
+ {
+  "waitReady": true
+ },
+ {
+  "assert": "window.__homesim.getState().phase === 'life' && !!window.__life?.view()"
+ },
+ {
+  "eval": "(async () => { const H = window.__homesim, sleep = (ms) => new Promise((r) => setTimeout(r, ms)); const until = async (f) => { for (let i = 0; i < 400 && !f(); i++) await sleep(50); if (!f()) throw new Error('timeout'); }; const log = []; for (let i = 1; i <= 10; i++) { const sc = window.__life.view().scene; const live = sc.memory(); H.update((s) => { s.phase = 'plan'; }); await until(() => document.body.dataset.ready === '1' && !!document.querySelector('.plan-cell')); H.update((s) => { s.phase = 'life'; }); await until(() => document.body.dataset.ready === '1' && !!window.__life?.view()); log.push({ i, live, leftover: sc.leftover }); } window.__leakLog = log; return log; })()"
+ },
+ {
+  "assert": "window.__leakLog.length === 10 && window.__leakLog.every((r) => r.leftover && r.leftover.geometries === 0 && r.leftover.textures <= 1)"
+ },
+ {
+  "assert": "window.__leakLog.every((r) => r.live.geometries === window.__leakLog[0].live.geometries && r.live.textures === window.__leakLog[0].live.textures)"
+ },
+ {
+  "eval": "(async () => { const sleep = (ms) => new Promise((r) => setTimeout(r, ms)); const until = async (f) => { for (let i = 0; i < 400 && !f(); i++) await sleep(50); if (!f()) throw new Error('timeout'); }; const log = []; for (let i = 1; i <= 5; i++) { document.querySelector('.life-home').click(); await until(() => !!document.querySelector('.life-explore-open:not([disabled])')); document.querySelector('.life-explore-open').click(); await until(() => !!window.__explore); window.__explore.move(['w'], 300); window.__explore.look(200, 0); const sceneGeoms = () => { const g = new Set(); window.__life.view().scene.scene.traverse((o) => { if (o.geometry) g.add(o.geometry); }); return g.size; }; const open = { ...window.__life.view().scene.memory(), inScene: sceneGeoms() }; window.__explore.close(); await until(() => !document.querySelector('.life-explore') && document.body.dataset.ready === '1'); await sleep(100); log.push({ i, open, after: { ...window.__life.view().scene.memory(), inScene: sceneGeoms() }, focus: document.activeElement?.className }); } window.__exploreLog = log; return log; })()"
+ },
+ {
+  "assert": "window.__exploreLog.length === 5 && window.__exploreLog.every((r) => r.open.geometries <= r.open.inScene && r.after.geometries <= r.after.inScene && r.after.inScene === window.__exploreLog[0].after.inScene && r.after.textures === window.__exploreLog[0].after.textures)"
+ },
+ {
+  "assert": "window.__exploreLog.every((r) => /life-home/.test(r.focus))"
+ },
+ {
+  "assert": "document.querySelectorAll('canvas').length === 1 && !!document.querySelector('.life-stage canvas')"
+ }
+]

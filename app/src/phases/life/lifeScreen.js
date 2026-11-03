@@ -231,6 +231,8 @@ export async function mount(container, { store }) {
           if (!mounted) return;
           const homeKey = view.contract.homeKey;
           go((d) => { recordEdits(d, edits, { homeKey, hotbar }); savePose(d, pose); }, 'world');
+          // 12 §4: focus comes back to the button that opened the menu (the menu item itself is gone by now).
+          root.querySelector('.life-home')?.focus({ preventScroll: true });
         } });
     },
   };

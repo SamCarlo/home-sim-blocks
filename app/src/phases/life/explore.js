@@ -137,8 +137,11 @@ export function openExplore({ view, contract, state, onClose, onEdit = null, onS
     if (!k || !onStage) return;
     e.preventDefault();
     input[k] = e.type === 'keydown';
+    // A quick tap still counts as holding the key for EXPLORE.tapMs and at least one frame (keyboard-only turning, blocks task 22).
+    if (e.type === 'keydown') taps[k] = { at: performance.now(), stepped: false };
   };
-  const onBlur = () => { for (const k of Object.keys(input)) input[k] = false; };
+  const taps = {};
+  const onBlur = () => { for (const k of Object.keys(input)) input[k] = false; for (const k of Object.keys(taps)) delete taps[k]; };
   function trapTab(e) {
     const list = [stage, ...el.querySelectorAll('button')].filter((b) => b.offsetParent !== null || b === stage);
     const i = list.indexOf(document.activeElement);
@@ -166,7 +169,13 @@ export function openExplore({ view, contract, state, onClose, onEdit = null, onS
   }
   function frame(now) {
     raf = requestAnimationFrame(frame);
-    stepPlayer(volume, player, input, (now - last) / 1000);
+    const held = { ...input };
+    for (const [k, t] of Object.entries(taps)) {
+      held[k] = true;
+      if (t.stepped && now - t.at >= EXPLORE.tapMs) delete taps[k];
+      else t.stepped = true;
+    }
+    stepPlayer(volume, player, held, (now - last) / 1000);
     last = now;
     place();
     world.renderNow();

@@ -711,6 +711,7 @@ export const VOX_MOBS = {
 
 /** Explore mode, first person (13 §8–§9, blocks task 16). Body and jump numbers come from the vendored engine's Player/Control. */
 export const EXPLORE = {
+  tapMs: 120,                   // a quick key tap counts as holding it this long, so keyboard-only turning works (12 §4, blocks task 22)
   walkSpeed: 3.57,              // blocks/s: vendor Player Speed.walking 5.612 × 2/π, as its Control moves
   gravity: 25,                  // blocks/s², vendor Control
   jumpSpeed: 8,                 // blocks/s upward, vendor Control (clears one block)

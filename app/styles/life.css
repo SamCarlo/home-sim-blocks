@@ -398,7 +398,7 @@ body.has-explore { overflow: hidden; }
   background: rgba(0, 0, 0, .35); cursor: pointer;
 }
 .life-hotbar-slot.is-selected { border-color: #fff; box-shadow: 0 0 0 2px var(--accent); }
-.life-hotbar-slot:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+.life-hotbar-slot:focus-visible { outline: 3px solid #ffd54a; outline-offset: 2px; } /* yellow reads on the dark hotbar (blocks task 22) */
 .life-hotbar-swatch {
   display: block; width: 100%; height: 100%; border-radius: 3px; background-size: cover; background-blend-mode: multiply;
   image-rendering: pixelated;

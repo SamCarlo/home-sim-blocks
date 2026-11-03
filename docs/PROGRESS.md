@@ -2678,3 +2678,44 @@ each logs here under `## Blocks NN: <title>`.
 - Deviations (DEVIATIONS.md): build site key ignores the blueprint; $1,500 permit config; work never negative; Renovate needs a change.
 - Notes for later: the renovation draft lives in `state.upgrade.blueprint`, so a reload mid-renovation reopens the draft. Plants/hens follow yard item
   ids (removed beds take their plants). Steps-file evals share one global scope: never redeclare a `const`.
+
+## Blocks 22: Chromebook performance and accessibility
+- attempt started 2026-11-02T15:42:49-10:00
+- done 2026-11-02T15:54:41-10:00
+- Numbers (13 §11 budget ≤ 150 draw calls, ≤ 400k triangles; 1366×768, SwiftShader = worst case; `tests/e2e/blocks-perf.json`, 3 s orbit):
+
+  | seed | calls | triangles | chunks | volume | voxHome ms | first frame ms | avg frame ms (SwiftShader) |
+  |---|---|---|---|---|---|---|---|
+  | life-month1-apartment | 44 | 116,180 | 16 | 128×96×128 | 77 | 831 | 289 |
+  | life-month1-shared | 62 | 341,470 | 16 | 128×160×128 | 90 | 1,132 | 321 |
+  | life-month1-condo | 57 (61 orbiting) | 266,886 (283,468) | 16 | 128×160×128 | 85 | 1,074 | 361 |
+  | life-month1-house | 67 | 75,910 | 16 | 128×96×128 | 70 | 872 | 177 |
+  | life-month1-build | 64 | 92,328 | 16 | 128×96×128 | 74 | 911 | 213 |
+  | life-world-built | 67 | 76,090 | 16 | 128×96×128 | 69 | 787 | 185 |
+
+  All within budget, so no meshing/volume changes. voxHome ≤ 90 ms on the main thread (< 300 ms), so no Worker. First frame = view start →
+  first rendered frame (atlas + generation + meshing). Avg frame = rAF interval while orbiting under SwiftShader (CPU rasterizer, worst case);
+  `renderNow` itself is 2–4 ms of main-thread time. Shared (Honolulu tall volume) is the closest to the triangle budget at 85 %.
+- Files: app/src/phases/life/blockView.js (`view.timing` {genMs, firstFrameMs}), explore.js (key taps count for `EXPLORE.tapMs` and at least one
+  frame), lifeScreen.js (Explore close refocuses `.life-home`), config.js (`EXPLORE.tapMs` 120), styles/life.css (hotbar focus ring #ffd54a),
+  tests/e2e/blocks-perf.json, blocks-leak.json, blocks-a11y.json, blocks-reduced-motion.json.
+- Fixed: (1) closing Explore left focus on <body> (the opener was the menu item, gone by then); now focus returns to My home. (2) A single tap of
+  Q/E/R/F did nothing when keyup arrived before the next frame (always under SwiftShader, sometimes on slow Chromebooks): keyboard-only players
+  could not turn by tapping. (3) Hotbar focus ring was accent green on the dark hotbar, nearly invisible; now the care button's yellow.
+- Verified: blocks-perf.json on all 6 seeds (table above); `blocks-leak.json` on life-month1-house ✓ (10× plan↔life: live 67 geometries / 2 textures
+  every time, leftover 0 geometries; 5× open/walk/close Explore: GPU geometries ≤ the 80 in the scene graph and stable, textures 2, focus back on
+  My home each time; the 72→77 creep is chunks first drawn from new angles, bounded by the scene's 80); `blocks-a11y.json` ✓ ×3 (My home
+  tabIndex 0 → Enter → Explore item → Enter; stage focused, overlay aria-labelledby title, stage aria-label lists every key; E E E R turns; 3
+  selects slot 3 (aria-pressed); B breaks or toasts, toast role=status aria-live=polite; Tab → Controls → Done; Tab trap stays in the overlay;
+  Esc closes, focus on My home); `blocks-reduced-motion.json` ✓ (calendar grid, camera still over 1.5 s); blocks-explore/build/persist ✓;
+  `bash tools/check.sh` OK (syntax 272 · tests · data · contrast · copy · smoke 96/96 · lazy-plan). No new tokens, so contrast unchanged.
+  Shots → tools/shots/b22/:
+  - 1-explore-done-focus.png: first person in the Katy house, controls card open, Done with a visible blue focus ring, hotbar slot 3 selected.
+  - 2-explore-tab-focus.png: view turned toward the wall after the key taps; hotbar slot 2 has the new yellow focus ring, slot 3 still selected.
+  - 3-explore-stage-focus.png: the stage focused (inset accent ring), crosshair centred.
+  - 4-focus-back-my-home.png: welcome panel after Esc, My home button with its focus ring; block house, wellbeing card.
+  - 5-reduced-motion-live.png: Living January with the calendar grid over a still block view, "Mon, January 3", care button, 1×/2×/4×/Pause.
+- Deviations: none.
+- Notes for later: the leak/a11y/perf/reduced-motion scripts are not in check.sh (WebGL-heavy, ~1 min each); run them before a review. In shoot
+  steps, wait ≥ 1 s after key presses in Explore (SwiftShader frames are ~300 ms). Modal Tab presses from shoot don't always land on the Explore
+  item, so the a11y script focuses it before pressing Enter.

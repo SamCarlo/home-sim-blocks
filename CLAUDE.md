@@ -957,7 +957,10 @@ rename). History: `docs/PROGRESS.md`. Before shipping a change run `bash tools/c
   `BLOCK_VIEW.litAt` the home's `windows` swap glass ↔ lit-glass. Wilted plants → `leaves-wilted` blocks; plant `object`s are dummies with
   `userData.healthy`. Season (snow on/off) and new plants/animals regenerate the near volume in place (`world.invalidate()`).
 - Framing: towers taller than `BLOCK_VIEW.tallBlocks` frame the unit's floor ± `tallBand`; the camera tilts up until its line of sight hits the
-  home first. Tunables `config.BLOCK_VIEW`. Five month-1 seeds: 44–69 calls, 85k–341k triangles (budget 150 / 400k).
+  home first. Tunables `config.BLOCK_VIEW`. `view.timing` = {genMs, firstFrameMs}. Measured (blocks task 22, table in PROGRESS): 44–67 calls, 76k–341k
+  triangles (budget 150 / 400k), voxHome ≤ 90 ms (no Worker), first frame 0.8–1.1 s under SwiftShader. Scripts `tests/e2e/blocks-perf.json` (any life
+  seed), `blocks-leak.json` (10× life mount + 5× Explore; GPU geometries ≤ scene geometries), `blocks-a11y.json` (keyboard-only Explore, focus back
+  on My home), `blocks-reduced-motion.json`; none are in check.sh.
 - Live this month (blocks task 15): animation.js drives the block view unchanged; `home.yard` = `BLOCK_VIEW.yardBlocks` along the path (the
   house path is corners only, door → street gate). `view.careAnchor(fx)` → client px of a plant/present animal (null when off screen);
   careButton places each button above it (`data-anchored="1"`) and steps it clear of other open buttons. Paused `seek`s freeze walks, so a
@@ -973,7 +976,8 @@ rename). History: `docs/PROGRESS.md`. Before shipping a change run `bash tools/c
   rAF loop runs only while open; close() removes every listener and restores canvas, camera, character and focus. Starts at `state.world?.pose ??
   contract.spawn` (blockView's `view.contract`).
 - Controls 13 §9 minus building: WASD/arrows, Space, mouse look with pointer lock or drag (pointer lock failing → drag), Q/E R/F, Esc/Done. Controls
-  card `.life-explore-card` ("Got it" saves `settings.exploreCardDismissed`; "Controls" reopens). Reduced motion turns off head bob.
+  card `.life-explore-card` ("Got it" saves `settings.exploreCardDismissed`; "Controls" reopens). Reduced motion turns off head bob. A key tap counts as held for `EXPLORE.tapMs` and at least one frame (task 22).
+  Closing Explore refocuses `.life-home` (lifeScreen onClose).
 - Pure `world/firstPerson.js`: `collides(v, x, y, z)`, `createPlayer(spawn | pose)`, `stepPlayer(v, p, input, dt)`, `turn`, `poseOf`; numbers in
   `config.EXPLORE` (vendored Player body/speeds, our collision: DEVIATIONS). Feet in block space, yaw 0 looks −z.
 - lifeScreen: "Explore & build" (`.life-explore-open`, inside the My home menu since blocks task 19) on welcome, plan and summary (never live;
