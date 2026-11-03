@@ -425,3 +425,14 @@ and where in the code. Keep entries short. The teacher's intent in `99-original-
 - **Why:** 13 §7 only names placing, but breaking a generated block also grows the diff and the cap must hold. The Save button already saves the
   whole state including `state.world`, and Explore (where edits happen) makes the header inert and checkpoints `'world'` on close.
 - **Where:** `app/src/phases/life/exploreBuild.js`, `app/src/world/worldState.js`, `app/src/phases/life/lifeScreen.js`.
+
+## 2026-11-02, blocks task 20: the world seed comes from a site key; upgrades only add
+- **What:** voxHome seeds its generators with `seedFor(meta.seed, 'world', siteKeyFor(state))` instead of the homeKey. The site key is the
+  homeKey's inputs minus what a house upgrade changes (palette, garden beds, fruit trees, coop); for every other kind it equals the homeKey.
+  The upgrade screen only adds (steppers and the coop/pet can't go below what the home has), so "removing never refunds" never comes up.
+  Paint is free, like at move-in. A cat in an apartment also pays the lease's `LEASE.petFeeCents` and adds a `Pet rent` recurring bill
+  (`source: 'pet-rent'`) from next month; shared rooms allow a cat only when the roommate agreement's pets answer is "ask" or "bring".
+  Renters' upgrade screen is a small panel (plants + cat) with a "You live here" card in place of the building picker's 3D view.
+- **Why:** with the seed tied to the homeKey, any house upgrade re-rolled the terrain, neighbors and furniture, so `rebase` dropped most
+  builds. Removing animals or beds raises questions (rehoming a pet, refunds) the spec doesn't answer.
+- **Where:** `app/src/world/homeKey.js`, `world/voxHome.js`, `life/upgrade.js`, `phases/design/upgradePicker.js`.

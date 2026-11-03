@@ -2628,3 +2628,27 @@ each logs here under `## Blocks NN: <title>`.
   month."), since canRelocate only allows welcome/plan. Every kind has upgrades per 13 §10, so the Upgrade item always shows.
 - Notes for task 20: flip `upgradeReady` in `openHomeMenu`'s `homeMenuItems` call and fill `act.upgrade` in phases/life/homeMenu.js (class
   `.life-upgrade`). Scripts open the menu with `{"click": ".life-home"}` then wait for `.life-home-menu .life-<item>:not([disabled])`.
+
+## Blocks 20: Upgrade a house, shared room, apartment or condo
+- attempt started 2026-11-02T14:10:38-10:00
+- done 2026-11-02T14:19:59-10:00
+- Files added: app/src/life/upgrade.js (`canUpgrade startUpgrade currentCustom upgradeCustom upgradeQuote afterUpgrade catAllowed rebaseWorld
+  commitUpgrade cancelUpgrade clearedNote`), app/src/phases/design/upgradePicker.js, app/src/ui/upgradeBar.js, tests/unit/upgrade.test.js (7 tests),
+  tests/e2e/blocks-upgrade-house.json, tools/shots/b20/steps-cleared.json. Changed: world/homeKey.js (`siteKeyFor`), world/voxHome.js (seed from the
+  site key), phases/design/designScreen.js (upgrade route), main.js (upgrade bar), phases/life/homeMenu.js (Upgrade item live), life/homeMenu.js (doc),
+  phases/life/lifeScreen.js (`.life-cleared` note once on welcome), dev/lifeSeeds.js (`life-upgrade-house`), styles/life.css, styles/design.css,
+  tools/smoke.txt, tests/e2e/blocks-relocate-keep.json (Upgrade is now enabled), CLAUDE.md, DEVIATIONS.
+- Verified: `npm test` 503/503 (incl. voxHome/worldState after the seed change); `bash tools/check.sh` OK (syntax 271 · smoke 94/94 · lazy-plan);
+  `node tools/shoot.mjs --path '/index.html?seed=life-upgrade-house&theme=light' --wait-ready --steps tests/e2e/blocks-upgrade-house.json` ✓ (cancel →
+  world JSON identical, no new transactions; +1 bed + coop → $520 in 'home-upgrade' txns, cash −$520, 38 edits kept, cleared 0, view has 2 beds and 4
+  animals, Explore edits = editCount); blocks-relocate-keep and blocks-persist still ✓. Shots → tools/shots/b20/:
+  - 1-upgrade-design.png: "Upgrading your home. You still live at 729 Sycamore Way, Katy" bar with Cancel; 3D house; panel with color swatches,
+    beds 2, citrus 0, coop checked, "Your cat already lives here.", quote New garden bed (1) $120 + coop $400 = $520, cash after $29,360, Upgrade.
+  - 2-world-after-upgrade.png: Katy welcome, savings $29,360; block house with the new coop beside it, the front-yard planter intact.
+  - 3-explore-builds-kept.png: first person on the sidewalk facing the planter (plaster, glass, red flowers); a hen in the yard.
+  - 4-cleared-note.png: welcome panel with the yellow note "Your renovation cleared 3 of your blocks." (forced count, shown once, then reset).
+- Deviations (DEVIATIONS.md): world seed from a site key so renovations keep land/furniture; upgrades only add; paint free; apartment cat = adoption +
+  lease pet fee + Pet rent recurring; shared cat only if the roommate agreement allows pets; renters get a simple panel, no 3D.
+- Notes for task 21: designScreen sends builds to the blueprint editor even while `state.upgrade` is set; `canUpgrade` excludes 'build' (UPGRADE_NOW),
+  so the menu shows "Coming soon" for builds. Reuse `rebaseWorld(s, homeBefore, voxHome)` and the upgrade bar; pass `{voxHomeFn: voxHome}` (lazy import).
+  The site key does not strip blueprint fields, so a blueprint change re-seeds the world: consider a blueprint-free site key for builds.

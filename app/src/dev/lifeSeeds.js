@@ -92,6 +92,15 @@ export function addLifeSeeds(seeds) {
       savePose(s, { x: 69.5, y: 25, z: 83.5, yaw: 0, pitch: -0.15 });
       return s;
     } };
+  seeds['life-upgrade-house'] = { phase: 'life',
+    description: 'Katy house, January 2033 welcome: one garden bed, no coop, a cat, and the 38-block front-yard planter (blocks task 20).',
+    build: (now) => {
+      const s = seeds['design-house-katy'].build(now);
+      ok(moveInHouse(s, { index: 0, gardenBeds: 1, fruitTrees: 0, coop: false, pet: 'cat' }), 'life-upgrade-house');
+      recordEdits(s, plannedBuilds(), { homeKey: homeKeyFor(s), hotbar: [69, 70, 71, 22, 18, 12, 32, 39, 111] });
+      savePose(s, { x: 69.5, y: 25, z: 83.5, yaw: 0, pitch: -0.15 });
+      return s;
+    } };
   seeds['life-month1-build'] = { phase: 'life',
     description: 'Pāhoa blueprint home (Cozy template), January 2033 welcome: two garden beds and a coop.',
     build: (now) => {

@@ -4,7 +4,7 @@
  {"click": ".life-home"},
  {"waitFor": ".life-home-menu .life-explore-open:not([disabled])"},
  {"assert": "[...document.querySelectorAll('.life-home-menu .life-home-item')].map((b) => b.dataset.item).join() === 'explore,upgrade,move'"},
- {"assert": "document.querySelector('.life-home-menu .life-upgrade').disabled && /Coming soon/.test(document.querySelector('.life-home-menu').textContent)"},
+ {"assert": "!document.querySelector('.life-home-menu .life-upgrade').disabled && /You pay only for what is new/.test(document.querySelector('.life-home-menu').textContent)"},
  {"assert": "document.activeElement === document.querySelector('.life-home-menu .life-explore-open')"},
  {"shot": "tools/shots/b19/1-menu-welcome.png"},
  {"press": "Escape"},

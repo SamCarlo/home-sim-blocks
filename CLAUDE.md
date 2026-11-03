@@ -297,7 +297,8 @@ docs/                          TASK_PROTOCOL, PROGRESS, OPEN_ITEMS, spec/
 - `voxHome(state, {monthIndex? | season (number)})` → 13 §6 `{volume, far {size, data, origin, scale, key}, homeKey, door, exit, path, spawn
   {x,y,z,yaw (0 = toward −z)}, plantSpots, animalSpots, windows, property [box], unit, info {blocks, homeBlocks, kind, monthIndex, homeBox,
   rooms, pieces, ms}}` + `rooms`, `plants [{id, kind, x,y,z}]`, `furniture`. Order: volume (buildingWorldSize for units, else worldSizeFor) →
-  genTerrain → genNeighborhood → voxBuilding/voxHouse/voxBlueprint → furnish → plants → genFar. Seed `seedFor(meta.seed, 'world', homeKey)`.
+  genTerrain → genNeighborhood → voxBuilding/voxHouse/voxBlueprint → furnish → plants → genFar. Seed `seedFor(meta.seed, 'world', siteKeyFor(state))`
+  (= homeKey minus house palette/beds/trees/coop, blocks task 20, so a renovation keeps the land and furniture).
   23–100 ms per call. The life view (task 14) uses only this.
 - `homeKeyFor(state)` = `${kind}:${hash(stable JSON of homeInputs(state))}`: location, kind and the kind's picks (building seed/floor/unit;
   house seed/palette/listing sqft+beds/extras; shared seed/room; build blueprint). Plants, animals and season are not in it.
@@ -1012,3 +1013,19 @@ rename). History: `docs/PROGRESS.md`. Before shipping a change run `bash tools/c
 - Moving with a world: `cancelRelocation` never touches `state.world`; `startLife` sets `state.world = null` (unless `state.upgrade`).
 - e2e: `{"click": ".life-home"}`, then `{"waitFor": ".life-home-menu .life-move:not([disabled])"}`. `tests/e2e/blocks-relocate-keep.json` on
   `?seed=life-world-built&theme=light`. `ui/screens.js` renderPhase clears `body[data-ready]` before loading a different phase's module.
+
+## Upgrading the home (13 §7, §10, blocks task 20; `life/upgrade.js` pure, `phases/design/upgradePicker.js`, `ui/upgradeBar.js`)
+- `canUpgrade(state)` (Live, welcome/plan/summary, house/apartment/condo/shared, not moving or upgrading; builds = task 21) → `startUpgrade(s)`
+  sets `state.upgrade = {startedMonth, stage 'design', homeBefore, worldBefore}` (deep copies) and phase 'design'. `currentCustom`, `upgradeCustom`
+  (never below what the home has), `upgradeQuote(state, custom)` → `{lines, deltaCents, custom}` (only what is new; paint free; apartment cat adds
+  the lease pet fee), `afterUpgrade`, `catAllowed`. `commitUpgrade(s, custom, {voxHomeFn})` charges each line `['checking','savings']` category
+  'home-upgrade' at `life.monthIndex` (cash checked first, all or nothing), updates `home` like the move-ins, `rebaseWorld` (voxHome before/after →
+  `edits.rebase`, `world.homeKey` = new key, `editCount`, `cleared`), phase 'life' at the same stage. `cancelUpgrade(s)` restores home + world.
+  `clearedNote(world)` → "Your renovation cleared N of your blocks." (welcome panel `.life-cleared`, then `world.cleared` resets to 0).
+- designScreen routes to `upgradePicker.js` while `state.upgrade` (except builds). House: color swatches + yard steppers locked to the current
+  listing, houseView preview, `.dz-quote`, `.dz-upgrade-go` "Upgrade" (checkpoint 'upgrade-committed'); renters: plant stepper + `.dz-cat`.
+  `window.__design.quote()`. main.js puts `renderUpgradeBar(store)` (`.upgrade-bar`, `.upgrade-cancel` → confirm → checkpoint 'upgrade-cancelled')
+  under the header. My home menu: `.life-upgrade` → `startUpgrade`, checkpoint 'upgrade-started'.
+- Seed `life-upgrade-house` (Katy, 1 bed, no coop, cat, the 38-block planter). e2e `tests/e2e/blocks-upgrade-house.json` on
+  `?seed=life-upgrade-house&theme=light` (cancel charges nothing and restores the world; +1 bed + coop charges $520 once, builds kept, 4 animals);
+  `tools/shots/b20/steps-cleared.json` shows the cleared note. Tests `tests/unit/upgrade.test.js`.

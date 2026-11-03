@@ -22,7 +22,7 @@ import { VOX_INTERIORS as VI, WORLD } from '../config.js';
 const ID = (k) => BLOCK[k].id;
 
 export { homeInputs, homeKeyFor } from './homeKey.js';
-import { homeKeyFor } from './homeKey.js';
+import { homeKeyFor, siteKeyFor } from './homeKey.js';
 
 /** The shared-house bedroom that is the student's: the bedroom whose side of the house best matches the room's `side`. */
 function sharedRoom(state, rooms, door) {
@@ -88,7 +88,7 @@ export function voxHome(state, { season = null, monthIndex = null } = {}) {
   const kind = home.kind;
   const month = monthIndex ?? (typeof season === 'number' ? season : season?.monthIndex) ?? state.life?.monthIndex ?? 0;
   const homeKey = homeKeyFor(state);
-  const seed = seedFor(state.meta?.seed ?? 0, 'world', homeKey);
+  const seed = seedFor(state.meta?.seed ?? 0, 'world', siteKeyFor(state)); // stable through upgrades (task 20)
   const style = { styleKey: location.styleFamily, variant: location.styleVariant };
   const isUnit = kind === 'apartment' || kind === 'condo';
   const bplan = isUnit ? planBuilding({ style: location.styleFamily, variant: location.styleVariant, seed: home.building?.seed ?? 0,

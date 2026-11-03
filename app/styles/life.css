@@ -419,3 +419,6 @@ body.has-explore { overflow: hidden; }
 .life-home-list { list-style: none; margin: 0 0 var(--sp-3); padding: 0; display: flex; flex-direction: column; gap: var(--sp-3); }
 .life-home-item { width: 100%; justify-content: flex-start; text-align: left; }
 .life-home-note { margin: var(--sp-1) 0 0; font-size: 0.875rem; }
+
+/* Blocks task 20: the welcome note after an upgrade replaced some of the student's blocks. */
+.life-cleared { margin: 0; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-sm); border: 1px solid var(--st-yellow-line); background: var(--st-yellow-bg); color: var(--st-yellow-ink); }

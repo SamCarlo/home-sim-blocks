@@ -5,6 +5,7 @@ import { openModal, confirmDialog } from '../../ui/modal.js';
 import { formatMoney } from '../../finance/money.js';
 import { startRelocation, moveOutQuote, quoteText } from '../../life/relocation.js';
 import { homeMenuItems } from '../../life/homeMenu.js';
+import { canUpgrade, startUpgrade } from '../../life/upgrade.js';
 
 /** The move confirm's builds line (13 §7). */
 export const BUILDS_STAY = 'Your builds stay with this home when you move.';
@@ -31,8 +32,8 @@ const ITEM_CLASS = { explore: 'life-explore-open', upgrade: 'life-upgrade', move
 export function openHomeMenu({ store, go, explore }) {
   const state = store.getState();
   let modal = null;
-  const act = { explore: () => explore?.open(), upgrade: () => {}, move: () => confirmMove(state, go) };
-  const items = homeMenuItems(state, { explore: !!explore, exploreReady: !!explore?.ready() });
+  const act = { explore: () => explore?.open(), upgrade: () => go(startUpgrade, 'upgrade-started'), move: () => confirmMove(state, go) };
+  const items = homeMenuItems(state, { explore: !!explore, exploreReady: !!explore?.ready(), upgradeReady: canUpgrade(state) });
   const list = h('ul', { class: 'life-home-list', role: 'list' }, ...items.map((it) => {
     const noteId = `life-home-note-${it.id}`;
     return h('li', null,

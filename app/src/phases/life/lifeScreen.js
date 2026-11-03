@@ -34,6 +34,7 @@ import { homeButton, refreshHomeMenu } from './homeMenu.js';
 import { renderAutopilotRecap } from './autopilotRecap.js';
 import { recordEdits, savePose } from '../../world/worldState.js';
 import { WORLD } from '../../config.js';
+import { clearedNote } from '../../life/upgrade.js';
 
 /**
  * The panel for each stage: `(ctx) → Node[]`. ctx = {state, go(fn, checkpoint), store, onUpdate(fn), onTick(fn)}. A panel
@@ -63,7 +64,7 @@ function yearButton(choices, go) {
 }
 
 const PANELS = {
-  welcome({ state, go, store, explore }) {
+  welcome({ state, go, store, explore, cleared }) {
     const mi = state.life.monthIndex;
     const { line, warnings } = recap(state);
     return [
@@ -71,6 +72,7 @@ const PANELS = {
       h('h1', { class: 'life-title' }, welcomeTitle(mi)),
       h('p', { class: 'life-recap' }, line),
       warnings.length ? h('ul', { class: 'life-warnings', role: 'list' }, ...warnings.map((w) => h('li', null, w))) : null,
+      cleared ? h('p', { class: 'life-cleared' }, cleared) : null,
       h('p', { class: 'muted life-note' }, 'Each month you decide how to spend your time, then live it one day at a time. '
         + 'Your choices change your money and your wellbeing.'),
       h('div', { class: 'life-go-row' },
@@ -260,7 +262,10 @@ export async function mount(container, { store }) {
     shownStage = st; shownMonth = s.life.monthIndex; panelUpdate = null; panelTick = null;
     stopAnimation();
     if (st !== 'live') view?.syncHome(s); // wilted plants, departed or new animals (care game, home & garden answer)
-    panel.replaceChildren(...PANELS[st]({ state: s, go, store, explore: exploreCtx, onUpdate: (fn) => { panelUpdate = fn; },
+    // 13 §7: the welcome panel says once how many blocks the last upgrade cleared, then the count resets.
+    const cleared = st === 'welcome' ? clearedNote(s.world) : '';
+    if (cleared) queueMicrotask(() => store.update((d) => { if (d.world) d.world.cleared = 0; }));
+    panel.replaceChildren(...PANELS[st]({ state: s, go, store, explore: exploreCtx, cleared, onUpdate: (fn) => { panelUpdate = fn; },
       onTick: (fn) => { panelTick = fn; } }).filter(Boolean));
     panel.scrollTop = 0;
     startAnimation(s);

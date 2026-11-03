@@ -15,6 +15,7 @@ import { createLocalAdapter } from './persistence/local.js';
 import { selectProvider, chooseMode } from './accounts/provider.js';
 import { applySettings } from './ui/portfolio/settings.js';
 import { renderRelocationBar } from './ui/relocationBar.js';
+import { renderUpgradeBar } from './ui/upgradeBar.js';
 
 registerScreen('login', () => import('./accounts/ui/login.js'));
 registerScreen('intake', () => import('./phases/intake/intakeScreen.js'));
@@ -111,7 +112,7 @@ async function boot() {
         onSave: () => persistence.saveNow('manual-save') });
       clear(root);
       // Looking for a new place from Live (task 58): the bar with "Cancel and go home" sits above Plan and Paperwork.
-      root.append(...[header, renderRelocationBar(store), main].filter(Boolean));
+      root.append(...[header, renderRelocationBar(store), renderUpgradeBar(store), main].filter(Boolean));
       await renderPhase(main, ctx);
     };
     applySettings(state.settings, { themeOverride });

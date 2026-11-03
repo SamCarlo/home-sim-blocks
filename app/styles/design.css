@@ -216,3 +216,7 @@
 @media (max-width: 899px) {
   .dz.bp-split { grid-template-columns: 1fr; }
 }
+
+/* Blocks task 20: upgrade mode (phases/design/upgradePicker.js). */
+.dz-upgrade-card { margin: auto; max-width: 28rem; padding: var(--sp-5); display: grid; gap: var(--sp-2); }
+.dz-upgrade .dz-stage:has(.dz-upgrade-card) { display: grid; place-items: center; }
