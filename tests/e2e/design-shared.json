@@ -13,7 +13,7 @@
  {"eval": "({info: window.__design.info(), sel: window.__design.sel})"},
  {"shot": "tools/shots/t38/4-shared-room.png"},
  {"click": ".dz-movein"},
- {"waitFor": ".placeholder .phase-tag"},
+ {"waitFor": "[data-stage]"},
  {"waitReady": true},
  {"assert": "(s => s.phase === 'life' && s.home.kind === 'shared' && s.home.shared.houseIndex === 1 && s.home.shared.roomId && s.home.shared.roommates.length === 2 && s.home.shared.roommates.every(r => r.name && r.age >= 19 && r.age <= 35 && r.traits.length === 4) && s.home.plants.length === 2 && typeof s.home.lifestyle.social === 'number' && typeof s.home.lifestyle.choresHours === 'number' && s.life.monthIndex === 0 && s.life.current.stage === 'welcome' && s.finances.transactions.some(t => t.label === 'Potted plants (2)' && t.month === -1))(window.__homesim.getState())"},
  {"eval": "(s => ({home: s.home}))(window.__homesim.getState())"}

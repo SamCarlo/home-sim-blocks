@@ -2719,3 +2719,49 @@ each logs here under `## Blocks NN: <title>`.
 - Notes for later: the leak/a11y/perf/reduced-motion scripts are not in check.sh (WebGL-heavy, ~1 min each); run them before a review. In shoot
   steps, wait ≥ 1 s after key presses in Explore (SwiftShader frames are ~300 ms). Modal Tab presses from shoot don't always land on the Explore
   item, so the a11y script focuses it before pressing Enter.
+
+## Blocks 23: End-to-end playthroughs for the Block Edition
+- attempt started 2026-11-02T16:28:36-10:00
+- done 2026-11-02T16:56:15-10:00
+- Files: tools/e2e/genPlaythroughs.mjs (exploreBuild for every `build()` play, `upgradeHouse`/`renovate` AFTER steps, plays
+  play-upgrade-katy + play-upgrade-pahoa-build, final shot per play, relocate's post-reload checklist click now retries),
+  tools/shoot.mjs (new `{"reload": true}` step: reloads the current URL with its query), tests/e2e/play-*.json (regenerated,
+  8 plays), tests/e2e/design-{apartment,house,shared}.json + renter-apartment.json (fixed, not deleted), CLAUDE.md.
+- Plays (`npm run test:e2e`, two browsers at a time, 8/8 ✓; total ≈ 3 min 20 s wall):
+  | play | time |
+  |---|---|
+  | play-apartment-hilo | 49 s |
+  | play-build-pahoa | 41 s |
+  | play-condo-miami | 68 s |
+  | play-house-katy | 41 s |
+  | play-relocate-hilo | 49 s |
+  | play-shared-honolulu | 55 s |
+  | play-upgrade-katy | 43 s |
+  | play-upgrade-pahoa-build | 41 s |
+  Every `build()` play (all five home types plus the two new ones): at the January welcome, My home → Explore → place one block
+  on the property → Esc → `world.editCount === 1` with a pose → reload → the same block id in the same cell. play-upgrade-katy:
+  Katy house with no extras → block → Upgrade +1 garden bed + coop → charged exactly the quote, block survives a reload → March.
+  play-upgrade-pahoa-build: block → Renovate (add a 10 × 10 bedroom with door + window, $41,975 work + $1,500 permit = $43,475
+  charged) → beds +1, rooms 6 → 7 → March. Savings raised to $210,000 for this play so the room fits (the plain build play keeps
+  $160,000).
+- Stale classic scripts: fixed all four rather than deleting (they assert details the plays don't: listing swatches, coop price,
+  lease read-only view). `.placeholder .phase-tag` → `[data-stage]`; renter-apartment's `.pw-dev-done` → accept the card offer
+  for real. All four ✓ on their seeds (design-apartment-hilo, design-house-katy, design-shared-honolulu, paperwork-apartment-start).
+- Emulator: `mise exec java@temurin-21 -- npm run test:e2e:emulator` ✓ (play-apartment-hilo on `?emulator=1`, 39 s). The first try
+  failed because the block check reloaded with `goto /index.html?speed=…`, dropping `?emulator=1` (local mode, no session); the new
+  `reload` step keeps the query, so the v3 save with one edit now round-trips through the Firestore emulator.
+- Flake fixed: play-relocate-hilo failed once under the parallel run (`waitStep('renters-insurance')` false): right after the
+  mid-paperwork reload the single click on the next checklist item could land while the list re-rendered. Now an assert clicks
+  until the step is active (3/3 alone, then ✓ in the full run).
+- Verified: `npm run test:e2e` 8/8; emulator ✓; `bash tools/check.sh` OK. Shots (tools/shots/b23/, all Read):
+  - play-{apartment-hilo,shared-honolulu,condo-miami,house-katy,build-pahoa,upgrade-katy,upgrade-pahoa-build}-final.png: "Welcome to
+    April, 2033." after March, wellbeing card, money bar, block world of that home (Hilo walk-up, Honolulu tower block, Miami towers,
+    Katy hip-roof house, Pāhoa build). The renovated Pāhoa house has the extra wing on the left; no overlaps or console errors.
+  - play-upgrade-pahoa-build-1-renovate.png: "Renovate your house", $43,475 (work $41,975 + permit $1,500), Bedroom 3 selected
+    left of the living room, "Cash after $31,663".
+  - play-relocate-hilo's final shot is t58's move-3-new-home (unchanged play).
+  - *-explore.png: first person right after placing; at Katy the view ends up close to a wall (the last aim), still shows the
+    hotbar and the placed block corner. Fine for a check shot, not a showcase.
+- Deviations: none.
+- Notes for later: `{"reload": true}` is the way to reload in any e2e that might run under `?emulator=1`. The renovate moves only work
+  after `.bp-fit` (the added room spawns at the lot corner, off screen at the editor's default zoom in a fresh play).

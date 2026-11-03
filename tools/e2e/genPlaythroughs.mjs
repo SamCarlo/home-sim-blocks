@@ -3,6 +3,8 @@
 // letter when the draw denies) → design → 3 months of life at ?speed=20&care=hit → summary.
 // Task 58 adds play-relocate-hilo: a Hilo apartment, two months, "Find a new place to live" (with reloads in the middle),
 // a shared room, and life carrying on in March.
+// Blocks task 23: every play also opens Explore once, places a block, closes, reloads and checks the block is still
+// there (exploreBuild); play-upgrade-katy upgrades the house after building and play-upgrade-pahoa-build renovates a room.
 // Run: node tools/e2e/genPlaythroughs.mjs   (then npm run test:e2e). Edit this file, not the JSON it writes.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -24,6 +26,11 @@ export const PLAYS = [
   { file: 'play-condo-miami', user: 'playcondo', loc: 'miami', type: 'condo', income: '9,500', savings: '140,000', seed: 5 },
   { file: 'play-house-katy', user: 'playhouse', loc: 'katy', type: 'house', income: '8,500', savings: '110,000', seed: 5 },
   { file: 'play-build-pahoa', user: 'playbuild', loc: 'pahoa', type: 'build', income: '9,500', savings: '160,000', seed: 5 },
+  // Blocks task 23: build in the block world, then upgrade (house) or renovate (build), then live to March.
+  { file: 'play-upgrade-katy', user: 'playupkaty', loc: 'katy', type: 'house', income: '8,500', savings: '110,000', seed: 5,
+    design: 'houseBasic', after: 'upgradeHouse' },
+  { file: 'play-upgrade-pahoa-build', user: 'playreno', loc: 'pahoa', type: 'build', income: '9,500', savings: '210,000',
+    seed: 5, after: 'renovate' },
 ];
 
 const register = (user) => [
@@ -185,6 +192,7 @@ const DESIGN = {
     { waitFor: '.dz-bcard' }, { click: '.dz-bcard[data-index="2"]' }, { wait: 400 },
     { click: '.dz-beds-add' }, { click: '.dz-trees-add' }, { click: '.dz-coop' },
   ],
+  houseBasic: [{ waitFor: '.dz-bcard' }, { click: '.dz-bcard[data-index="2"]' }, { wait: 400 }],
   build: [
     { waitFor: '.bp-template-cozy' }, { click: '.bp-template-cozy' }, { wait: 300 }, { assert: `window.__blueprint.result().errors.length === 0` },
   ],
@@ -193,7 +201,7 @@ const DESIGN = {
 const design = (p, shot, monthIndex = 0) => [
   { waitReady: true },
   { assert: `${S('.phase')} === 'design'` },
-  ...DESIGN[p.type],
+  ...DESIGN[p.design ?? p.type],
   { wait: 400 },
   ...(shot ? [{ shot }] : []),
   { assert: `!document.querySelector('.dz-movein').disabled` },
@@ -228,6 +236,91 @@ const summary = (shotDir) => [
   { eval: `(s => ({ home: s.home.label, cash: s.finances.checkingCents + s.finances.savingsCents, score: s.finances.credit.score, months: s.life.history.length }))(${S('')})` },
 ];
 
+const RELOAD_LIVE = () => [{ reload: true }, { waitReady: true }, { eval: HELPER },
+  { waitFor: 'body[data-ready="1"] [data-stage=welcome] .life-home' }, { waitFor: 'body[data-ready="1"] .life-stage canvas' },
+  { assert: `(async () => { for (let i = 0; i < 100 && !window.__life?.view()?.scene?.world; i++) await new Promise((r) => setTimeout(r, 100)); return !!window.__life.view().scene.world; })()` }];
+const BLOCK_THERE = `(b => b && b.id !== 0 && window.__life.view().scene.world.getBlock(b.x, b.y, b.z) === b.id)(JSON.parse(sessionStorage.getItem('play-block')))`;
+const openExplore = [{ click: '.life-home' }, { waitFor: '.life-explore-open:not([disabled])' }, { click: '.life-explore-open' },
+  { waitFor: '.life-explore .life-hotbar' }, { wait: 300 },
+  { eval: `(b => { if (b) b.click(); return !!b; })(document.querySelector('.life-explore-gotit'))` }];
+// From where Explore starts, try floor cells 2–4.5 blocks away on the player's property (farthest first: the ray clips
+// near blocks) until one placement is allowed; remember the cell and block id for after the reload.
+const PLACE = `(() => { const e = window.__explore, v = window.__life.view(), w = v.scene.world; const p0 = e.pose(); const boxes = v.contract.property;
+  const inside = (x, z) => boxes.some((b) => x >= b.x0 && x <= b.x1 && z >= b.z0 && z <= b.z1); const cands = [];
+  for (let dx = -4; dx <= 4; dx++) for (let dz = -4; dz <= 4; dz++) { const x = Math.floor(p0.x) + dx, z = Math.floor(p0.z) + dz, d = Math.hypot(dx, dz);
+    if (d < 2 || d > 4.5 || !inside(x, z)) continue;
+    for (let y = Math.floor(p0.y) + 1; y >= Math.floor(p0.y) - 1; y--) if (w.getBlock(x, y, z) === 0 && w.getBlock(x, y - 1, z) !== 0) { cands.push({ x, y, z, d }); break; } }
+  cands.sort((a, b) => b.d - a.d);
+  for (const k of cands) { e.aimAt(k.x + 0.5, k.y, k.z + 0.5); const r = e.placeBlock(); if (r.ok) { const b = { ...r.cell, id: w.getBlock(r.cell.x, r.cell.y, r.cell.z) };
+    sessionStorage.setItem('play-block', JSON.stringify(b)); return { ...b, tried: cands.indexOf(k) + 1 }; } }
+  return { failed: cands.length }; })()`.replace(/\n\s*/g, ' ');
+
+/** Blocks task 23: open Explore once, place one block, close, reload, and the block is still there (13 §7). */
+const exploreBuild = (shot) => [
+  { waitFor: 'body[data-ready="1"] [data-stage=welcome] .life-home' },
+  ...openExplore,
+  { eval: PLACE },
+  { assert: `!!sessionStorage.getItem('play-block') && window.__explore.edits().size === 1` },
+  ...(shot ? [{ wait: 800 }, { shot }] : []),
+  { press: 'Escape' },
+  { waitFor: 'body:not([data-explore])' },
+  { assert: `${S('.world?.editCount')} === 1 && !!${S('.world.pose')}` },
+  ...RELOAD_LIVE(),
+  { assert: BLOCK_THERE },
+  { assert: `${S('.world.editCount')} === 1 && ${S('.phase')} === 'life'` },
+];
+
+/** play-upgrade-katy: My home → Upgrade → +1 garden bed + coop → charged once, the block survives. */
+const upgradeHouse = (shot) => [
+  { eval: `window.__cash0 = ${S('.finances.checkingCents')} + ${S('.finances.savingsCents')}; window.__cash0` },
+  { click: '.life-home' }, { waitFor: '.life-home-menu .life-upgrade:not([disabled])' }, { click: '.life-upgrade' },
+  { waitFor: '.upgrade-bar' }, { waitReady: true },
+  { assert: `${S('.phase')} === 'design' && !!${S('.upgrade')}` },
+  { click: '.dz-beds-add' }, { click: '.dz-coop' }, { wait: 300 },
+  { eval: `window.__q = window.__design.quote(); window.__q.deltaCents` },
+  { assert: `window.__q.deltaCents > 0 && window.__q.lines.length === 2` },
+  ...(shot ? [{ shot: `${shot}-1-upgrade.png` }] : []),
+  { click: '.dz-upgrade-go' },
+  { waitFor: 'body[data-ready="1"] [data-stage=welcome] .life-home' },
+  { assert: `${S('.phase')} === 'life' && ${S('.upgrade')} === null && ${S('.home.house.coop')} === true` },
+  { assert: `window.__cash0 - (${S('.finances.checkingCents')} + ${S('.finances.savingsCents')}) === window.__q.deltaCents` },
+  { assert: `${S('.world.editCount')} === 1` },
+  ...RELOAD_LIVE(),
+  { assert: BLOCK_THERE },
+];
+
+/** play-upgrade-pahoa-build: My home → Upgrade → the blueprint editor → add a bedroom with a door and window → Renovate
+ *  (same moves as tests/e2e/blocks-upgrade-build.json on the Cozy template). */
+const renovate = (shot) => [
+  { eval: `window.__cash0 = ${S('.finances.checkingCents')} + ${S('.finances.savingsCents')}; window.__beds0 = ${S('.home.build.beds')}; window.__rooms0 = ${S('.home.blueprint.rooms.length')}; ({cash: window.__cash0, beds: window.__beds0, rooms: window.__rooms0})` },
+  { click: '.life-home' }, { waitFor: '.life-home-menu .life-upgrade:not([disabled])' }, { click: '.life-upgrade' },
+  { waitFor: '.upgrade-bar' }, { waitReady: true }, { waitFor: '.bp-renovate' },
+  { assert: `${S('.phase')} === 'design' && document.querySelector('.bp-renovate').disabled` },
+  { eval: "window.__drag = (start, end, steps = 6) => { const at = (p) => window.__blueprint.toClient(p.x, p.y); const a = at(start); const b = at(end); const ev = (type, x, y) => new PointerEvent(type, {bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0, pointerId: 1, isPrimary: true}); document.elementFromPoint(a.x, a.y).dispatchEvent(ev('pointerdown', a.x, a.y)); for (let i = 1; i <= steps; i++) window.dispatchEvent(ev('pointermove', a.x + (b.x - a.x) * i / steps, a.y + (b.y - a.y) * i / steps)); window.dispatchEvent(ev('pointerup', b.x, b.y)); return true; }; window.__tap = (p) => { const a = window.__blueprint.toClient(p.x, p.y); const ev = (type) => new PointerEvent(type, {bubbles: true, cancelable: true, clientX: a.x, clientY: a.y, button: 0, pointerId: 1, isPrimary: true}); document.elementFromPoint(a.x, a.y).dispatchEvent(ev('pointerdown')); window.dispatchEvent(ev('pointerup')); return true; }; true" },
+  { click: '.bp-add' },
+  // The new room lands at the lot's corner, off screen at the editor's zoom: fit the lot so the drag can grab it.
+  { click: '.bp-fit' }, { eval: 'window.scrollTo(0, 0); true' }, { wait: 300 },
+  { eval: `window.__new = window.__blueprint.bp.rooms.at(-1).id; window.__drag({x: window.__blueprint.bp.rooms.at(-1).x + 5, y: window.__blueprint.bp.rooms.at(-1).y + 5}, {x: 57, y: 27})` },
+  { assert: `(r => r.type === 'bedroom' && r.x === 52 && r.y === 22)(window.__blueprint.bp.rooms.find((x) => x.id === window.__new))` },
+  { click: '.bp-tool-door' }, { eval: 'window.__tap({x: 62, y: 28})' },
+  { click: '.bp-tool-window' }, { eval: 'window.__tap({x: 52, y: 27})' },
+  { click: '.bp-tool-select' },
+  { assert: `window.__blueprint.result().errors.length === 0 && !document.querySelector('.bp-renovate').disabled` },
+  { eval: `window.__q = window.__blueprint.quote(); ({work: window.__q.workCents, permit: window.__q.permitCents, total: window.__q.deltaCents})` },
+  ...(shot ? [{ eval: `document.querySelectorAll('.dz-panel, .dz-panel-body').forEach((el) => { el.scrollTop = 0; }); window.scrollTo(0, 0); true` },
+    { wait: 1200 }, { shot: `${shot}-1-renovate.png` }] : []),
+  { click: '.bp-renovate' },
+  { waitFor: 'body[data-ready="1"] [data-stage=welcome] .life-home' },
+  { assert: `${S('.phase')} === 'life' && ${S('.upgrade')} === null` },
+  { assert: `window.__cash0 - (${S('.finances.checkingCents')} + ${S('.finances.savingsCents')}) === window.__q.deltaCents` },
+  { assert: `${S('.home.build.beds')} === window.__beds0 + 1 && ${S('.home.blueprint.rooms.length')} === window.__rooms0 + 1` },
+  // The renovation may clear the test block if the new room lands on it; then the welcome panel says so.
+  { assert: `${S('.world.editCount')} === 1 || /cleared 1 of/.test(document.querySelector('.life-cleared')?.textContent ?? '')` },
+  ...RELOAD_LIVE(),
+  { assert: `${S('.world.editCount')} === 0 || ${BLOCK_THERE}` },
+];
+const AFTER = { upgradeHouse, renovate };
+
 /** All steps of one playthrough. */
 export function build(p) {
   const d = p.shots;
@@ -239,8 +332,10 @@ export function build(p) {
   }
   steps.push(...paperwork(p, true, d), ...results(true, d && `${d}-4-results.png`));
   steps.push(...design(p, d && `${d}-4b-design.png`));
+  steps.push(...exploreBuild(`tools/shots/b23/${p.file}-explore.png`));
+  if (p.after) steps.push(...AFTER[p.after](`tools/shots/b23/${p.file}`));
   for (let i = 0; i < 3; i++) steps.push(...month(i, d));
-  steps.push(...summary(d));
+  steps.push(...summary(d), { shot: `tools/shots/b23/${p.file}-final.png` });
   return steps;
 }
 
@@ -284,7 +379,8 @@ export function buildRelocate(p) {
       ...RELOAD, { waitFor: '.pw-item.is-active' },
       { assert: `document.querySelector('.pw-item.is-active').dataset.step === '${ids[0]}'` },
       { assert: `!!document.querySelector('.reloc-bar') && /Moving out/.test(document.querySelector('.reloc-bar').textContent)` },
-      { click: `.pw-item[data-step=${ids[2]}]` });
+      // Right after a reload the checklist can re-render under a single click (flaky under load): retry until active.
+      { assert: `(async () => { for (let i = 0; i < 40; i++) { if (window.__play.active() === '${ids[2]}') return true; document.querySelector('.pw-item[data-step=${ids[2]}]')?.click(); await window.__play.sleep(250); } return false; })()` });
   });
   steps.push(...results(true, d && `${d}-2-results.png`));
   steps.push({ assert: `${S('.relocation.movedOut')} === true && !document.querySelector('.reloc-bar')` },

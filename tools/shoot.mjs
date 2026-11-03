@@ -147,6 +147,12 @@ async function runStep(page, env, step, log) {
   const arg = step[kind];
   switch (kind) {
     case 'goto': return gotoPath(page, env, arg, opts.waitReady);
+    case 'reload': { // {"reload": true} reloads the current URL, query included (e2e under ?emulator=1 keeps it)
+      const loaded = page.nextLoad(opts.timeout);
+      await page.send('Page.reload', {});
+      await loaded;
+      return opts.waitReady ? waitReadyFlag(page) : undefined;
+    }
     case 'wait': return sleep(Number(arg));
     case 'waitFor': return poll(page, `!!document.querySelector(${JSON.stringify(arg)})`, arg);
     case 'waitReady': return waitReadyFlag(page);

@@ -582,7 +582,7 @@
   "assert": "!!document.querySelector('.reloc-bar') && /Moving out/.test(document.querySelector('.reloc-bar').textContent)"
  },
  {
-  "click": ".pw-item[data-step=renters-insurance]"
+  "assert": "(async () => { for (let i = 0; i < 40; i++) { if (window.__play.active() === 'renters-insurance') return true; document.querySelector('.pw-item[data-step=renters-insurance]')?.click(); await window.__play.sleep(250); } return false; })()"
  },
  {
   "assert": "window.__play.waitStep('renters-insurance')"

@@ -16,7 +16,7 @@
  {"eval": "({info: window.__design.info(), sel: window.__design.sel})"},
  {"shot": "tools/shots/t38/2-house-custom.png"},
  {"click": ".dz-movein"},
- {"waitFor": ".placeholder .phase-tag"},
+ {"waitFor": "[data-stage]"},
  {"waitReady": true},
  {"assert": "(s => s.phase === 'life' && s.home.kind === 'house' && s.home.house.listingIndex === 2 && s.home.house.palette === 1 && s.home.house.quirk && s.home.house.address && s.home.plants.length === 3 && s.home.animals.length === 4 && s.home.animals[0].kind === 'dog' && s.home.lifestyle && s.home.modifiers && s.life.monthIndex === 0 && s.life.current.stage === 'welcome' && s.finances.transactions.some(t => t.label === 'Chicken coop and 3 hens' && t.month === -1 && t.amountCents === -40000))(window.__homesim.getState())"},
  {"eval": "(s => ({cash: s.finances.checkingCents + s.finances.savingsCents, home: s.home}))(window.__homesim.getState())"}

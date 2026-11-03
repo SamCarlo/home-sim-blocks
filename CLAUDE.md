@@ -21,10 +21,16 @@ changing rules, adding a location). Keep their commands, labels and paths true w
 - Contrast: `node tools/contrast.mjs [--quiet]` checks every text/background token pair in tokens.css (+ life.css time-budget
   ink) in both themes against WCAG AA. Add a pair to its `PAIRS` when you add a text or surface token.
 - Shoot: `node tools/shoot.mjs --path /index.html --out tools/shots/x.png --wait-ready` (see Verification below)
-- Playthroughs: `npm run test:e2e` (~2 min) runs `tests/e2e/play-{apartment-hilo,shared-honolulu,condo-miami,house-katy,build-pahoa}.json`
+- Playthroughs: `npm run test:e2e` (~4 min) runs `tests/e2e/play-{apartment-hilo,shared-honolulu,condo-miami,house-katy,build-pahoa}.json`
   (register → intake → cell → every paperwork step → results → design → 3 months at `?speed=20&care=hit` → summary)
   plus `play-relocate-hilo.json` (task 58: apartment → 2 months → Save → *Find a new place* → reloads mid-search and
-  mid-paperwork → shared room → March; `buildRelocate` in the generator), two
+  mid-paperwork → shared room → March; `buildRelocate` in the generator). Blocks task 23: every `build()` play also opens
+  Explore once at the first welcome, places one block (`PLACE` tries floor cells 2–4.5 away on `contract.property`),
+  closes, reloads (`{"reload": true}`, a shoot.mjs step that keeps the query, so `?emulator=1` survives) and checks the
+  block; `play-upgrade-katy` (house without extras → block → My home → Upgrade +1 bed + coop → charged once, block kept)
+  and `play-upgrade-pahoa-build` (block → Renovate: add a bedroom, same moves as blocks-upgrade-build, after `.bp-fit`
+  because the new room spawns off screen) then live to March. Final shots → `tools/shots/b23/<play>-final.png`. 8 plays,
+  ~4 min, two
   browsers at a time; `--only <name>` runs one. The JSON is generated: edit `tools/e2e/genPlaythroughs.mjs` and rerun
   `node tools/e2e/genPlaythroughs.mjs`. Each play fixes `meta.seed` right after intake, so draws are stable; the apartment
   sends a weak cover letter first (seed 7 → denied), then retries with `SAMPLE_LETTERS`. Forms are filled by
@@ -931,8 +937,8 @@ shows "3 of 8 required done". `readOnly` renders values as text (the portfolio's
 - **Save and resume**: header `onSave` → `.header-save` (`persistence.saveNow('manual-save')`, shows "Saved" for 1.5 s).
   Paperwork remembers `paperwork.activeStep` (reopened unless locked); the apartment/house/shared pickers keep their
   selection in `home.pickDraft` via `pickerParts.js` `savedPick(state, defaults, valid)` / `rememberPick(store, sel)`.
-- Older e2e scripts `design-{apartment,house,shared}.json` and `renter-apartment.json` already failed before task 58 (they
-  wait for placeholders that later tasks replaced: `.placeholder .phase-tag`, `.pw-dev-done`).
+- `design-{apartment,house,shared}.json` and `renter-apartment.json` were stale (waited for `.placeholder .phase-tag` /
+  `.pw-dev-done`); fixed in blocks task 23 (`[data-stage]`, and the card offer is filled for real). All four pass again.
 
 ## Current status
 All 57 build tasks are done (2026-10-03), plus task 58 (moving and the year fast-forward, same day). Every requirement R1–R40 in `docs/spec/99-original-request.md` §3 is verified

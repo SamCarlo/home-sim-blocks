@@ -264,7 +264,28 @@
   "assert": "document.querySelector('.pw-item.is-active').dataset.step === 'credit-card-offer'"
  },
  {
-  "click": ".pw-dev-done"
+  "eval": "document.querySelector('[data-field=decision] input[value=\"accept\"]').click()"
+ },
+ {
+  "wait": 200
+ },
+ {
+  "eval": "document.querySelector('[data-field=auth] input[type=checkbox]').click()"
+ },
+ {
+  "click": "[data-field=signature] input"
+ },
+ {
+  "type": [
+   "[data-field=signature] input",
+   "Kai Mana"
+  ]
+ },
+ {
+  "click": ".fm-actions button[type=submit]"
+ },
+ {
+  "wait": 600
  },
  {
   "wait": 150
